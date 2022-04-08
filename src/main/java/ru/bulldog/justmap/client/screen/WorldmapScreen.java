@@ -145,7 +145,7 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 	}
 
 	private void addMapButtons() {
-		this.addDrawableChild(new ButtonWidget(width - 24, 10, 20, 20, new LiteralText("x"), (b) -> onClose()));
+		this.addDrawableChild(new ButtonWidget(width - 24, 10, 20, 20, new LiteralText("x"), (b) -> close()));
 		this.addDrawableChild(new ButtonWidget(width / 2 - 10, height - paddingBottom - 44, 20, 20, new LiteralText("\u2191"), (b) -> moveMap(Direction.NORTH)));
 		this.addDrawableChild(new ButtonWidget(width / 2 - 10, height - paddingBottom - 22, 20, 20, new LiteralText("\u2193"), (b) -> moveMap(Direction.SOUTH)));
 		this.addDrawableChild(new ButtonWidget(width / 2 - 32, height - paddingBottom - 32, 20, 20, new LiteralText("\u2190"), (b) -> moveMap(Direction.WEST)));
@@ -318,7 +318,7 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 		  		this.setCenterByPlayer();
 		  		return true;
 		  	case GLFW.GLFW_KEY_M:
-		  		this.onClose();
+		  		this.close();
 		  		return true;
 		  	default:
 		  		return super.keyPressed(keyCode, scanCode, modifiers);

@@ -67,7 +67,7 @@ public class ColorProviders implements ColorProvider {
 				int bx = pos.getX() >> 2;
 				int by = pos.getY() >> 2;
 				int bz = pos.getZ() >> 2;
-				Biome biome = chunk.getBiomeForNoiseGen(bx, by, bz);
+				Biome biome = chunk.getBiomeForNoiseGen(bx, by, bz).value();
 				return this.colorPalette.getGrassColor(world, biome, pos.getX(), pos.getZ());
 			}
 		}
@@ -81,7 +81,7 @@ public class ColorProviders implements ColorProvider {
 				int bx = pos.getX() >> 2;
 				int by = pos.getY() >> 2;
 				int bz = pos.getZ() >> 2;
-				Biome biome = chunk.getBiomeForNoiseGen(bx, by, bz);
+				Biome biome = chunk.getBiomeForNoiseGen(bx, by, bz).value();
 				return this.colorPalette.getFoliageColor(world, biome);
 			}
 		}
@@ -95,7 +95,7 @@ public class ColorProviders implements ColorProvider {
 				int bx = pos.getX() >> 2;
 				int by = pos.getY() >> 2;
 				int bz = pos.getZ() >> 2;
-				Biome biome = chunk.getBiomeForNoiseGen(bx, by, bz);
+				Biome biome = chunk.getBiomeForNoiseGen(bx, by, bz).value();
 				return this.colorPalette.getWaterColor(world, biome);
 			}
 		}

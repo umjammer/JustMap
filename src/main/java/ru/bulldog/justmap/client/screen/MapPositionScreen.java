@@ -31,7 +31,7 @@ public class MapPositionScreen extends Screen {
 		int posY = height - 60;
 		this.addDrawableChild(new ButtonWidget(posX - 125, posY, 80, 20, LangUtil.getText("gui", "save"), button -> this.onSave()));
 		this.addDrawableChild(new ButtonWidget(posX - 40, posY, 80, 20, LangUtil.getText("gui", "reset"), button -> this.onReset()));
-		this.addDrawableChild(new ButtonWidget(posX + 45, posY, 80, 20, LangUtil.getText("gui", "cancel"), button -> this.onClose()));
+		this.addDrawableChild(new ButtonWidget(posX + 45, posY, 80, 20, LangUtil.getText("gui", "cancel"), button -> this.close()));
 		this.mapHolder = this.addDrawable(new MinimapWidget(this, JustMapClient.getMiniMap()));
 	}
 
@@ -45,7 +45,7 @@ public class MapPositionScreen extends Screen {
 		config.setInt("map_position_x", mapHolder.getX());
 		config.setInt("map_position_y", mapHolder.getY());
 		config.saveChanges();
-		this.onClose();
+		this.close();
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class MapPositionScreen extends Screen {
 	}
 
 	@Override
-	public void onClose() {
+	public void close() {
 		this.client.setScreen(parent);
 	}
 }

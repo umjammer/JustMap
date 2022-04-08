@@ -165,11 +165,11 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		ey = height - (ROW_HEIGHT / 2 + 16);
 		ButtonWidget saveButton = new ButtonWidget(center - ew - 2, ey, ew, ROW_HEIGHT, lang("save"), (b) -> {
 			save();
-			onClose();
+			close();
 		});
 		children.add(saveButton);
 
-		ButtonWidget cancelButton = new ButtonWidget(center + 2, ey, ew, ROW_HEIGHT, lang("cancel"), (b) -> onClose());
+		ButtonWidget cancelButton = new ButtonWidget(center + 2, ey, ew, ROW_HEIGHT, lang("cancel"), (b) -> close());
 		children.add(cancelButton);
 
 		this.setInitialFocus(nameField);
@@ -228,7 +228,7 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 	}
 
 	@Override
-	public void onClose() {
+	public void close() {
 		this.client.setScreen(parent);
 	}
 
@@ -282,7 +282,7 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 	public boolean keyPressed(int int_1, int int_2, int int_3) {
 		if (int_1 == GLFW.GLFW_KEY_ENTER) {
 			this.save();
-			this.onClose();
+			this.close();
 			return true;
 		}
 		return super.keyPressed(int_1, int_2, int_3);

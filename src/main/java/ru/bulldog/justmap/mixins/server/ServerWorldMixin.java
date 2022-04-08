@@ -6,6 +6,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.profiler.Profiler;
+import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.MutableWorldProperties;
 import net.minecraft.world.World;
@@ -18,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ServerWorld.class)
 public abstract class ServerWorldMixin extends World {
 	protected ServerWorldMixin(MutableWorldProperties properties, RegistryKey<World> registryKey,
-			DimensionType dimensionType, Supplier<Profiler> supplier, boolean bl, boolean debugWorld, long l) {
+			RegistryEntry<DimensionType> dimensionType, Supplier<Profiler> supplier, boolean bl, boolean debugWorld, long l) {
 		super(properties, registryKey, dimensionType, supplier, bl, debugWorld, l);
 	}
 

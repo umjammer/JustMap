@@ -72,7 +72,7 @@ public abstract class AbstractJustMapScreen extends Screen {
 	public void renderForeground(MatrixStack matrixStack) {}
 
 	@Override
-	public void onClose() {
+	public void close() {
 		this.client.setScreen(parent);
 	}
 

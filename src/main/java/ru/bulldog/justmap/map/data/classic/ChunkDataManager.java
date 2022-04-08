@@ -37,7 +37,7 @@ class ChunkDataManager {
 	private final WorldChunk emptyChunk;
 
 	ChunkDataManager(WorldData data, World world) {
-		this.emptyChunk = new EmptyChunk(world, new ChunkPos(0, 0));
+		this.emptyChunk = new EmptyChunk(world, new ChunkPos(0, 0), null); // TODO null
 		this.mapData = data;
 	}
 

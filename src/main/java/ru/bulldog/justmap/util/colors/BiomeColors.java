@@ -29,7 +29,7 @@ public class BiomeColors {
 	private static int[] foliageMap;
 	private static int[] grassMap;
 
-	private static final DynamicRegistryManager registryManager = DynamicRegistryManager.create();
+	private static final DynamicRegistryManager registryManager = DynamicRegistryManager.createAndLoad();
 
 	private Biome biome;
 	private Optional<Integer> foliageColor;

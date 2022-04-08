@@ -66,7 +66,7 @@ public class WorldnameScreen extends Screen {
 		worldName = worldName.trim().replaceAll(" +", " ");
 		MapDataProvider.getMultiworldManager().setCurrentWorldName(worldName);
 		this.success = true;
-		this.onClose();
+		this.close();
 	}
 
 	@Override
@@ -103,7 +103,7 @@ public class WorldnameScreen extends Screen {
 	}
 
 	@Override
-	public void onClose() {
+	public void close() {
 		if (!success) {
 			MapDataProvider.getMultiworldManager().setCurrentWorldName("");
 		}
