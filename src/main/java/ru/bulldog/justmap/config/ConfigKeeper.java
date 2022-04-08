@@ -316,6 +316,10 @@ public final class ConfigKeeper {
 			this.setter.accept(value.compareTo(min) < 0 ? min : value.compareTo(max) > 0 ? max : value);
 		}
 
+        public void setValueCyclic(T value) {
+            this.setter.accept(value.compareTo(min) < 0 ? max : value.compareTo(max) > 0 ? min : value);
+        }
+
 		public T minValue() {
 			return this.min;
 		}

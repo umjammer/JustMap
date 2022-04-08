@@ -63,6 +63,16 @@ public abstract class Config {
 		}
 	}
 
+    public <T extends Comparable<T>> void setRangedCyclic(String key, T value) {
+        try {
+            RangeEntry<T> entry = KEEPER.getEntry(key);
+            entry.setValueCyclic(value);
+            KEEPER.set(key, entry);
+        } catch (NullPointerException | ClassCastException ex) {
+            JustMap.LOGGER.catching(ex);
+        }
+    }
+
 	public float getFloat(String key) {
 		Float val = KEEPER.getValue(key);
 		return val != null ? val : 0.0F;

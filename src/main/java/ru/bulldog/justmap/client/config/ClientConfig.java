@@ -122,7 +122,7 @@ public class ClientConfig extends Config {
 	}
 
 	public void updateMapScale(float value) {
-		this.setRanged("map_scale", this.getMapScale() * value);
+		this.setRangedCyclic("map_scale", this.getMapScale() * value);
 		this.saveChanges();
 	}
 
