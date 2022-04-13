@@ -3,9 +3,9 @@
     "id": "justmap",
     "version": "${version}",
     "name": "Just Map",
-    "description": "A minimap mod for Minecraft.",
+    "description": "A minimap/worldmap mod for Minecraft.",
     "authors": [
-        "Bulldog83"
+        "Bulldog83", "umjammer"
     ],
     "contact": {
         "sources": "https://github.com/Bulldog83/JustMap",
