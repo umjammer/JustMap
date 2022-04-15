@@ -285,7 +285,7 @@ public class ColorUtil {
 				return applyTint(color, BiomeColors.getWaterColor(world, pos));
 			}
 			return getBlockColorInner(world, Blocks.WATER.getDefaultState(), pos);
-		} else if (!BlockStateUtil.isAir(blockState) && BlockStateUtil.checkState(overState, skipWater, !ClientSettings.hidePlants)) {
+		} else if (!BlockStateUtil.isAir(blockState) && BlockStateUtil.isSkippedBlockState(overState, skipWater, !ClientSettings.hidePlants)) {
 			int color = getBlockColorInner(world, blockState, pos);
 			if (ClientSettings.hideWater) return color;
 			if (waterTint && (BlockStateUtil.isWater(overState) || BlockStateUtil.isWaterlogged(blockState))) {
@@ -297,7 +297,7 @@ public class ColorUtil {
 		return -1;
 	}
 
-	private static int getBlockColorInner(World world, BlockState blockState, BlockPos pos) {
+	public static int getBlockColorInner(World world, BlockState blockState, BlockPos pos) {
 		if (ClientSettings.alternateColorRender) {
 			return getAlternateBlockColor(world, blockState, pos);
 		} else {

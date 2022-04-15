@@ -1,5 +1,7 @@
 package ru.bulldog.justmap.map.data;
 
+import net.minecraft.util.math.ChunkPos;
+
 public class RegionPos {
 	public final int x;
 	public final int z;
@@ -7,6 +9,11 @@ public class RegionPos {
 	public RegionPos(int blockX, int blockZ) {
 		this.x = blockX >> 9;
 		this.z = blockZ >> 9;
+	}
+
+	public RegionPos(ChunkPos chunkPos) {
+		this.x = chunkPos.getRegionX();
+		this.z = chunkPos.getRegionZ();
 	}
 
 	@Override
