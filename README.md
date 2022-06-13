@@ -16,4 +16,4 @@ Translation via [Crowdin](https://crowdin.com/project/justmap)
  * fabric
  * [fabric-api-0.48.0+1.18.2](https://www.curseforge.com/minecraft/mc-mods/fabric-api)
  * [cloth-config-6.2.57-fabric](https://www.curseforge.com/minecraft/mc-mods/cloth-config)
- * [modmenu-3.0.1](https://www.curseforge.com/minecraft/mc-mods/modmenu)
+ * [modmenu-3.1.0](https://www.curseforge.com/minecraft/mc-mods/modmenu)
