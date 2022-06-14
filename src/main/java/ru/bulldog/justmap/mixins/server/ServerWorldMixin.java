@@ -18,9 +18,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerWorld.class)
 public abstract class ServerWorldMixin extends World {
-	protected ServerWorldMixin(MutableWorldProperties properties, RegistryKey<World> registryKey,
-			RegistryEntry<DimensionType> dimensionType, Supplier<Profiler> supplier, boolean bl, boolean debugWorld, long l) {
-		super(properties, registryKey, dimensionType, supplier, bl, debugWorld, l);
+
+	protected ServerWorldMixin(MutableWorldProperties properties,
+							   RegistryKey<World> registryRef,
+							   RegistryEntry<DimensionType> dimension,
+							   Supplier<Profiler> profiler,
+							   boolean isClient,
+							   boolean debugWorld,
+							   long seed,
+							   int maxChainedNeighborUpdates) {
+		super(properties, registryRef, dimension, profiler, isClient, debugWorld, seed, maxChainedNeighborUpdates);
 	}
 
 	@Inject(method = "onBlockChanged", at = @At("HEAD"))

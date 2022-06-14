@@ -3,7 +3,7 @@ package ru.bulldog.justmap.advancedinfo;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.Text;
 
 import ru.bulldog.justmap.enums.TextAlignment;
@@ -37,7 +37,7 @@ public abstract class InfoText {
 
 	public InfoText(TextAlignment alignment, String text, int color) {
 		this.alignment = alignment;
-		this.text = new LiteralText(text);
+		this.text = Text.literal(text);
 		this.color = color;
 	}
 
@@ -74,7 +74,7 @@ public abstract class InfoText {
 	}
 
 	public void setText(String text) {
-		this.text = new LiteralText(text);
+		this.text = Text.literal(text);
 	}
 
 	public InfoText setColor(int color) {

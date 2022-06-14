@@ -8,6 +8,7 @@ import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.RegistryKey;
@@ -109,7 +110,7 @@ public abstract class AbstractJustMapScreen extends Screen {
 	}
 
 	public Text lang(String key) {
-		return langUtil.getText(key);
+		return MutableText.of(langUtil.getText(key));
 	}
 
 	public Pair<String, Identifier> getDimensionInfo(Identifier dim) {

@@ -8,7 +8,8 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import me.shedaniel.clothconfig2.impl.builders.EnumSelectorBuilder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 
 import ru.bulldog.justmap.client.JustMapClient;
@@ -26,7 +27,7 @@ public final class ConfigFactory {
 	private final static ClientConfig modConfig = JustMapClient.getConfig();
 
 	private static Text lang(String key) {
-		return LangUtil.getText("configuration", key);
+		return MutableText.of(LangUtil.getText("configuration", key));
 	}
 
 	public static Screen getConfigScreen(Screen parent) {
@@ -37,7 +38,7 @@ public final class ConfigFactory {
 	}
 
 	private static ConfigBuilder getConfigBuilder() {
-		ConfigBuilder configBuilder = ConfigBuilder.create().setTitle(new LiteralText("Just Map Configuration"));
+		ConfigBuilder configBuilder = ConfigBuilder.create().setTitle(Text.literal("Just Map Configuration"));
 		ConfigEntryBuilder entryBuilder = ConfigEntryBuilder.create();
 
 		ConfigCategory general = configBuilder.getOrCreateCategory(lang("category.general"));

@@ -2,7 +2,6 @@ package ru.bulldog.justmap.util.colors;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -31,6 +30,7 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 
@@ -204,7 +204,7 @@ public class ColorUtil {
 	}
 
 	private static int extractColor(BlockState state) {
-		List<BakedQuad> quads = blockModels.getModel(state).getQuads(state, Direction.UP, new Random());
+		List<BakedQuad> quads = blockModels.getModel(state).getQuads(state, Direction.UP, Random.create());
 
 		Identifier blockSprite;
 		if (quads.size() > 0) {

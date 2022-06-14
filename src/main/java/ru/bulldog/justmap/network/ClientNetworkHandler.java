@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.c2s.play.CustomPayloadC2SPacket;
 import net.minecraft.util.math.ChunkPos;
@@ -20,24 +21,24 @@ public class ClientNetworkHandler extends NetworkHandler {
 	private Random random;
 
 	public void registerPacketsListeners() {
-		clientPacketRegistry.register(INIT_PACKET_ID, (context, data) -> {
-			long seed = data.readLong();
+		ClientPlayNetworking.registerGlobalReceiver(INIT_PACKET_ID, (client, handler, buf, responseSender) -> {
+			long seed = buf.readLong();
 			this.random = new Random(seed);
 			this.serverReady = true;
 			JustMap.LOGGER.info("Networking successfully initialized.");
 		});
-		clientPacketRegistry.register(CHANNEL_ID, (context, data) -> {
-			ByteBuf packetData = data.copy();
-			PacketType packet_type = PacketType.get(packetData.readByte());
-			switch(packet_type) {
-				case SLIME_CHUNK_PACKET: {
-					context.getTaskQueue().execute(() -> this.onChunkHasSlimeResponse(packetData));
-					break;
-				}
-				case GET_IMAGE_PACKET: {
-					context.getTaskQueue().execute(() -> this.onRegionImageResponse(packetData));
-					break;
-				}
+		ClientPlayNetworking.registerGlobalReceiver(CHANNEL_ID, (client, handler, buf, responseSender) -> {
+			ByteBuf packetData = buf.copy();
+			PacketType packetType = PacketType.get(packetData.readByte());
+			switch (packetType) {
+			case SLIME_CHUNK_PACKET: {
+				client.execute(() -> this.onChunkHasSlimeResponse(packetData));
+				break;
+			}
+			case GET_IMAGE_PACKET: {
+				client.execute(() -> this.onRegionImageResponse(packetData));
+				break;
+			}
 			}
 		});
 	}
@@ -55,11 +56,7 @@ public class ClientNetworkHandler extends NetworkHandler {
 		data.writeInt(chunkPos.x);
 		data.writeInt(chunkPos.z);
 		CustomPayloadC2SPacket packet = new CustomPayloadC2SPacket(CHANNEL_ID, data);
-		this.sendToServer(packet, result -> {
-			if (!result.isSuccess()) {
-				this.responseListeners.remove(packet_id);
-			}
-		});
+		this.sendToServer(packet);
 	}
 
 	private void onChunkHasSlimeResponse(ByteBuf data) {

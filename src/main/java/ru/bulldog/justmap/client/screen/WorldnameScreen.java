@@ -7,7 +7,8 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
@@ -20,7 +21,7 @@ import ru.bulldog.justmap.util.render.RenderUtil;
 
 public class WorldnameScreen extends Screen {
 
-	private final static Text TITLE = LangUtil.getText("gui", "screen.worldname");
+	private final static Text TITLE = MutableText.of(LangUtil.getText("gui", "screen.worldname"));
 	private final static Identifier FRAME_TEXTURE = new Identifier(JustMap.MODID, "textures/screen_background.png");
 
 	private final Screen parent;
@@ -53,11 +54,11 @@ public class WorldnameScreen extends Screen {
 			this.y = height / 2 - frameHeight / 2;
 			btnY = (y + frameHeight) - 40;
 		}
-		Text defaultText = new LiteralText("Default");
+		Text defaultText = Text.literal("Default");
 		this.nameField = new TextFieldWidget(textRenderer, x + 20, y + 50, frameWidth - 40, 20, defaultText);
 		this.setFocused(this.nameField);
 		this.nameField.setTextFieldFocused(true);
-		this.addDrawableChild(new ButtonWidget(center - 30, btnY, 80, 20, LangUtil.getText("gui", "save"), this::onPressSave));
+		this.addDrawableChild(new ButtonWidget(center - 30, btnY, 80, 20, MutableText.of(LangUtil.getText("gui", "save")), this::onPressSave));
 		this.addSelectableChild(nameField);
 	}
 

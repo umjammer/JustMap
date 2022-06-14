@@ -11,9 +11,9 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
@@ -130,7 +130,7 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 		}
 	}
 
-	private static final Text TITLE = new TranslatableText(JustMap.MODID + ".gui.screen.waypoints_list");
+	private static final Text TITLE = Text.translatable(JustMap.MODID + ".gui.screen.waypoints_list");
 
 	private final WaypointKeeper keeper = WaypointKeeper.getInstance();
 	private WorldKey currentWorld;
@@ -163,8 +163,8 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 		this.center = width / 2;
 		this.screenWidth = center > 480 ? center : Math.min(width, 480);
 		this.x = center - screenWidth / 2;
-		this.prevDimensionButton = new ButtonWidget(x + 10, 6, 20, 20, new LiteralText("<"), (b) -> cycleDimension(-1));
-		this.nextDimensionButton = new ButtonWidget(x + screenWidth - 30, 6, 20, 20, new LiteralText(">"), (b) -> cycleDimension(1));
+		this.prevDimensionButton = new ButtonWidget(x + 10, 6, 20, 20, Text.literal("<"), (b) -> cycleDimension(-1));
+		this.nextDimensionButton = new ButtonWidget(x + screenWidth - 30, 6, 20, 20, Text.literal(">"), (b) -> cycleDimension(1));
 		this.addButton = new ButtonWidget(center - 62, height - 26, 60, 20, lang("create"), (b) -> add());
 		this.closeButton = new ButtonWidget(center + 2, height - 26, 60, 20, lang("close"), (b) -> close());
 		this.currentWorld = MapDataProvider.getMultiworldManager().getCurrentWorldKey();
@@ -266,7 +266,7 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 	public void teleport(Waypoint waypoint) {
 		if (!MapDataProvider.getMultiworldManager().getCurrentWorldKey().equals(currentWorld)) return;
 		int y = waypoint.pos.getY() > 0 ? waypoint.pos.getY() : (Dimension.isNether(client.world) ? 128 : 64);
-		this.client.player.sendChatMessage("/tp " + this.client.player.getName().asString() + " " + waypoint.pos.getX() + " " + y + " " + waypoint.pos.getZ());
+		this.client.player.sendChatMessage("/tp " + this.client.player.getName().getContent() + " " + waypoint.pos.getX() + " " + y + " " + waypoint.pos.getZ());
 		this.close();
 	}
 

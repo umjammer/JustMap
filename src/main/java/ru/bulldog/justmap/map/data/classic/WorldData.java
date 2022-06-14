@@ -121,7 +121,7 @@ public class WorldData implements WorldMapper {
 		}
 		int x = centerPos.getX();
 		int z = centerPos.getZ();
-		int distance = MinecraftClient.getInstance().options.viewDistance - 1;
+		int distance = MinecraftClient.getInstance().options.getViewDistance().getValue() - 1;
 		BlockPos.Mutable currentPos = centerPos.mutableCopy();
 		for (int step = 1; step < distance * 2; step++) {
 			boolean even = MathUtil.isEven(step);

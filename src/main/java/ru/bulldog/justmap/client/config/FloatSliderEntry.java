@@ -19,7 +19,7 @@ import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.util.NarratorManager;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 
@@ -32,7 +32,7 @@ public class FloatSliderEntry extends TooltipListEntry<Float> {
 	private float minimum, maximum;
 	private final Consumer<Float> saveConsumer;
 	private final Supplier<Float> defaultValue;
-	private Function<Float, Text> textGetter = value -> new LiteralText(String.format("Value: %.1f", value));
+	private Function<Float, Text> textGetter = value -> Text.literal(String.format("Value: %.1f", value));
 	private final List<ClickableWidget> widgets;
 	private final TextRenderer textRenderer;
 

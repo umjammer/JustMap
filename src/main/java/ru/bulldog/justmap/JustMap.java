@@ -13,6 +13,8 @@ public class JustMap implements ModInitializer {
 
 	private static EnvType environment = EnvType.CLIENT;
 
+	public static final int MESSAGE_ID = 123456789;
+
 	@Override
 	public void onInitialize() {}
 

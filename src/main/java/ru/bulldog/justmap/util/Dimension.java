@@ -3,6 +3,8 @@ package ru.bulldog.justmap.util;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.dimension.DimensionTypes;
+
 
 public class Dimension {
 	public static int getId(World world) {
@@ -15,9 +17,9 @@ public class Dimension {
 
 	public static Identifier fromId(int id) {
 		switch(id) {
-			case -1: return DimensionType.THE_NETHER_REGISTRY_KEY.getValue();
-			case 0: return DimensionType.OVERWORLD_REGISTRY_KEY.getValue();
-			case 1: return DimensionType.THE_END_REGISTRY_KEY.getValue();
+			case -1: return DimensionTypes.THE_NETHER.getValue();
+			case 0: return DimensionTypes.OVERWORLD.getValue();
+			case 1: return DimensionTypes.THE_END.getValue();
 		}
 
 		return new Identifier("unknown");

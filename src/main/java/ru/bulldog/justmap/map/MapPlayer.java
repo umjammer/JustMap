@@ -1,5 +1,6 @@
 package ru.bulldog.justmap.map;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
@@ -11,7 +12,7 @@ public class MapPlayer extends AbstractClientPlayerEntity {
 	private final PlayerHeadIconImage icon;
 
 	public MapPlayer(ClientWorld world, PlayerEntity player) {
-		super(world, player.getGameProfile());
+		super(world, player.getGameProfile(), null);
 
 		this.icon = new PlayerHeadIconImage();
 		this.icon.getPlayerSkin(this);

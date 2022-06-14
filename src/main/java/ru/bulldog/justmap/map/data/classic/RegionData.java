@@ -64,7 +64,7 @@ public class RegionData implements MapRegion {
 		this.level = map.getLevel();
 		this.center = new ChunkPos(map.getCenter());
 		this.isWorldmap = map instanceof WorldmapScreen;
-		int radius = MinecraftClient.getInstance().options.viewDistance - 1;
+		int radius = MinecraftClient.getInstance().options.getViewDistance().getValue() - 1;
 		this.updateArea = new Plane(center.x - radius, center.z - radius,
 									center.x + radius, center.z + radius);
 		this.loadImage(layer, level);
@@ -121,7 +121,7 @@ public class RegionData implements MapRegion {
 	}
 
 	public void setCenter(ChunkPos centerPos) {
-		int radius = MinecraftClient.getInstance().options.viewDistance - 1;
+		int radius = MinecraftClient.getInstance().options.getViewDistance().getValue() - 1;
 		this.center = centerPos;
 		this.updateArea = new Plane(center.x - radius, center.z - radius,
 									center.x + radius, center.z + radius);

@@ -11,7 +11,7 @@ import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -151,12 +151,12 @@ public class MapSkin extends Image {
 	}
 
 	public Text getName() {
-		return new LiteralText(this.name);
+		return Text.literal(this.name);
 	}
 
 	@Override
 	public String toString() {
-		return this.getName().asString();
+		return this.getName().getString();
 	}
 
 	public static MapSkin getDefaultSkin() {

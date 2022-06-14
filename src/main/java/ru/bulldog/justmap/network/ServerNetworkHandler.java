@@ -2,14 +2,14 @@ package ru.bulldog.justmap.network;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.random.ChunkRandom;
 import net.minecraft.world.World;
-import net.minecraft.world.gen.random.ChunkRandom;
-
 import ru.bulldog.justmap.util.Dimension;
 import ru.bulldog.justmap.util.GameRulesUtil;
 
@@ -29,19 +29,18 @@ public class ServerNetworkHandler extends NetworkHandler {
 	}
 
 	public void registerPacketsListeners() {
-		serverPacketRegistry.register(CHANNEL_ID, (context, data) -> {
-			ByteBuf packetData = data.copy();
-			PacketType packet_type = PacketType.get(packetData.readByte());
-			ServerPlayerEntity player = (ServerPlayerEntity) context.getPlayer();
-			switch(packet_type) {
-				case GET_IMAGE_PACKET: {
-					context.getTaskQueue().execute(() -> this.onRegionImageRequest(player, packetData));
-					break;
-				}
-				case SLIME_CHUNK_PACKET: {
-					context.getTaskQueue().execute(() -> this.onChunkHasSlimeRequest(player, packetData));
-					break;
-				}
+		ServerPlayNetworking.registerGlobalReceiver(CHANNEL_ID, (server, player, handler, buf, responseSender) -> {
+			ByteBuf packetData = buf.copy();
+			PacketType packetType = PacketType.get(packetData.readByte());
+			switch (packetType) {
+			case GET_IMAGE_PACKET: {
+				server.execute(() -> this.onRegionImageRequest(player, packetData));
+				break;
+			}
+			case SLIME_CHUNK_PACKET: {
+				server.execute(() -> this.onChunkHasSlimeRequest(player, packetData));
+				break;
+			}
 			}
 		});
 	}

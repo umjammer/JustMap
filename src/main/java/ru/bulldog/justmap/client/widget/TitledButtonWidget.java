@@ -6,27 +6,28 @@ import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.sound.SoundManager;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.Text;
 
 
 public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidget implements Element {
 	public final W widget;
-	public final LiteralText title;
+	public final LiteralTextContent title;
 	private final TextRenderer font;
 
 	private final static int SPACING = 3;
 
 	public TitledButtonWidget(TextRenderer font, W widget, int x, int y, int width, int height, String message, String title) {
-		super(x, y, width, height, new LiteralText(message));
+		super(x, y, width, height, Text.literal(message));
 		this.widget = widget;
-		this.title = new LiteralText(title);
+		this.title = new LiteralTextContent(title);
 		this.font = font;
 
 		update();
 	}
 
 	private void update() {
-		int titleWidth = font.getWidth(title);
+		int titleWidth = font.getWidth(title.string());
 		int widgetWidth = widget.getWidth();
 		int wx = x + width - widgetWidth;
 		if (x + titleWidth + SPACING > wx) {
@@ -40,7 +41,7 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 
 	@Override
 	public void render(MatrixStack matrixStack, int int_1, int int_2, float float_1) {
-		drawStringWithShadow(matrixStack, font, title.getString(), x, y, 0xFFFFFFFF);
+		drawStringWithShadow(matrixStack, font, title.string(), x, y, 0xFFFFFFFF);
 		widget.render(matrixStack, int_1, int_2, float_1);
 	}
 

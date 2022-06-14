@@ -9,10 +9,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.random.ChunkRandom;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
-import net.minecraft.world.gen.random.ChunkRandom;
-
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.data.Layer;
@@ -81,7 +80,7 @@ public class ChunkData {
 	}
 
 	private void initLayer(Layer layer) {
-		int levels = this.world.getDimension().getHeight() / layer.getHeight();
+		int levels = this.world.getDimension().height() / layer.getHeight();
 		this.levels.put(layer, new ChunkLevel[levels]);
 	}
 

@@ -1,6 +1,7 @@
 package ru.bulldog.justmap.map.icon;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.AbstractTexture;
@@ -72,7 +73,7 @@ public class PlayerHeadIconImage {
 
 		Identifier defaultSkin = DefaultSkinHelper.getTexture(player.getUuid());
 		if (!player.getSkinTexture().equals(defaultSkin)) {
-			ResourceTexture skinTexture = loadSkinTexture(player.getSkinTexture(), player.getName().getString());
+			ResourceTexture skinTexture = loadSkinTexture(player.getSkinTexture(), player.getName().getString(), player.getUuid());
 			if (skinTexture != this.playerSkin) {
 				if (this.playerSkin != null) {
 					this.playerSkin.clearGlId();
@@ -100,11 +101,11 @@ public class PlayerHeadIconImage {
 		}
 	}
 
-	private ResourceTexture loadSkinTexture(Identifier id, String playerName) {
+	private ResourceTexture loadSkinTexture(Identifier id, String playerName, UUID playerUUID) {
 		TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 		AbstractTexture abstractTexture = textureManager.getTexture(id);
 		if (abstractTexture == null) {
-			abstractTexture = new PlayerSkinTexture(null, String.format("http://skins.minecraft.net/MinecraftSkins/%s.png", StringHelper.stripTextFormat(playerName)), DefaultSkinHelper.getTexture(PlayerEntity.getOfflinePlayerUuid(playerName)), true, null);
+			abstractTexture = new PlayerSkinTexture(null, String.format("http://skins.minecraft.net/MinecraftSkins/%s.png", StringHelper.stripTextFormat(playerName)), DefaultSkinHelper.getTexture(playerUUID), true, null);
 			textureManager.registerTexture(id, abstractTexture);
 		}
 		return (ResourceTexture) abstractTexture;

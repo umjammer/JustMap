@@ -122,7 +122,7 @@ class ChunkDataManager {
 		try (VersionedChunkStorage storage = StorageUtil.getChunkStorage(serverWorld)) {
 			Optional<RegistryKey<Codec<? extends ChunkGenerator>>> opt = Optional.ofNullable(null);
 			NbtCompound chunkTag = storage.updateChunkNbt(serverWorld.getRegistryKey(),
-					CurrentWorldPos.getPersistentSupplier(), storage.getNbt(chunkPos),opt);
+					CurrentWorldPos.getPersistentSupplier(), storage.getNbt(chunkPos).get().get(), opt);
 			if (chunkTag == null) return this.emptyChunk;
 			Chunk chunk = ChunkSerializer.deserialize(
 					serverWorld, serverWorld.getPointOfInterestStorage(), chunkPos, chunkTag);

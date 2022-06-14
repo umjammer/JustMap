@@ -12,9 +12,11 @@ import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.TextContent;
+import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import org.lwjgl.glfw.GLFW;
@@ -31,7 +33,7 @@ import ru.bulldog.justmap.util.colors.Colors;
 
 public class WaypointEditorScreen extends AbstractJustMapScreen {
 
-	private static final Text TITLE = new TranslatableText(JustMap.MODID + ".gui.screen.waypoints_editor");
+	private static final Text TITLE = Text.translatable(JustMap.MODID + ".gui.screen.waypoints_editor");
 
 	private final Waypoint waypoint;
 
@@ -76,7 +78,7 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		int ex = x + PADDING;
 		int ey = y;
 		int ew = screenW - PADDING * 2;
-		this.nameField = new TitledButtonWidget<>(textRenderer, new TextFieldWidget(textRenderer, 0, 0, ew - 30, 12, new LiteralText("Name")), ex, ey, ew, ROW_HEIGHT, "", lang("name").asString());
+		this.nameField = new TitledButtonWidget<>(textRenderer, new TextFieldWidget(textRenderer, 0, 0, ew - 30, 12, Text.literal("Name")), ex, ey, ew, ROW_HEIGHT, "", lang("name").toString());
 		this.nameField.changeFocus(true);
 		this.nameField.widget.setMaxLength(48);
 		this.nameField.widget.setText(waypoint.name);
@@ -92,17 +94,17 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 
 		ey += row;
 
-		this.xField = new TextFieldWidget(textRenderer, px, ey, ew, ROW_HEIGHT, new LiteralText(""));
+		this.xField = new TextFieldWidget(textRenderer, px, ey, ew, ROW_HEIGHT, Text.literal(""));
 		this.xField.setTextPredicate(validNumber);
 		this.xField.setMaxLength(7);
 		this.xField.setText(waypoint.pos.getX() + "");
 
-		this.yField = new TextFieldWidget(textRenderer, px + ew, ey, ew, ROW_HEIGHT, new LiteralText(""));
+		this.yField = new TextFieldWidget(textRenderer, px + ew, ey, ew, ROW_HEIGHT, Text.literal(""));
 		this.yField.setTextPredicate(validNumber);
 		this.yField.setMaxLength(7);
 		this.yField.setText(waypoint.pos.getY() + "");
 
-		this.zField = new TextFieldWidget(textRenderer, px + 2 * ew, ey, ew, ROW_HEIGHT, new LiteralText(""));
+		this.zField = new TextFieldWidget(textRenderer, px + 2 * ew, ey, ew, ROW_HEIGHT, Text.literal(""));
 		this.zField.setTextPredicate(validNumber);
 		this.zField.setMaxLength(7);
 		this.zField.setText(waypoint.pos.getZ() + "");
@@ -114,18 +116,18 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		ey += row;
 
 		ew = 20;
-		this.prevColorButton = new ButtonWidget(ex, ey, ew, ROW_HEIGHT, new LiteralText("<"), (b) -> cycleColor(-1));
+		this.prevColorButton = new ButtonWidget(ex, ey, ew, ROW_HEIGHT, Text.literal("<"), (b) -> cycleColor(-1));
 		children.add(prevColorButton);
 
-		this.nextColorButton = new ButtonWidget(x + screenW - ew - PADDING, ey, ew, ROW_HEIGHT, new LiteralText(">"), (b) -> cycleColor(1));
+		this.nextColorButton = new ButtonWidget(x + screenW - ew - PADDING, ey, ew, ROW_HEIGHT, Text.literal(">"), (b) -> cycleColor(1));
 		children.add(nextColorButton);
 
 		ey += row;
 
-		ButtonWidget prevIconButton = new ButtonWidget(ex, ey, ew, ROW_HEIGHT, new LiteralText("<"), (b) -> cycleIcon(-1));
+		ButtonWidget prevIconButton = new ButtonWidget(ex, ey, ew, ROW_HEIGHT, Text.literal("<"), (b) -> cycleIcon(-1));
 		children.add(prevIconButton);
 
-		ButtonWidget nextIconButton = new ButtonWidget(x + screenW - ew - PADDING, ey, ew, ROW_HEIGHT, new LiteralText(">"), (b) -> cycleIcon(1));
+		ButtonWidget nextIconButton = new ButtonWidget(x + screenW - ew - PADDING, ey, ew, ROW_HEIGHT, Text.literal(">"), (b) -> cycleIcon(1));
 		children.add(nextIconButton);
 
 		ey += row * 1.5;
@@ -145,14 +147,14 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		IntegerRange maxRangeConfig = JustMapClient.getConfig().getEntry("max_render_dist");
 		final int SHOW_RANGE_MAX = maxRangeConfig.maxValue();
 		this.showRange = waypoint.showRange;
-		children.add(new SliderWidget(elemX, ey, sliderW, ROW_HEIGHT, LiteralText.EMPTY, (double) this.showRange / SHOW_RANGE_MAX) {
+		children.add(new SliderWidget(elemX, ey, sliderW, ROW_HEIGHT, Text.empty(), (double) this.showRange / SHOW_RANGE_MAX) {
 			{
 				this.updateMessage();
 			}
 
 			@Override
 			protected void updateMessage() {
-				this.setMessage(new LiteralText(lang("wp_render_dist").getString() + WaypointEditorScreen.this.showRange));
+				this.setMessage(Text.literal(lang("wp_render_dist").getString() + WaypointEditorScreen.this.showRange));
 			}
 
 			@Override
@@ -178,7 +180,7 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 	@Override
 	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float delta) {
 		super.render(matrixStack, mouseX, mouseY, delta);
-		String dimensionName = info == null ? lang("unknown").asString() : I18n.translate(info.getFirst());
+		String dimensionName = info == null ? lang("unknown").getString() : I18n.translate(info.getFirst());
 		drawCenteredText(matrixStack, textRenderer, dimensionName, center, 15, Colors.WHITE);
 	}
 

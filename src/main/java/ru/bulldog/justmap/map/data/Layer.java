@@ -5,6 +5,7 @@ import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 
+import net.minecraft.world.dimension.DimensionTypes;
 import ru.bulldog.justmap.util.Dimension;
 import ru.bulldog.justmap.util.GameRulesUtil;
 
@@ -60,7 +61,7 @@ public enum Layer {
 		}
 
 		return (!world.isSkyVisibleAllowingSea(pos) && !hasSkyLight(world, pos) ||
-				world.getRegistryKey().getValue().equals(DimensionType.OVERWORLD_CAVES_REGISTRY_KEY.getValue()));
+				world.getRegistryKey().getValue().equals(DimensionTypes.OVERWORLD_CAVES.getValue()));
 	}
 
 	private static boolean hasSkyLight(World world, BlockPos pos) {

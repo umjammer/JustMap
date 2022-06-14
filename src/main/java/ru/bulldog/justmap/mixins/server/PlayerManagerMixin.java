@@ -1,13 +1,13 @@
 package ru.bulldog.justmap.mixins.server;
 
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.MessageType;
+import net.minecraft.network.message.MessageType;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.BaseText;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Final;
@@ -17,7 +17,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.map.MapGameRules;
+import ru.bulldog.justmap.mixins.client.ClientPlayNetworkHandlerMixin;
 import ru.bulldog.justmap.network.ServerNetworkHandler;
 import ru.bulldog.justmap.server.JustMapServer;
 import ru.bulldog.justmap.server.config.ServerSettings;
@@ -39,7 +41,7 @@ public abstract class PlayerManagerMixin {
 
 	@Inject(method = "onPlayerConnect", at = @At("TAIL"))
 	public void onPlayerConnectPost(ClientConnection clientConnection, ServerPlayerEntity serverPlayerEntity, CallbackInfo info) {
-		BaseText command = new LiteralText("§0§0");
+		StringBuilder command = new StringBuilder("§0§0");
 		if (ServerSettings.useGameRules) {
 			GameRules gameRules = server.getGameRules();
 			if (gameRules.getBoolean(MapGameRules.ALLOW_CAVES_MAP)) {
@@ -88,12 +90,12 @@ public abstract class PlayerManagerMixin {
 		}
 		command.append("§f§f");
 
-		if (command.getString().length() > 8) {
-			this.sendCommand(serverPlayerEntity, command);
+		if (command.toString().length() > 8) {
+			this.sendCommand(serverPlayerEntity, Text.literal(command.toString()));
 		}
 	}
 
 	private void sendCommand(ServerPlayerEntity serverPlayerEntity, Text command) {
-		serverPlayerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(command, MessageType.SYSTEM, serverPlayerEntity.getUuid()));
+		serverPlayerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(command, JustMap.MESSAGE_ID));
 	}
 }

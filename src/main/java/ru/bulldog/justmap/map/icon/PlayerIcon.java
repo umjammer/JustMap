@@ -90,7 +90,7 @@ public class PlayerIcon extends MapIcon<PlayerIcon> {
 		double sf = window.getScaleFactor();
 		float scale = (float) (1.0 / sf);
 		matrices.push();
-		if (sf > 1.0 && !minecraft.options.forceUnicodeFont) {
+		if (sf > 1.0 && !minecraft.options.getForceUnicodeFont().getValue()) {
 			matrices.scale(scale, scale, 1.0F);
 			matrices.translate(x * (sf - 1), y * (sf - 1), 0.0);
 		}

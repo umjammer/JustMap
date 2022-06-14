@@ -33,7 +33,8 @@ public class ImageUtil {
 		checkResourceManager();
 		if (image == null) return false;
 		try {
-			return resourceManager.containsResource(image);
+			resourceManager.getResourceOrThrow(image);
+			return true;
 		} catch(Exception ex) {
 			JustMap.LOGGER.catching(ex);
 			return false;
@@ -54,7 +55,8 @@ public class ImageUtil {
 
 	public static NativeImage loadImage(Identifier image, int w, int h) {
 		if (imageExists(image)) {
-			try (Resource resource = resourceManager.getResource(image)) {
+			try {
+				Resource resource = resourceManager.getResource(image).get();
 				return NativeImage.read(resource.getInputStream());
 			} catch (IOException e) {
 				JustMap.LOGGER.warning(String.format("Can't load texture image: %s. Will be created empty image.", image));

@@ -1,8 +1,7 @@
 package ru.bulldog.justmap.util;
 
 import net.minecraft.client.resource.language.I18n;
-import net.minecraft.text.TranslatableText;
-
+import net.minecraft.text.TranslatableTextContent;
 import ru.bulldog.justmap.JustMap;
 
 public class LangUtil {
@@ -28,7 +27,7 @@ public class LangUtil {
 		return getString(element, key);
 	}
 
-	public TranslatableText getText(String key) {
+	public TranslatableTextContent getText(String key) {
 		return getText(element, key);
 	}
 
@@ -36,7 +35,7 @@ public class LangUtil {
 		return I18n.translate(String.format("%s.%s.%s", MODID, element, key));
 	}
 
-	public static TranslatableText getText(String element, String key) {
-		return new TranslatableText(getString(element, key));
+	public static TranslatableTextContent getText(String element, String key) {
+		return new TranslatableTextContent(getString(element, key));
 	}
 }

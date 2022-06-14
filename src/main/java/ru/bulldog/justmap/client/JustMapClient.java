@@ -17,8 +17,7 @@ import net.minecraft.client.gui.screen.world.EditWorldScreen;
 import net.minecraft.client.gui.screen.world.SelectWorldScreen;
 import net.minecraft.client.realms.gui.screen.RealmsGenericErrorScreen;
 import net.minecraft.client.realms.gui.screen.RealmsMainScreen;
-import net.minecraft.text.TranslatableText;
-
+import net.minecraft.text.TranslatableTextContent;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.advancedinfo.AdvancedInfo;
 import ru.bulldog.justmap.client.config.ClientConfig;
@@ -107,8 +106,8 @@ public class JustMapClient implements ClientModInitializer {
 		if (currentScreen == null) return false;
 
 		boolean isTitleScreen = false;
-		if (currentScreen.getTitle() instanceof TranslatableText) {
-			TranslatableText title = (TranslatableText) currentScreen.getTitle();
+		if (currentScreen.getTitle() instanceof TranslatableTextContent) {
+			TranslatableTextContent title = (TranslatableTextContent) currentScreen.getTitle();
 			isTitleScreen = title.getKey().equals("dataPack.title");
 		}
 

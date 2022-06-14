@@ -1,11 +1,11 @@
 package ru.bulldog.justmap.mixins.server;
 
 import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.network.MessageType;
+import net.minecraft.network.message.MessageType;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.server.command.GameRuleCommand;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 import net.minecraft.world.GameRules;
@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.server.config.ServerSettings;
 
 @Mixin(GameRuleCommand.class)
@@ -31,41 +32,41 @@ public abstract class GameRuleCommandMixin {
 
 				String val = ((BooleanRule) rule).get() ? "§1" : "§0";
 				switch (Key.getName()) {
-					case "allowCavesMap":
-						command = new LiteralText(String.format("§0§0§a%s§f§f", val));
-						serverCommandSource.getServer().getPlayerManager().sendToAll(
-								new GameMessageS2CPacket(command, MessageType.SYSTEM, Util.NIL_UUID));
-						break;
-					case "allowEntityRadar":
-						command = new LiteralText(String.format("§0§0§b%s§f§f", val));
-						serverCommandSource.getServer().getPlayerManager().sendToAll(
-								new GameMessageS2CPacket(command, MessageType.SYSTEM, Util.NIL_UUID));
-						break;
-					case "allowPlayerRadar":
-						command = new LiteralText(String.format("§0§0§c%s§f§f", val));
-						serverCommandSource.getServer().getPlayerManager().sendToAll(
-								new GameMessageS2CPacket(command, MessageType.SYSTEM, Util.NIL_UUID));
-						break;
-					case "allowCreatureRadar":
-						command = new LiteralText(String.format("§0§0§d%s§f§f", val));
-						serverCommandSource.getServer().getPlayerManager().sendToAll(
-								new GameMessageS2CPacket(command, MessageType.SYSTEM, Util.NIL_UUID));
-						break;
-					case "allowHostileRadar":
-						command = new LiteralText(String.format("§0§0§e%s§f§f", val));
-						serverCommandSource.getServer().getPlayerManager().sendToAll(
-								new GameMessageS2CPacket(command, MessageType.SYSTEM, Util.NIL_UUID));
-						break;
-					case "allowSlimeChunks":
-						command = new LiteralText(String.format("§0§0§s%s§f§f", val));
-						serverCommandSource.getServer().getPlayerManager().sendToAll(
-								new GameMessageS2CPacket(command, MessageType.SYSTEM, Util.NIL_UUID));
-						break;
-					case "allowWaypointsJump":
-						command = new LiteralText(String.format("§0§0§t%s§f§f", val));
-						serverCommandSource.getServer().getPlayerManager().sendToAll(
-								new GameMessageS2CPacket(command, MessageType.SYSTEM, Util.NIL_UUID));
-						break;
+				case "allowCavesMap":
+					command = Text.literal(String.format("§0§0§a%s§f§f", val));
+					serverCommandSource.getServer().getPlayerManager().sendToAll(
+							new GameMessageS2CPacket(command, JustMap.MESSAGE_ID));
+					break;
+				case "allowEntityRadar":
+					command = Text.literal(String.format("§0§0§b%s§f§f", val));
+					serverCommandSource.getServer().getPlayerManager().sendToAll(
+							new GameMessageS2CPacket(command, JustMap.MESSAGE_ID));
+					break;
+				case "allowPlayerRadar":
+					command = Text.literal(String.format("§0§0§c%s§f§f", val));
+					serverCommandSource.getServer().getPlayerManager().sendToAll(
+							new GameMessageS2CPacket(command, JustMap.MESSAGE_ID));
+					break;
+				case "allowCreatureRadar":
+					command = Text.literal(String.format("§0§0§d%s§f§f", val));
+					serverCommandSource.getServer().getPlayerManager().sendToAll(
+							new GameMessageS2CPacket(command, JustMap.MESSAGE_ID));
+					break;
+				case "allowHostileRadar":
+					command = Text.literal(String.format("§0§0§e%s§f§f", val));
+					serverCommandSource.getServer().getPlayerManager().sendToAll(
+							new GameMessageS2CPacket(command, JustMap.MESSAGE_ID));
+					break;
+				case "allowSlimeChunks":
+					command = Text.literal(String.format("§0§0§s%s§f§f", val));
+					serverCommandSource.getServer().getPlayerManager().sendToAll(
+							new GameMessageS2CPacket(command, JustMap.MESSAGE_ID));
+					break;
+				case "allowWaypointsJump":
+					command = Text.literal(String.format("§0§0§t%s§f§f", val));
+					serverCommandSource.getServer().getPlayerManager().sendToAll(
+							new GameMessageS2CPacket(command, JustMap.MESSAGE_ID));
+					break;
 				}
 			}
 		}
