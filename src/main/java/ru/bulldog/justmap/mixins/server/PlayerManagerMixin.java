@@ -1,7 +1,10 @@
 package ru.bulldog.justmap.mixins.server;
 
 import net.minecraft.network.ClientConnection;
+import net.minecraft.network.message.DecoratedContents;
 import net.minecraft.network.message.MessageType;
+import net.minecraft.network.message.SignedMessage;
+import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
@@ -96,6 +99,7 @@ public abstract class PlayerManagerMixin {
 	}
 
 	private void sendCommand(ServerPlayerEntity serverPlayerEntity, Text command) {
-		serverPlayerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(command, JustMap.MESSAGE_ID));
+		SignedMessage message = SignedMessage.ofUnsigned(new DecoratedContents(command.toString(), command));
+		serverPlayerEntity.networkHandler.sendPacket(new ChatMessageS2CPacket(message, JustMap.MESSAGE_ID));
 	}
 }

@@ -7,6 +7,7 @@ import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.util.telemetry.TelemetrySender;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.message.MessageType;
+import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.HealthUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlayerSpawnPositionS2CPacket;
@@ -42,11 +43,11 @@ public abstract class ClientPlayNetworkHandlerMixin {
 		MapDataProvider.getMultiworldManager().onWorldSpawnPosChanged(packet.getPos());
 	}
 
-	@Inject(method = "onGameMessage", at = @At("HEAD"), cancellable = true)
-	public void onGameMessage(GameMessageS2CPacket gameMessageS2CPacket, CallbackInfo cinfo) {
-		if (gameMessageS2CPacket.typeId() == JustMap.MESSAGE_ID) {
+	@Inject(method = "onChatMessage", at = @At("HEAD"), cancellable = true)
+	public void onGameMessage(ChatMessageS2CPacket chatMessageS2CPacket, CallbackInfo cinfo) {
+		if (chatMessageS2CPacket.serializedParameters().equals(JustMap.MESSAGE_ID)) {
 			String pref = "§0§0", suff = "§f§f";
-			String message = gameMessageS2CPacket.content().getString().replaceAll("[&$]", "§");
+			String message = chatMessageS2CPacket.message().getContent().getString().replaceAll("[&$]", "§");
 
 			if (message.contains(pref) && message.contains(suff)) {
 				int start = message.indexOf(pref) + 4;

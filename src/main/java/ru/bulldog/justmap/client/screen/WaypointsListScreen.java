@@ -266,7 +266,7 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 	public void teleport(Waypoint waypoint) {
 		if (!MapDataProvider.getMultiworldManager().getCurrentWorldKey().equals(currentWorld)) return;
 		int y = waypoint.pos.getY() > 0 ? waypoint.pos.getY() : (Dimension.isNether(client.world) ? 128 : 64);
-		this.client.player.sendChatMessage("/tp " + this.client.player.getName().getContent() + " " + waypoint.pos.getX() + " " + y + " " + waypoint.pos.getZ());
+		this.client.player.sendChatMessage("/tp " + this.client.player.getName().getContent() + " " + waypoint.pos.getX() + " " + y + " " + waypoint.pos.getZ(), null);
 		this.close();
 	}
 
