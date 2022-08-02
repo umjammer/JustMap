@@ -78,7 +78,7 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		int ex = x + PADDING;
 		int ey = y;
 		int ew = screenW - PADDING * 2;
-		this.nameField = new TitledButtonWidget<>(textRenderer, new TextFieldWidget(textRenderer, 0, 0, ew - 30, 12, Text.literal("Name")), ex, ey, ew, ROW_HEIGHT, "", lang("name").toString());
+		this.nameField = new TitledButtonWidget<>(textRenderer, new TextFieldWidget(textRenderer, 0, 0, ew - 30, 12, Text.literal("Name")), ex, ey, ew, ROW_HEIGHT, "", lang("name").getString());
 		this.nameField.changeFocus(true);
 		this.nameField.widget.setMaxLength(48);
 		this.nameField.widget.setText(waypoint.name);
