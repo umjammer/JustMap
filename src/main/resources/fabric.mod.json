@@ -3,9 +3,9 @@
     "id": "justmap",
     "version": "${version}",
     "name": "Just Map",
-    "description": "A minimap/worldmap mod for Minecraft.",
+    "description": "A minimap/worldmap mod for Minecraft. This version has a slight modification to also work on Realms, the drawback is that servers with the same server name also share the directory where the JustMap configuration will be stored. ",
     "authors": [
-        "Bulldog83", "umjammer"
+        "Bulldog83", "Tom de Bruijn", "umjammer"
     ],
     "contact": {
         "sources": "https://github.com/Bulldog83/JustMap",

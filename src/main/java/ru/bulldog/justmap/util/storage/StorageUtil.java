@@ -126,13 +126,15 @@ public final class StorageUtil {
 			}
 		} else if (serverInfo != null) {
 			String name = scrubFileName(serverInfo.name);
-			String address = serverInfo.address;
-			if (address.contains(":")) {
-				int end = address.indexOf(":") - 1;
-				address = address.substring(0, end);
-			}
-			filesDir = new File(mapsDir, String.format("servers/%s_(%s)", name, address));
-			File oldDir = new File(dataDir, String.format("servers/%s_(%s)", name, address));
+//			String address = serverInfo.address; #removed since realms change server IP constantly thus breaking savefolder
+//			if (address.contains(":")) {
+//				int end = address.indexOf(":") - 1;
+//				address = address.substring(0, end);
+//			}
+//			filesDir = new File(mapsDir, String.format("servers/%s_(%s)", name, address));
+//			File oldDir = new File(dataDir, String.format("servers/%s_(%s)", name, address));
+			filesDir = new File(mapsDir, String.format("servers/%s", name));
+			File oldDir = new File(dataDir, String.format("servers/%s", name));
 			if (oldDir.exists()) {
 				try {
 					FileUtils.moveDirectory(oldDir, filesDir);
