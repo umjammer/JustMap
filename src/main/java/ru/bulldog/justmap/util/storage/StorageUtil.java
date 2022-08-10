@@ -126,15 +126,20 @@ public final class StorageUtil {
 			}
 		} else if (serverInfo != null) {
 			String name = scrubFileName(serverInfo.name);
-//			String address = serverInfo.address; #removed since realms change server IP constantly thus breaking savefolder
-//			if (address.contains(":")) {
-//				int end = address.indexOf(":") - 1;
-//				address = address.substring(0, end);
-//			}
-//			filesDir = new File(mapsDir, String.format("servers/%s_(%s)", name, address));
-//			File oldDir = new File(dataDir, String.format("servers/%s_(%s)", name, address));
-			filesDir = new File(mapsDir, String.format("servers/%s", name));
-			File oldDir = new File(dataDir, String.format("servers/%s", name));
+			File oldDir;
+			//serverInfo.playerCountLabel would return something if it is a server thus saving it like the original mod did
+			if (serverInfo.playerCountLabel != null) {
+				String address = serverInfo.address;
+				if (address.contains(":")) {
+					int end = address.indexOf(":") - 1;
+					address = address.substring(0, end);
+				}
+				filesDir = new File(mapsDir, String.format("servers/%s_(%s)", name, address));
+				oldDir = new File(dataDir, String.format("servers/%s_(%s)", name, address));
+			} else { //A Realm doesn't return a playerCountLabel, it returns null. So it stores it in a folder without the ip
+				filesDir = new File(mapsDir, String.format("servers/%s", name));
+				oldDir = new File(dataDir, String.format("servers/%s", name));
+			};
 			if (oldDir.exists()) {
 				try {
 					FileUtils.moveDirectory(oldDir, filesDir);
