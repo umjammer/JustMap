@@ -3,8 +3,8 @@ package ru.bulldog.justmap.util;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.Material;
+import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.state.property.Properties;
-import net.minecraft.tag.FluidTags;
 
 public class BlockStateUtil {
 	public static final BlockState AIR = Blocks.AIR.getDefaultState();

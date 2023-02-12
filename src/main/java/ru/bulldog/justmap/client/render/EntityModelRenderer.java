@@ -9,8 +9,8 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.GhastEntity;
 import net.minecraft.entity.mob.WaterCreatureEntity;
-import net.minecraft.util.math.Vec3f;
-
+import net.minecraft.util.math.RotationAxis;
+import org.joml.Vector3f;
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.util.math.MathUtil;
@@ -41,9 +41,9 @@ public class EntityModelRenderer {
 		matrices.translate(modelSize / 4, modelSize / 2, 0);
 		if (ClientSettings.rotateMap) {
 			float rotation = (float) MathUtil.correctAngle(minecraft.player.headYaw);
-			matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(rotation));
+			matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(rotation));
 		} else {
-			matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(180.0F));
+			matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180.0F));
 		}
 		matrices.push();
 		matrices.scale(scale, scale, scale);

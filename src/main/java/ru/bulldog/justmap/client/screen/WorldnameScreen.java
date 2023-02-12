@@ -58,7 +58,7 @@ public class WorldnameScreen extends Screen {
 		this.nameField = new TextFieldWidget(textRenderer, x + 20, y + 50, frameWidth - 40, 20, defaultText);
 		this.setFocused(this.nameField);
 		this.nameField.setTextFieldFocused(true);
-		this.addDrawableChild(new ButtonWidget(center - 30, btnY, 80, 20, MutableText.of(LangUtil.getText("gui", "save")), this::onPressSave));
+		this.addDrawableChild(ButtonWidget.builder(MutableText.of(LangUtil.getText("gui", "save")), this::onPressSave).dimensions(center - 30, btnY, 80, 20).build());
 		this.addSelectableChild(nameField);
 	}
 

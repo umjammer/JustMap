@@ -111,7 +111,7 @@ abstract class HudMixin extends DrawableHelper {
 		   		final int fx = x, fy = y;
 		   		final float fa = alpha;
 		   		icons.add(() -> {
-					RenderSystem.setShaderTexture(0, sprite.getAtlas().getId());
+					RenderSystem.setShaderTexture(0, sprite.getAtlasId());
 					RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, fa);
 					drawSprite(matrixStack, fx + 3, fy + 3, this.getZOffset(), 18, 18, sprite);
 		   		});

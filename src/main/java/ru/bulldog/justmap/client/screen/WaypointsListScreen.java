@@ -3,7 +3,6 @@ package ru.bulldog.justmap.client.screen;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.Element;
@@ -11,12 +10,8 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableTextContent;
-import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
-
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.map.data.MapDataProvider;
 import ru.bulldog.justmap.map.multiworld.WorldKey;
@@ -49,9 +44,9 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 			this.height = height + 2;
 			this.waypoint = waypoint;
 			this.minecraft = MinecraftClient.getInstance();
-			this.editButton = new ButtonWidget(0, 0, 40, height, wayPointListEditor.lang("edit"), (b) -> wayPointListEditor.edit(waypoint));
-			this.deleteButton = new ButtonWidget(0, 0, 40, height, wayPointListEditor.lang("delete"), (b) -> wayPointListEditor.delete(waypoint));
-			this.tpButton = new ButtonWidget(0, 0, 40, height, wayPointListEditor.lang("teleport"), (b) -> wayPointListEditor.teleport(waypoint));
+			this.editButton = ButtonWidget.builder(wayPointListEditor.lang("edit"), b -> wayPointListEditor.edit(waypoint)).dimensions(0, 0, 40, height).build();
+			this.deleteButton = ButtonWidget.builder(wayPointListEditor.lang("delete"), b -> wayPointListEditor.delete(waypoint)).dimensions(0, 0, 40, height).build();
+			this.tpButton = ButtonWidget.builder(wayPointListEditor.lang("teleport"), b -> wayPointListEditor.teleport(waypoint)).dimensions(0, 0, 40, height).build();
 
 			this.setPosition(x, y);
 		}
@@ -63,12 +58,12 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 			this.rightAlign(deleteButton, x + width - 2);
 			this.rightAlign(editButton, deleteButton);
 
-			this.editButton.y = y + 1;
-			this.deleteButton.y = y + 1;
+			this.editButton.setY(y + 1);
+			this.deleteButton.setY(y + 1);
 
 			if (tpButton != null) {
 				this.rightAlign(tpButton, editButton);
-				this.tpButton.y = y + 1;
+				this.tpButton.setY(y + 1);
 			}
 		}
 
@@ -92,7 +87,7 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 
 			RenderUtil.drawStringWithShadow(matrixStack, font, waypoint.name, nameX, stringY, Colors.WHITE);
 
-			int posX = tpButton.x - 5;
+			int posX = tpButton.getX() - 5;
 			RenderUtil.drawRightAlignedString(matrixStack, waypoint.pos.toShortString(), posX, stringY, Colors.WHITE);
 
 			if (GameRulesUtil.allowTeleportation()) {
@@ -122,11 +117,11 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 		}
 
 		private void rightAlign(ButtonWidget toAlign, ButtonWidget from) {
-			toAlign.x = from.x - toAlign.getWidth() - 1;
+			toAlign.setX(from.getX() - toAlign.getWidth() - 1);
 		}
 
 		private void rightAlign(ButtonWidget toAlign, int right) {
-			toAlign.x = right - toAlign.getWidth();
+			toAlign.setX(right - toAlign.getWidth());
 		}
 	}
 
@@ -163,10 +158,10 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 		this.center = width / 2;
 		this.screenWidth = center > 480 ? center : Math.min(width, 480);
 		this.x = center - screenWidth / 2;
-		this.prevDimensionButton = new ButtonWidget(x + 10, 6, 20, 20, Text.literal("<"), (b) -> cycleDimension(-1));
-		this.nextDimensionButton = new ButtonWidget(x + screenWidth - 30, 6, 20, 20, Text.literal(">"), (b) -> cycleDimension(1));
-		this.addButton = new ButtonWidget(center - 62, height - 26, 60, 20, lang("create"), (b) -> add());
-		this.closeButton = new ButtonWidget(center + 2, height - 26, 60, 20, lang("close"), (b) -> close());
+		this.prevDimensionButton = ButtonWidget.builder(Text.of("<"), b -> cycleDimension(-1)).dimensions(x + 10, 6, 20, 20).build();
+		this.nextDimensionButton = ButtonWidget.builder(Text.of(">"), b -> cycleDimension(1)).dimensions(x + screenWidth - 30, 6, 20, 20).build();
+		this.addButton = ButtonWidget.builder(lang("create"), b -> add()).dimensions(center - 62, height - 26, 60, 20).build();
+		this.closeButton = ButtonWidget.builder(lang("close"), b -> close()).dimensions(center + 2, height - 26, 60, 20).build();
 		this.currentWorld = MapDataProvider.getMultiworldManager().getCurrentWorldKey();
 		this.currentIndex = this.getIndex(currentWorld);
 
@@ -266,7 +261,7 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 	public void teleport(Waypoint waypoint) {
 		if (!MapDataProvider.getMultiworldManager().getCurrentWorldKey().equals(currentWorld)) return;
 		int y = waypoint.pos.getY() > 0 ? waypoint.pos.getY() : (Dimension.isNether(client.world) ? 128 : 64);
-		this.client.player.sendChatMessage("/tp " + this.client.player.getName().getContent() + " " + waypoint.pos.getX() + " " + y + " " + waypoint.pos.getZ(), null);
+		this.client.player.sendMessage(Text.of("/tp " + this.client.player.getName().getContent() + " " + waypoint.pos.getX() + " " + y + " " + waypoint.pos.getZ()), true);
 		this.close();
 	}
 

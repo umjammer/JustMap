@@ -10,13 +10,11 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.lwjgl.glfw.GLFW;
-
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.client.config.ConfigFactory;
@@ -36,9 +34,9 @@ import ru.bulldog.justmap.map.waypoint.Waypoint;
 import ru.bulldog.justmap.map.waypoint.WaypointKeeper;
 import ru.bulldog.justmap.util.CurrentWorldPos;
 import ru.bulldog.justmap.util.Dimension;
+import ru.bulldog.justmap.util.GameRulesUtil;
 import ru.bulldog.justmap.util.LangUtil;
 import ru.bulldog.justmap.util.PosUtil;
-import ru.bulldog.justmap.util.GameRulesUtil;
 import ru.bulldog.justmap.util.colors.Colors;
 import ru.bulldog.justmap.util.math.MathUtil;
 
@@ -147,16 +145,16 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 	}
 
 	private void addMapButtons() {
-		this.addDrawableChild(new ButtonWidget(width - 24, 10, 20, 20, Text.literal("x"), b -> close()));
-		this.addDrawableChild(new ButtonWidget(width / 2 - 10, height - paddingBottom - 44, 20, 20, Text.literal("\u2191"), b -> moveMap(Direction.NORTH)));
-		this.addDrawableChild(new ButtonWidget(width / 2 - 10, height - paddingBottom - 22, 20, 20, Text.literal("\u2193"), b -> moveMap(Direction.SOUTH)));
-		this.addDrawableChild(new ButtonWidget(width / 2 - 32, height - paddingBottom - 32, 20, 20, Text.literal("\u2190"), b -> moveMap(Direction.WEST)));
-		this.addDrawableChild(new ButtonWidget(width / 2 + 12, height - paddingBottom - 32, 20, 20, Text.literal("\u2192"), b -> moveMap(Direction.EAST)));
-		this.addDrawableChild(new ButtonWidget(width - 24, height / 2 - 21, 20, 20, Text.literal("+"), b -> changeScale(-0.25F)));
-		this.addDrawableChild(new ButtonWidget(width - 24, height / 2 + 1, 20, 20, Text.literal("-"), b -> changeScale(+0.25F)));
-		this.addDrawableChild(new ButtonWidget(width - 24, height - paddingBottom - 22, 20, 20, Text.literal("\u271C"), b -> setCenterByPlayer()));
-		this.addDrawableChild(new ButtonWidget(4, paddingTop + 2, 20, 20, Text.literal("\u2630"), b -> mapMenu.toggleVisible()));
-		this.addDrawableChild(new ButtonWidget(4, height - paddingBottom - 22, 20, 20, Text.literal("\u2726"), b -> client.setScreen(new WaypointsListScreen(this))));
+		this.addDrawableChild(ButtonWidget.builder(Text.literal("x"), b -> close()).dimensions(width - 24, 10, 20, 20).build());
+		this.addDrawableChild(ButtonWidget.builder(Text.literal("↑"), b -> moveMap(Direction.NORTH)).dimensions(width / 2 - 10, height - paddingBottom - 44, 20, 20).build());
+		this.addDrawableChild(ButtonWidget.builder(Text.literal("↓"), b -> moveMap(Direction.SOUTH)).dimensions(width / 2 - 10, height - paddingBottom - 22, 20, 20).build());
+		this.addDrawableChild(ButtonWidget.builder(Text.literal("←"), b -> moveMap(Direction.WEST)).dimensions(width / 2 - 32, height - paddingBottom - 32, 20, 20).build());
+		this.addDrawableChild(ButtonWidget.builder(Text.literal("→"), b -> moveMap(Direction.EAST)).dimensions(width / 2 + 12, height - paddingBottom - 32, 20, 20).build());
+		this.addDrawableChild(ButtonWidget.builder(Text.literal("+"), b -> changeScale(-0.25F)).dimensions(width - 24, height / 2 - 21, 20, 20).build());
+		this.addDrawableChild(ButtonWidget.builder(Text.literal("-"), b -> changeScale(+0.25F)).dimensions(width - 24, height / 2 + 1, 20, 20).build());
+		this.addDrawableChild(ButtonWidget.builder(Text.literal("✜"), b -> setCenterByPlayer()).dimensions(width - 24, height - paddingBottom - 22, 20, 20).build());
+		this.addDrawableChild(ButtonWidget.builder(Text.literal("☰"), b -> mapMenu.toggleVisible()).dimensions(4, paddingTop + 2, 20, 20).build());
+		this.addDrawableChild(ButtonWidget.builder(Text.literal("✦"), b -> client.setScreen(new WaypointsListScreen(this))).dimensions(4, height - paddingBottom - 22, 20, 20).build());
 	}
 
 	@Override

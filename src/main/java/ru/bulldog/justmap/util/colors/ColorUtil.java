@@ -33,12 +33,11 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
-
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.mixins.client.BakedSpriteAccessor;
-import ru.bulldog.justmap.util.ImageUtil;
 import ru.bulldog.justmap.util.BlockStateUtil;
+import ru.bulldog.justmap.util.ImageUtil;
 import ru.bulldog.justmap.util.math.MathUtil;
 
 @Environment(EnvType.CLIENT)
@@ -208,15 +207,15 @@ public class ColorUtil {
 
 		Identifier blockSprite;
 		if (quads.size() > 0) {
-			blockSprite = ((BakedSpriteAccessor) quads.get(0)).getSprite().getId();
+			blockSprite = ((BakedSpriteAccessor) quads.get(0)).getSprite().getAtlasId();
 		} else {
-			blockSprite = blockModels.getModelParticleSprite(state).getId();
+			blockSprite = blockModels.getModelParticleSprite(state).getAtlasId();
 		}
 
 		int color = colorPalette.getTextureColor(state, blockSprite);
 		if (color != 0x0) return color;
 
-		Identifier texture = new Identifier(blockSprite.getNamespace(), String.format("textures/%s.png", blockSprite.getPath()));
+		Identifier texture = new Identifier(blockSprite.getNamespace(), blockSprite.getPath());
 		NativeImage image = ImageUtil.loadImage(texture, 16, 16);
 
 		int height = state.getBlock() instanceof FlowerBlock ? image.getHeight() / 2 : image.getHeight();

@@ -12,15 +12,10 @@ import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralTextContent;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextContent;
-import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import org.lwjgl.glfw.GLFW;
-
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.client.widget.TitledButtonWidget;
@@ -116,18 +111,18 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		ey += row;
 
 		ew = 20;
-		this.prevColorButton = new ButtonWidget(ex, ey, ew, ROW_HEIGHT, Text.literal("<"), (b) -> cycleColor(-1));
+		this.prevColorButton = ButtonWidget.builder(Text.literal("<"), b -> cycleColor(-1)).dimensions(ex, ey, ew, ROW_HEIGHT).build();
 		children.add(prevColorButton);
 
-		this.nextColorButton = new ButtonWidget(x + screenW - ew - PADDING, ey, ew, ROW_HEIGHT, Text.literal(">"), (b) -> cycleColor(1));
+		this.nextColorButton = ButtonWidget.builder(Text.literal(">"), b -> cycleColor(1)).dimensions(x + screenW - ew - PADDING, ey, ew, ROW_HEIGHT).build();
 		children.add(nextColorButton);
 
 		ey += row;
 
-		ButtonWidget prevIconButton = new ButtonWidget(ex, ey, ew, ROW_HEIGHT, Text.literal("<"), (b) -> cycleIcon(-1));
+		ButtonWidget prevIconButton = ButtonWidget.builder(Text.literal("<"), b -> cycleIcon(-1)).dimensions(ex, ey, ew, ROW_HEIGHT).build();
 		children.add(prevIconButton);
 
-		ButtonWidget nextIconButton = new ButtonWidget(x + screenW - ew - PADDING, ey, ew, ROW_HEIGHT, Text.literal(">"), (b) -> cycleIcon(1));
+		ButtonWidget nextIconButton = ButtonWidget.builder(Text.literal(">"), b -> cycleIcon(1)).dimensions(x + screenW - ew - PADDING, ey, ew, ROW_HEIGHT).build();
 		children.add(nextIconButton);
 
 		ey += row * 1.5;
@@ -165,13 +160,13 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 
 		ew = 60;
 		ey = height - (ROW_HEIGHT / 2 + 16);
-		ButtonWidget saveButton = new ButtonWidget(center - ew - 2, ey, ew, ROW_HEIGHT, lang("save"), (b) -> {
+		ButtonWidget saveButton = ButtonWidget.builder(lang("save"), b -> {
 			save();
 			close();
-		});
+		}).dimensions(center - ew - 2, ey, ew, ROW_HEIGHT).build();
 		children.add(saveButton);
 
-		ButtonWidget cancelButton = new ButtonWidget(center + 2, ey, ew, ROW_HEIGHT, lang("cancel"), (b) -> close());
+		ButtonWidget cancelButton = ButtonWidget.builder(lang("cancel"), b -> close()).dimensions(center + 2, ey, ew, ROW_HEIGHT).build();
 		children.add(cancelButton);
 
 		this.setInitialFocus(nameField);
@@ -236,9 +231,9 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 
 	@Override
 	public void renderForeground(MatrixStack matrixStack) {
-		int x = prevColorButton.x + prevColorButton.getWidth() + 2;
-		int y = prevColorButton.y + 3;
-		int w = nextColorButton.x - x - 2;
+		int x = prevColorButton.getX() + prevColorButton.getWidth() + 2;
+		int y = prevColorButton.getY() + 3;
+		int w = nextColorButton.getX() - x - 2;
 		int h = 12;
 
 		int col = Waypoint.WAYPOINT_COLORS[colorIndex];

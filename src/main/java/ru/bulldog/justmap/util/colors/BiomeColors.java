@@ -4,22 +4,23 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
+import javax.imageio.ImageIO;
 
 import com.google.gson.JsonObject;
-import javax.imageio.ImageIO;
 import net.fabricmc.api.EnvType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.registry.BuiltinRegistries;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
-import net.minecraft.util.registry.BuiltinRegistries;
-import net.minecraft.util.registry.DynamicRegistryManager;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeEffects;
-
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.mixins.BiomeColorsAccessor;
 import ru.bulldog.justmap.server.JustMapServer;
@@ -29,7 +30,7 @@ public class BiomeColors {
 	private static int[] foliageMap;
 	private static int[] grassMap;
 
-	private static final DynamicRegistryManager registryManager = DynamicRegistryManager.createAndLoad();
+	private static final DynamicRegistryManager registryManager = DynamicRegistryManager.of(Registries.REGISTRIES);
 
 	private Biome biome;
 	private Optional<Integer> foliageColor;
@@ -77,8 +78,8 @@ public class BiomeColors {
 	}
 
 	public static Identifier getBiomeId(World world, Biome biome) {
-		Identifier biomeId = world.getRegistryManager().get(Registry.BIOME_KEY).getId(biome);
-		return biomeId != null ? biomeId : BuiltinRegistries.BIOME.getId(biome);
+		Identifier biomeId = world.getRegistryManager().get(RegistryKeys.BIOME).getId(biome);
+		return biomeId != null ? biomeId : registryManager.get(RegistryKeys.BIOME).getId(biome); // TODO check
 	}
 
 	public static Registry<Biome> getBiomeRegistry() {
@@ -86,15 +87,15 @@ public class BiomeColors {
 			MinecraftClient minecraft = MinecraftClient.getInstance();
 			ClientPlayNetworkHandler networkHandler = minecraft.getNetworkHandler();
 			if (networkHandler != null) {
-				return minecraft.getNetworkHandler().getRegistryManager().get(Registry.BIOME_KEY);
+				return minecraft.getNetworkHandler().getRegistryManager().get(RegistryKeys.BIOME);
 			}
-			return registryManager.get(Registry.BIOME_KEY);
+			return registryManager.get(RegistryKeys.BIOME);
 		}
 		MinecraftServer server = JustMapServer.getServer();
 		if (server != null) {
-			return server.getRegistryManager().get(Registry.BIOME_KEY);
+			return server.getRegistryManager().get(RegistryKeys.BIOME);
 		}
-		return registryManager.get(Registry.BIOME_KEY);
+		return registryManager.get(RegistryKeys.BIOME);
 	}
 
 	public static int getGrassColor(double temperature, double humidity) {

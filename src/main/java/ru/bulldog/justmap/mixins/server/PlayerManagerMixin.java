@@ -1,16 +1,10 @@
 package ru.bulldog.justmap.mixins.server;
 
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.message.DecoratedContents;
-import net.minecraft.network.message.MessageType;
-import net.minecraft.network.message.SignedMessage;
-import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralTextContent;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Final;
@@ -19,10 +13,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.map.MapGameRules;
-import ru.bulldog.justmap.mixins.client.ClientPlayNetworkHandlerMixin;
 import ru.bulldog.justmap.network.ServerNetworkHandler;
 import ru.bulldog.justmap.server.JustMapServer;
 import ru.bulldog.justmap.server.config.ServerSettings;
@@ -93,13 +84,12 @@ public abstract class PlayerManagerMixin {
 		}
 		command.append("§f§f");
 
-		if (command.toString().length() > 8) {
-			this.sendCommand(serverPlayerEntity, Text.literal(command.toString()));
+		if (command.length() > 8) {
+			this.sendCommand(serverPlayerEntity, Text.of(command.toString()));
 		}
 	}
 
 	private void sendCommand(ServerPlayerEntity serverPlayerEntity, Text command) {
-		SignedMessage message = SignedMessage.ofUnsigned(new DecoratedContents(command.toString(), command));
-		serverPlayerEntity.networkHandler.sendPacket(new ChatMessageS2CPacket(message, JustMap.MESSAGE_ID));
+		serverPlayerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(command, true));
 	}
 }

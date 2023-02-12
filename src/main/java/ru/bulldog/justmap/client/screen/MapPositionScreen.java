@@ -5,7 +5,6 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.client.config.ClientConfig;
 import ru.bulldog.justmap.client.widget.MinimapWidget;
@@ -30,9 +29,9 @@ public class MapPositionScreen extends Screen {
 	public void init() {
 		int posX = width / 2;
 		int posY = height - 60;
-		this.addDrawableChild(new ButtonWidget(posX - 125, posY, 80, 20, MutableText.of(LangUtil.getText("gui", "save")), button -> this.onSave()));
-		this.addDrawableChild(new ButtonWidget(posX - 40, posY, 80, 20, MutableText.of(LangUtil.getText("gui", "reset")), button -> this.onReset()));
-		this.addDrawableChild(new ButtonWidget(posX + 45, posY, 80, 20, MutableText.of(LangUtil.getText("gui", "cancel")), button -> this.close()));
+		this.addDrawableChild(ButtonWidget.builder(MutableText.of(LangUtil.getText("gui", "save")), button -> this.onSave()).dimensions(posX - 125, posY, 80, 20).build());
+		this.addDrawableChild(ButtonWidget.builder(MutableText.of(LangUtil.getText("gui", "reset")), button -> this.onReset()).dimensions(posX - 40, posY, 80, 20).build());
+		this.addDrawableChild(ButtonWidget.builder(MutableText.of(LangUtil.getText("gui", "cancel")), button -> this.close()).dimensions(posX + 45, posY, 80, 20).build());
 		this.mapHolder = this.addDrawable(new MinimapWidget(this, JustMapClient.getMiniMap()));
 	}
 

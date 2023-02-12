@@ -10,12 +10,13 @@ import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.resource.metadata.AnimationResourceMetadata;
 import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.texture.SpriteContents;
+import net.minecraft.client.texture.SpriteDimensions;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3f;
-
+import net.minecraft.util.math.RotationAxis;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.util.ImageUtil;
@@ -28,7 +29,7 @@ public class DirectionArrow extends Sprite {
 	private static DirectionArrow ARROW;
 
 	private DirectionArrow(Identifier texture, int w, int h) {
-		super(SpriteAtlas.MAP_ICONS, new Sprite.Info(texture, w, h, AnimationResourceMetadata.EMPTY), 0, w, h, 0, 0, ImageUtil.loadImage(texture, w, h));
+		super(SpriteAtlas.MAP_ICONS.getId(), new SpriteContents(texture, new SpriteDimensions(w, h), ImageUtil.loadImage(texture, w, h), AnimationResourceMetadata.EMPTY), 0, w, h, 0);
 	}
 
 	public static void draw(double x, double y, int size, float rotation) {
@@ -46,14 +47,14 @@ public class DirectionArrow extends Sprite {
 
 			VertexConsumer vertexConsumer = ARROW.getTextureSpecificVertexConsumer(builder);
 
-			RenderUtil.bindTexture(ARROW.getId());
+			RenderUtil.bindTexture(ARROW.getAtlasId());
 
 			RenderSystem.enableCull();
 			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
 			matrix.push();
 			matrix.translate(x, y, 0);
-			matrix.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(rotation + 180));
+			matrix.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(rotation + 180));
 
 			Matrix4f m4f = matrix.peek().getPositionMatrix();
 			Matrix3f m3f = matrix.peek().getNormalMatrix();
@@ -75,7 +76,7 @@ public class DirectionArrow extends Sprite {
 			double x3 = x + Math.cos(a3) * l;
 			double y3 = y + Math.sin(a3) * l;
 
-			RenderSystem.setShader(GameRenderer::getPositionColorShader);
+			RenderSystem.setShader(GameRenderer::getPositionColorProgram);
 			RenderUtil.drawTriangle(x1, y1, x2, y2, x3, y3, Colors.RED);
 		}
 	}

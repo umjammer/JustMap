@@ -12,7 +12,7 @@ public class MapPlayer extends AbstractClientPlayerEntity {
 	private final PlayerHeadIconImage icon;
 
 	public MapPlayer(ClientWorld world, PlayerEntity player) {
-		super(world, player.getGameProfile(), null);
+		super(world, player.getGameProfile());
 
 		this.icon = new PlayerHeadIconImage();
 		this.icon.getPlayerSkin(this);

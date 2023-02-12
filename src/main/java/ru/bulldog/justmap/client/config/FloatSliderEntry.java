@@ -19,7 +19,6 @@ import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.util.NarratorManager;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 
@@ -59,8 +58,8 @@ public class FloatSliderEntry extends TooltipListEntry<Float> {
 		this.minimum = minimum;
 		this.sliderWidget = new Slider(0, 0, 152, 20, (this.value.get() - minimum) / Math.abs(maximum - minimum));
 		int width = textRenderer.getWidth(resetButtonKey);
-		this.resetButton = new ButtonWidget(0, 0, width + 6, 20, resetButtonKey, widget ->
-				setValue(defaultValue.get()));
+		this.resetButton = ButtonWidget.builder(resetButtonKey, widget ->
+				setValue(defaultValue.get())).dimensions(0, 0, width + 6, 20).build();
 		this.sliderWidget.setMessage(textGetter.apply((float) FloatSliderEntry.this.value.get()));
 		this.widgets = Lists.newArrayList(sliderWidget, resetButton);
 	}
@@ -122,18 +121,18 @@ public class FloatSliderEntry extends TooltipListEntry<Float> {
 		super.render(matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, isSelected, delta);
 		Window window = MinecraftClient.getInstance().getWindow();
 		this.resetButton.active = isEditable() && getDefaultValue().isPresent() && defaultValue.get() != value.get();
-		this.resetButton.y = y;
+		this.resetButton.setY(y);
 		this.sliderWidget.active = isEditable();
-		this.sliderWidget.y = y;
+		this.sliderWidget.setY(y);
 		Text displayedFieldName = getDisplayedFieldName();
 		if (textRenderer.isRightToLeft()) {
 			textRenderer.drawWithShadow(matrices, displayedFieldName, window.getScaledWidth() - x - textRenderer.getWidth(displayedFieldName), y + 5, getPreferredTextColor());
-			this.resetButton.x = x;
-			this.sliderWidget.x = x + resetButton.getWidth() + 1;
+			this.resetButton.setX(x);
+			this.sliderWidget.setX(x + resetButton.getWidth() + 1);
 		} else {
 			textRenderer.drawWithShadow(matrices, displayedFieldName, x, y + 5, getPreferredTextColor());
-			this.resetButton.x = x + entryWidth - resetButton.getWidth();
-			this.sliderWidget.x = x + entryWidth - 150;
+			this.resetButton.setX(x + entryWidth - resetButton.getWidth());
+			this.sliderWidget.setX(x + entryWidth - 150);
 		}
 		this.sliderWidget.setWidth(150 - resetButton.getWidth() - 2);
 		resetButton.render(matrices, mouseX, mouseY, delta);

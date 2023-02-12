@@ -15,11 +15,10 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3f;
-
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.data.MapDataProvider;
 import ru.bulldog.justmap.map.waypoint.Waypoint;
@@ -138,8 +137,8 @@ public class WaypointRenderer {
 				matrixStack.translate(0.0, swing, 0.0);
 			}
 			matrixStack.multiply(camera.getRotation());
-   	 		matrixStack.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180.0F));
-   	 		matrixStack.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(-90.0F));
+   	 		matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F));
+   	 		matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-90.0F));
 
    	 		alpha = MathUtil.clamp(alpha * 3, 0.0F, 1.0F);
 
@@ -172,7 +171,7 @@ public class WaypointRenderer {
 		float blue = colors[2];
 
 		matrixStack.push();
-		matrixStack.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(tick * 2.25F - 45.0F));
+		matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(tick * 2.25F - 45.0F));
 		float af;
 		float ai;
 		float aj = -h;

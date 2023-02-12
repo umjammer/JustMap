@@ -29,19 +29,19 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	private void update() {
 		int titleWidth = font.getWidth(title.string());
 		int widgetWidth = widget.getWidth();
-		int wx = x + width - widgetWidth;
-		if (x + titleWidth + SPACING > wx) {
-			wx = x + titleWidth + SPACING;
-			widget.setWidth((x + width) - wx);
+		int wx = getX() + width - widgetWidth;
+		if (getX() + titleWidth + SPACING > wx) {
+			wx = getX() + titleWidth + SPACING;
+			widget.setWidth((getX() + width) - wx);
 		}
 
-		this.widget.x = wx;
-		this.widget.y = y;
+		this.widget.setX(wx);
+		this.widget.setY(getY());
 	}
 
 	@Override
 	public void render(MatrixStack matrixStack, int int_1, int int_2, float float_1) {
-		drawStringWithShadow(matrixStack, font, title.string(), x, y, 0xFFFFFFFF);
+		drawStringWithShadow(matrixStack, font, title.string(), getX(), getY(), 0xFFFFFFFF);
 		widget.render(matrixStack, int_1, int_2, float_1);
 	}
 
@@ -116,17 +116,12 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	}
 
 	@Override
-	public void renderTooltip(MatrixStack matrixStack, int int_1, int int_2) {
-		this.widget.renderTooltip(matrixStack, int_1, int_2);
-	}
-
-	@Override
 	public void playDownSound(SoundManager soundManager_1) {
 		this.widget.playDownSound(soundManager_1);
 	}
 
 	@Override
-	public void appendNarrations(NarrationMessageBuilder builder) {
+	public void appendClickableNarrations(NarrationMessageBuilder builder) {
 		// FIXME: implement?
 	}
 }

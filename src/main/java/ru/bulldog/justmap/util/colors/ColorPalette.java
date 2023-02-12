@@ -14,12 +14,11 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.block.BlockState;
+import net.minecraft.registry.Registries;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.biome.Biome;
 import org.jetbrains.annotations.Nullable;
-
 import ru.bulldog.justmap.util.JsonFactory;
 
 public class ColorPalette {
@@ -239,7 +238,7 @@ public class ColorPalette {
 
 	private static String makeKey(BlockState block) {
 		StringBuilder stringBuilder = new StringBuilder();
-		Identifier stateId = Registry.BLOCK.getId(block.getBlock());
+		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
 		stringBuilder.append(stateId);
 
 		Map<Property<?>, Comparable<?>> properties = block.getEntries();

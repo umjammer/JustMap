@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 import me.shedaniel.clothconfig2.impl.builders.FieldBuilder;
 import net.minecraft.text.Text;
 
-public class FloatSliderBuilder extends FieldBuilder<Float, FloatSliderEntry> {
+public class FloatSliderBuilder extends FieldBuilder<Float, FloatSliderEntry, FloatSliderBuilder> {
 
 	private Consumer<Float> saveConsumer = null;
 	private Function<Float, Optional<Text[]>> tooltipSupplier = i -> Optional.empty();

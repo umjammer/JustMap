@@ -6,8 +6,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Vec3f;
-
+import net.minecraft.util.math.RotationAxis;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.ChunkGrid;
 import ru.bulldog.justmap.map.data.MapRegion;
@@ -50,7 +49,7 @@ public class FastMiniMapRenderer extends AbstractMiniMapRenderer {
 			float moveX = mapX + mapWidth / 2.0F;
 			float moveY = mapY + mapHeight / 2.0F;
 			matrices.translate(moveX, moveY, 0.0);
-			matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(-rotation + 180));
+			matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-rotation + 180));
 			matrices.translate(-moveX, -moveY, 0.0);
 		}
 		matrices.translate(-offX, -offY, 0.0);

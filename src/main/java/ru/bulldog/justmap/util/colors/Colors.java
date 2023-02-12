@@ -5,8 +5,9 @@ import java.util.Map;
 
 import com.google.common.collect.Maps;
 import net.minecraft.block.BlockState;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 
@@ -62,32 +63,32 @@ public final class Colors {
 	}
 
 	public int getBlockColor(BlockState block) {
-		Identifier stateId = Registry.BLOCK.getId(block.getBlock());
+		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
 		return this.getPalette(stateId.getNamespace()).getBlockColor(block);
 	}
 
 	public void addBlockColor(BlockState block, int color) {
-		Identifier stateId = Registry.BLOCK.getId(block.getBlock());
+		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
 		this.getPalette(stateId.getNamespace()).addBlockColor(block, color);
 	}
 
 	public int getFluidColor(BlockState block) {
-		Identifier stateId = Registry.BLOCK.getId(block.getBlock());
+		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
 		return this.getPalette(stateId.getNamespace()).getFluidColor(block);
 	}
 
 	public void addFluidColor(BlockState block, int color) {
-		Identifier stateId = Registry.BLOCK.getId(block.getBlock());
+		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
 		this.getPalette(stateId.getNamespace()).addFluidColor(block, color);
 	}
 
 	public int getTextureColor(BlockState block, Identifier texture) {
-		Identifier stateId = Registry.BLOCK.getId(block.getBlock());
+		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
 		return this.getPalette(stateId.getNamespace()).getTextureColor(texture);
 	}
 
 	public void addTextureColor(BlockState block, Identifier texture, int color) {
-		Identifier stateId = Registry.BLOCK.getId(block.getBlock());
+		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
 		this.getPalette(stateId.getNamespace()).addTextureColor(texture, color);
 	}
 

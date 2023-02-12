@@ -2,9 +2,6 @@ package ru.bulldog.justmap;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
-
-import net.minecraft.network.message.MessageType;
-import net.minecraft.text.Text;
 import ru.bulldog.justmap.util.Logger;
 import ru.bulldog.justmap.util.tasks.TaskManager;
 
@@ -14,8 +11,6 @@ public class JustMap implements ModInitializer {
 	public static final TaskManager WORKER = TaskManager.getManager("worker");
 
 	private static EnvType environment = EnvType.CLIENT;
-
-	public static final MessageType.Serialized MESSAGE_ID = new MessageType.Serialized(123456789, Text.of("JustMap"), null);
 
 	@Override
 	public void onInitialize() {}

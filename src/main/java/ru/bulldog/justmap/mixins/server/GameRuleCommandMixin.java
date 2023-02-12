@@ -1,10 +1,7 @@
 package ru.bulldog.justmap.mixins.server;
 
 import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.network.message.DecoratedContents;
-import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
-import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.server.command.GameRuleCommand;
 import net.minecraft.server.command.ServerCommandSource;
@@ -15,7 +12,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.server.config.ServerSettings;
 
 @Mixin(GameRuleCommand.class)
@@ -35,45 +31,38 @@ public abstract class GameRuleCommandMixin {
 				switch (Key.getName()) {
 				case "allowCavesMap":
 					command = String.format("§0§0§a%s§f§f", val);
-					message = SignedMessage.ofUnsigned(new DecoratedContents(command, Text.literal(command)));
 					serverCommandSource.getServer().getPlayerManager().sendToAll(
-							new ChatMessageS2CPacket(message, JustMap.MESSAGE_ID));
+							new GameMessageS2CPacket(Text.of(command), true));
 					break;
 				case "allowEntityRadar":
 					command = String.format("§0§0§b%s§f§f", val);
-					message = SignedMessage.ofUnsigned(new DecoratedContents(command, Text.literal(command)));
 					serverCommandSource.getServer().getPlayerManager().sendToAll(
-							new ChatMessageS2CPacket(message, JustMap.MESSAGE_ID));
+							new GameMessageS2CPacket(Text.of(command), true));
 					break;
 				case "allowPlayerRadar":
 					command = String.format("§0§0§c%s§f§f", val);
-					message = SignedMessage.ofUnsigned(new DecoratedContents(command, Text.literal(command)));
 					serverCommandSource.getServer().getPlayerManager().sendToAll(
-							new ChatMessageS2CPacket(message, JustMap.MESSAGE_ID));
+							new GameMessageS2CPacket(Text.of(command), true));
 					break;
 				case "allowCreatureRadar":
 					command = String.format("§0§0§d%s§f§f", val);
-					message = SignedMessage.ofUnsigned(new DecoratedContents(command, Text.literal(command)));
 					serverCommandSource.getServer().getPlayerManager().sendToAll(
-							new ChatMessageS2CPacket(message, JustMap.MESSAGE_ID));
+							new GameMessageS2CPacket(Text.of(command), true));
 					break;
 				case "allowHostileRadar":
 					command = String.format("§0§0§e%s§f§f", val);
-					message = SignedMessage.ofUnsigned(new DecoratedContents(command, Text.literal(command)));
 					serverCommandSource.getServer().getPlayerManager().sendToAll(
-							new ChatMessageS2CPacket(message, JustMap.MESSAGE_ID));
+							new GameMessageS2CPacket(Text.of(command), true));
 					break;
 				case "allowSlimeChunks":
 					command = String.format("§0§0§s%s§f§f", val);
-					message = SignedMessage.ofUnsigned(new DecoratedContents(command, Text.literal(command)));
 					serverCommandSource.getServer().getPlayerManager().sendToAll(
-							new ChatMessageS2CPacket(message, JustMap.MESSAGE_ID));
+							new GameMessageS2CPacket(Text.of(command), true));
 					break;
 				case "allowWaypointsJump":
 					command = String.format("§0§0§t%s§f§f", val);
-					message = SignedMessage.ofUnsigned(new DecoratedContents(command, Text.literal(command)));
 					serverCommandSource.getServer().getPlayerManager().sendToAll(
-							new ChatMessageS2CPacket(message, JustMap.MESSAGE_ID));
+							new GameMessageS2CPacket(Text.of(command), true));
 					break;
 				}
 			}

@@ -4,10 +4,13 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.util.telemetry.TelemetrySender;
+import net.minecraft.client.network.ServerInfo;
+import net.minecraft.client.util.telemetry.TelemetryManager;
+import net.minecraft.client.util.telemetry.WorldSession;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
+import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.HealthUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlayerSpawnPositionS2CPacket;
@@ -32,8 +35,8 @@ public abstract class ClientPlayNetworkHandlerMixin {
 	@Shadow
 	private MinecraftClient client;
 
-	@Inject(method = "<init>", at = @At("TAIL"))
-	public void onConnect(MinecraftClient client, Screen screen, ClientConnection connection, GameProfile profile, TelemetrySender telemetrySender, CallbackInfo cinfo) {
+	@Inject(method = "onGameJoin", at = @At("TAIL"))
+	public void onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
 		MapDataProvider.getMultiworldManager().onServerConnect();
 	}
 
@@ -43,21 +46,19 @@ public abstract class ClientPlayNetworkHandlerMixin {
 		MapDataProvider.getMultiworldManager().onWorldSpawnPosChanged(packet.getPos());
 	}
 
-	@Inject(method = "onChatMessage", at = @At("HEAD"), cancellable = true)
-	public void onGameMessage(ChatMessageS2CPacket chatMessageS2CPacket, CallbackInfo cinfo) {
-		if (chatMessageS2CPacket.serializedParameters().equals(JustMap.MESSAGE_ID)) {
-			String pref = "§0§0", suff = "§f§f";
-			String message = chatMessageS2CPacket.message().getContent().getString().replaceAll("[&$]", "§");
+	@Inject(method = "onGameMessage", at = @At("HEAD"), cancellable = true)
+	public void onGameMessage(GameMessageS2CPacket gameMessageS2CPacket, CallbackInfo ci) {
+		String pref = "§0§0", suff = "§f§f";
+		String message = gameMessageS2CPacket.content().getString().replaceAll("[&$]", "§");
 
-			if (message.contains(pref) && message.contains(suff)) {
-				int start = message.indexOf(pref) + 4;
-				int end = message.indexOf(suff);
+		if (message.contains(pref) && message.contains(suff)) {
+			int start = message.indexOf(pref) + 4;
+			int end = message.indexOf(suff);
 
-				MapGameRules.parseCommand(message.substring(start, end));
+			MapGameRules.parseCommand(message.substring(start, end));
 
-				if (message.matches("^§0§0.+§f§f$")) {
-					cinfo.cancel();
-				}
+			if (message.matches("^§0§0.+§f§f$")) {
+				ci.cancel();
 			}
 		}
 	}

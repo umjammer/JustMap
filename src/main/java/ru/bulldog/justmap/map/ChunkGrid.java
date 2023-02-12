@@ -83,7 +83,7 @@ public class ChunkGrid {
 
 		RenderSystem.disableTexture();
 		RenderSystem.setShaderColor(r, g, b, a);
-		RenderSystem.setShader(GameRenderer::getPositionShader);
+		RenderSystem.setShader(GameRenderer::getPositionProgram);
 		RenderUtil.startDraw(VertexFormat.DrawMode.LINES, VertexFormats.POSITION);
 		BufferBuilder buffer = RenderUtil.getBuffer();
 		lines.forEach(line -> line.draw(buffer));

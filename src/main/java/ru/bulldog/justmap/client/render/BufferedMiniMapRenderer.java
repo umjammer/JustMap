@@ -9,9 +9,9 @@ import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3f;
+import net.minecraft.util.math.RotationAxis;
 
+import org.joml.Matrix4f;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.ChunkGrid;
@@ -73,7 +73,7 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		RenderSystem.clear(GLC.GL_COLOR_OR_DEPTH_BUFFER_BIT, isMac);
 		RenderSystem.enableTexture();
 		RenderSystem.backupProjectionMatrix();
-		Matrix4f orthographic = Matrix4f.projectionMatrix(0.0F, scaledW, 0.0F, scaledH, 1000.0F, 3000.0F);
+		Matrix4f orthographic = projectionMatrix(0.0F, scaledW, 0.0F, scaledH, 1000.0F, 3000.0F);
 		RenderSystem.setProjectionMatrix(orthographic);
 		matrices.loadIdentity();
 		matrices.translate(0.0F, 0.0F, -2000.0F);
@@ -100,12 +100,12 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 			float shiftX = scaledW / 2.0F;
 			float shiftY = scaledH / 2.0F;
 			matrices.translate(shiftX, shiftY, 0.0);
-			matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(180.0F - rotation));
+			matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180.0F - rotation));
 			matrices.translate(-shiftX, -shiftY, 0.0);
 		}
 		matrices.translate(-offX * scale, -offY * scale, 0.0);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		RenderSystem.setShader(GameRenderer::getPositionTexProgram);
 		this.primaryFramebuffer.beginRead();
 		RenderUtil.startDraw();
 		BufferBuilder buffer = RenderUtil.getBuffer();
@@ -148,8 +148,8 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 			RenderSystem.blendFunc(GLC.GL_DST_ALPHA, GLC.GL_ONE_MINUS_DST_ALPHA);
 		}
 		matrices.push();
-		matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(180.0F));
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180.0F));
+		RenderSystem.setShader(GameRenderer::getPositionTexProgram);
 		this.secondaryFramebuffer.beginRead();
 		RenderUtil.startDraw();
 		buffer = RenderUtil.getBuffer();
@@ -165,6 +165,22 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		}
 		consumerProvider.draw();
 		RenderUtil.disableScissor();
+	}
+
+	// TODO aka net.minecraft.util.math.Matrix4f#projectionMatrix idk where is this in 1.19.3
+	public static Matrix4f projectionMatrix(float left, float right, float bottom, float top, float nearPlane, float farPlane) {
+		Matrix4f matrix4f = new Matrix4f();
+		float f = right - left;
+		float g = bottom - top;
+		float h = farPlane - nearPlane;
+		matrix4f.m00(2.0F / f);
+		matrix4f.m11(2.0F / g);
+		matrix4f.m22(-2.0F / h);
+		matrix4f.m03(-(right + left) / f);
+		matrix4f.m13(-(bottom + top) / g);
+		matrix4f.m23(-(farPlane + nearPlane) / h);
+		matrix4f.m33(1.0F);
+		return matrix4f;
 	}
 
 	private void drawMap(MatrixStack matrices) {
