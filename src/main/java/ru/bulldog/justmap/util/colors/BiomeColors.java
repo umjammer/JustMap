@@ -9,10 +9,10 @@ import javax.imageio.ImageIO;
 import com.google.gson.JsonObject;
 import net.fabricmc.api.EnvType;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientDynamicRegistryType;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.registry.BuiltinRegistries;
 import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
@@ -30,7 +30,8 @@ public class BiomeColors {
 	private static int[] foliageMap;
 	private static int[] grassMap;
 
-	private static final DynamicRegistryManager registryManager = DynamicRegistryManager.of(Registries.REGISTRIES);
+	private static final DynamicRegistryManager registryManager =
+			ClientDynamicRegistryType.createCombinedDynamicRegistries().getCombinedRegistryManager();
 
 	private Biome biome;
 	private Optional<Integer> foliageColor;
@@ -79,7 +80,7 @@ public class BiomeColors {
 
 	public static Identifier getBiomeId(World world, Biome biome) {
 		Identifier biomeId = world.getRegistryManager().get(RegistryKeys.BIOME).getId(biome);
-		return biomeId != null ? biomeId : registryManager.get(RegistryKeys.BIOME).getId(biome); // TODO check
+		return biomeId != null ? biomeId : BuiltinRegistries.createWrapperLookup().getWrapperOrThrow(RegistryKeys.BIOME).streamEntries().filter(b -> biome.equals(b.value())).map(b -> b.registryKey().getValue()).findFirst().get();
 	}
 
 	public static Registry<Biome> getBiomeRegistry() {

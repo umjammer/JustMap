@@ -22,3 +22,4 @@ Translation via [Crowdin](https://crowdin.com/project/justmap)
 ## TODO
 
  * new entities' texture for minimap
+ * 1.19.3 ... default arrow icon is not rendered

@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.client.util.telemetry.TelemetryManager;
+import net.minecraft.client.util.telemetry.TelemetrySender;
 import net.minecraft.client.util.telemetry.WorldSession;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.message.MessageType;
@@ -35,8 +36,8 @@ public abstract class ClientPlayNetworkHandlerMixin {
 	@Shadow
 	private MinecraftClient client;
 
-	@Inject(method = "onGameJoin", at = @At("TAIL"))
-	public void onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
+	@Inject(method = "<init>", at = @At("TAIL"))
+	public void onConnect(MinecraftClient client, Screen screen, ClientConnection connection, ServerInfo serverInfo, GameProfile profile, WorldSession worldSession, CallbackInfo ci) {
 		MapDataProvider.getMultiworldManager().onServerConnect();
 	}
 

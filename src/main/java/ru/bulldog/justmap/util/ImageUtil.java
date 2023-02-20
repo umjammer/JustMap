@@ -2,6 +2,7 @@ package ru.bulldog.justmap.util;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -35,6 +36,8 @@ public class ImageUtil {
 		try {
 			resourceManager.getResourceOrThrow(image);
 			return true;
+		} catch(FileNotFoundException ex) {
+			return false;
 		} catch(Exception ex) {
 			JustMap.LOGGER.catching(ex);
 			return false;

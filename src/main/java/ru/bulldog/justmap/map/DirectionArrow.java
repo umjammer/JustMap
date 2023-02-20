@@ -25,7 +25,7 @@ import ru.bulldog.justmap.util.colors.Colors;
 import ru.bulldog.justmap.util.render.RenderUtil;
 
 public class DirectionArrow extends Sprite {
-	private final static VertexFormat vertexFormat = new VertexFormat(ImmutableMap.of("postition", VertexFormats.POSITION_ELEMENT, "texture", VertexFormats.TEXTURE_ELEMENT, "normal", VertexFormats.NORMAL_ELEMENT, "padding", VertexFormats.PADDING_ELEMENT));
+	private final static VertexFormat vertexFormat = new VertexFormat(ImmutableMap.of("position", VertexFormats.POSITION_ELEMENT, "texture", VertexFormats.TEXTURE_ELEMENT, "normal", VertexFormats.NORMAL_ELEMENT, "padding", VertexFormats.PADDING_ELEMENT));
 	private static DirectionArrow ARROW;
 
 	private DirectionArrow(Identifier texture, int w, int h) {
