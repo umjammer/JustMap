@@ -18,8 +18,6 @@ jobs:
           java-version: 17
           distribution: 'temurin'
           cache: maven
-          server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-          settings-path: ${{ github.workspace }} # location for the settings.xml file
 
       - name: Build with Gradle
         run: |
@@ -29,6 +27,6 @@ jobs:
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
         with:
           files: build/libs/*.jar
