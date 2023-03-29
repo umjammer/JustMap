@@ -15,13 +15,13 @@ Translation via [Crowdin](https://crowdin.com/project/justmap)
 
 ## Requires
 
- * MC version 1.19.3
- * fabric 0.14.14
- * [fabric-api-0.73.2+1.19.3](https://www.curseforge.com/minecraft/mc-mods/fabric-api)
- * [cloth-config-9.0.93-fabric](https://www.curseforge.com/minecraft/mc-mods/cloth-config)
- * [modmenu-5.0.2](https://www.curseforge.com/minecraft/mc-mods/modmenu)
+ * MC version 1.19.4
+ * fabric 0.14.18
+ * [fabric-api-0.76.0+1.19.4](https://www.curseforge.com/minecraft/mc-mods/fabric-api)
+ * [cloth-config-10.0.96-fabric](https://www.curseforge.com/minecraft/mc-mods/cloth-config)
+ * [modmenu-6.1.0-rc.4](https://www.curseforge.com/minecraft/mc-mods/modmenu)
 
 ## TODO
 
  * new entities' texture for minimap
- * 1.19.3 ... default arrow icon is not rendered
+ * 1.19.3, 1.19.4 ... default arrow icon is not rendered
