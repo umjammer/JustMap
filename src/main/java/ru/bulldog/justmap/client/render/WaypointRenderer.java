@@ -92,7 +92,6 @@ public class WaypointRenderer {
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.enableCull();
 		RenderSystem.enableDepthTest();
-		RenderSystem.enableTexture();
 		RenderSystem.depthMask(false);
 
 		VertexConsumerProvider.Immediate consumerProvider = minecraft.getBufferBuilders().getEntityVertexConsumers();

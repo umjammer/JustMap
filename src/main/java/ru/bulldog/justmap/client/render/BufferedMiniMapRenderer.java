@@ -71,7 +71,6 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		matrices.push();
 		this.primaryFramebuffer.beginWrite(true);
 		RenderSystem.clear(GLC.GL_COLOR_OR_DEPTH_BUFFER_BIT, isMac);
-		RenderSystem.enableTexture();
 		RenderSystem.backupProjectionMatrix();
 		Matrix4f orthographic = projectionMatrix(0.0F, scaledW, 0.0F, scaledH, 1000.0F, 3000.0F);
 		RenderSystem.setProjectionMatrix(orthographic);

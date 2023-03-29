@@ -33,6 +33,7 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 		private int y;
 		private final int width;
 		private final int height;
+		private boolean focused;
 
 		private final ButtonWidget editButton;
 		private final ButtonWidget deleteButton;
@@ -85,7 +86,7 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 			int stringY = y + 7;
 			int nameX = x + iconSize + 2;
 
-			RenderUtil.drawStringWithShadow(matrixStack, font, waypoint.name, nameX, stringY, Colors.WHITE);
+			RenderUtil.drawTextWithShadow(matrixStack, font, waypoint.name, nameX, stringY, Colors.WHITE);
 
 			int posX = tpButton.getX() - 5;
 			RenderUtil.drawRightAlignedString(matrixStack, waypoint.pos.toShortString(), posX, stringY, Colors.WHITE);
@@ -114,6 +115,16 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 		@Override
 		public boolean isMouseOver(double mouseX, double mouseY) {
 			return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
+		}
+
+		@Override
+		public void setFocused(boolean focused) {
+			this.focused = focused;
+		}
+
+		@Override
+		public boolean isFocused() {
+			return focused;
 		}
 
 		private void rightAlign(ButtonWidget toAlign, ButtonWidget from) {
@@ -232,7 +243,7 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 		if (screenTitle == null) {
 			screenTitle = info == null ? lang("unknown").getString() : I18n.translate(info.getFirst());
 		}
-		drawCenteredText(matrixStack, textRenderer, screenTitle, center, 15, Colors.WHITE);
+		drawCenteredTextWithShadow(matrixStack, textRenderer, screenTitle, center, 15, Colors.WHITE);
 		this.drawScrollBar();
 	}
 

@@ -51,7 +51,7 @@ public abstract class InfoText {
 		int width = minecraft.getWindow().getScaledWidth();
 		switch (alignment) {
 			 case LEFT:
-				RenderUtil.drawStringWithShadow(matrixStack, textRenderer, text.getString(), x, y, color);
+				RenderUtil.drawTextWithShadow(matrixStack, textRenderer, text.getString(), x, y, color);
 			 break;
 			 case CENTER:
 				RenderUtil.drawBoundedString(matrixStack, text.getString(), x, y, 0, width - 2, color);

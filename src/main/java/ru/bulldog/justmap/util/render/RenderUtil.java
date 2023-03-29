@@ -68,7 +68,7 @@ public class RenderUtil extends DrawableHelper {
 			drawX = rightBound - stringWidth;
 		}
 
-		drawStringWithShadow(matrices, textRenderer, string, drawX, y, color);
+		drawTextWithShadow(matrices, textRenderer, string, drawX, y, color);
 	}
 
 	public static void drawRightAlignedString(MatrixStack matrices, String string, int x, int y, int color) {
@@ -173,7 +173,6 @@ public class RenderUtil extends DrawableHelper {
 		float g = (float)(color >> 8 & 255) / 255.0F;
 		float b = (float)(color & 255) / 255.0F;
 
-		RenderSystem.disableTexture();
 		RenderSystem.setShaderColor(r, g, b, a);
 		RenderSystem.setShader(GameRenderer::getPositionProgram);
 		startDraw(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION);
@@ -181,7 +180,6 @@ public class RenderUtil extends DrawableHelper {
 		vertexBuffer.vertex(x2, y2, 0).next();
 		vertexBuffer.vertex(x3, y3, 0).next();
 		endDraw();
-		RenderSystem.enableTexture();
 	}
 
 	public static void drawLine(double x1, double y1, double x2, double y2, int color) {
@@ -190,7 +188,6 @@ public class RenderUtil extends DrawableHelper {
 		float g = (float)(color >> 8 & 255) / 255.0F;
 		float b = (float)(color & 255) / 255.0F;
 
-		RenderSystem.disableTexture();
 		RenderSystem.setShaderColor(r, g, b, a);
 		RenderSystem.setShader(GameRenderer::getPositionProgram);
 		startDraw(VertexFormat.DrawMode.LINES, VertexFormats.POSITION);
@@ -198,7 +195,6 @@ public class RenderUtil extends DrawableHelper {
 		vertexBuffer.vertex(x2, y2, 0).next();
 		endDraw();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.enableTexture();
 	}
 
 	public static void drawOutlineCircle(double x, double y, double radius, double outline, int color) {
@@ -214,13 +210,11 @@ public class RenderUtil extends DrawableHelper {
 		float b = (float)(color & 255) / 255.0F;
 
 		RenderSystem.enableBlend();
-		RenderSystem.disableTexture();
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.setShaderColor(r, g, b, a);
 		RenderSystem.setShader(GameRenderer::getPositionProgram);
 		drawCircleVertices(x, y, radius);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.enableTexture();
 		RenderSystem.disableBlend();
 	}
 
@@ -253,7 +247,6 @@ public class RenderUtil extends DrawableHelper {
 		float b = (float)(color & 255) / 255.0F;
 
 		RenderSystem.enableBlend();
-		RenderSystem.disableTexture();
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
 		startDraw(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
@@ -262,7 +255,6 @@ public class RenderUtil extends DrawableHelper {
 		vertexBuffer.vertex(matrix4f, (float) (x + w), (float) y, 0.0F).color(r, g, b, a).next();
 		vertexBuffer.vertex(matrix4f, (float) x, (float) y, 0.0F).color(r, g, b, a).next();
 		endDraw();
-		RenderSystem.enableTexture();
 		RenderSystem.disableBlend();
 	}
 

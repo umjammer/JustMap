@@ -41,7 +41,7 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 
 	@Override
 	public void render(MatrixStack matrixStack, int int_1, int int_2, float float_1) {
-		drawStringWithShadow(matrixStack, font, title.string(), getX(), getY(), 0xFFFFFFFF);
+		drawTextWithShadow(matrixStack, font, title.string(), getX(), getY(), 0xFFFFFFFF);
 		widget.render(matrixStack, int_1, int_2, float_1);
 	}
 
@@ -71,8 +71,8 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	}
 
 	@Override
-	public boolean changeFocus(boolean boolean_1) {
-		return this.widget.changeFocus(boolean_1);
+	public void setFocused(boolean boolean_1) {
+		this.widget.setFocused(boolean_1);
 	}
 
 	@Override
@@ -106,8 +106,8 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	}
 
 	@Override
-	public boolean isHovered() {
-		return this.widget.isHovered();
+	public boolean isSelected() {
+		return this.widget.isSelected();
 	}
 
 	@Override

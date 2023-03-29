@@ -81,14 +81,12 @@ public class ChunkGrid {
 		float g = (float) (color >> 8 & 255) / 255.0F;
 		float b = (float) (color & 255) / 255.0F;
 
-		RenderSystem.disableTexture();
 		RenderSystem.setShaderColor(r, g, b, a);
 		RenderSystem.setShader(GameRenderer::getPositionProgram);
 		RenderUtil.startDraw(VertexFormat.DrawMode.LINES, VertexFormats.POSITION);
 		BufferBuilder buffer = RenderUtil.getBuffer();
 		lines.forEach(line -> line.draw(buffer));
 		RenderUtil.endDraw();
-		RenderSystem.enableTexture();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 	}
 

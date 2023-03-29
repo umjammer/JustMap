@@ -23,6 +23,7 @@ public class MinimapWidget implements Element, Drawable {
 	final double initX;
 	final double initY;
 	double x, y;
+	boolean focused;
 
 	public MinimapWidget(Screen parent, Minimap map) {
 		this.map = map;
@@ -71,6 +72,16 @@ public class MinimapWidget implements Element, Drawable {
 	@Override
 	public boolean isMouseOver(double mouseX, double mouseY) {
 		return (mouseX > x && mouseY > y && mouseX < x + width && mouseY < y + height);
+	}
+
+	@Override
+	public void setFocused(boolean focused) {
+		this.focused = focused;
+	}
+
+	@Override
+	public boolean isFocused() {
+		return focused;
 	}
 
 	@Override

@@ -20,7 +20,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeEffects;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.mixins.BiomeColorsAccessor;
 import ru.bulldog.justmap.server.JustMapServer;
@@ -53,29 +52,11 @@ public class BiomeColors {
 	}
 
 	public int getFoliageColor() {
-		float temperature = this.biome.getTemperature();
-		float humidity = this.biome.getDownfall();
-		return this.foliageColor.orElse(getFoliageColor(temperature, humidity));
+		return this.biome.getFoliageColor();
 	}
 
 	public int getGrassColor(int x, int z) {
-		float temperature = this.biome.getTemperature();
-		float humidity = this.biome.getDownfall();
-		int color = this.grassColor.orElse(getGrassColor(temperature, humidity));
-		BiomeColorsAccessor accessor = (BiomeColorsAccessor) biome.getEffects();
-		BiomeEffects.GrassColorModifier modifier = accessor.getGrassColorModifier();
-		switch (modifier) {
-			case DARK_FOREST: {
-				return (color & 16711422) + 2634762 >> 1;
-			}
-			case SWAMP: {
-				double noise = Biome.FOLIAGE_NOISE.sample(x * 0.0225D, z * 0.0225D, false);
-				return noise < -0.1D ? 5011004 : 6975545;
-			}
-			default: {
-				return color;
-			}
-		}
+		return this.biome.getGrassColorAt(x, z);
 	}
 
 	public static Identifier getBiomeId(World world, Biome biome) {

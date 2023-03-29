@@ -198,7 +198,7 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 		MapPlayerManager.getPlayer(player).getIcon().draw(arrowX, arrowY, iconSize, true);
 
 		this.drawBorders(paddingTop, paddingBottom);
-		drawCenteredText(matrices, client.textRenderer, cursorCoords, width / 2, paddingTop + 4, Colors.WHITE);
+		drawCenteredTextWithShadow(matrices, client.textRenderer, cursorCoords, width / 2, paddingTop + 4, Colors.WHITE);
 	}
 
 	private void drawMap(MatrixStack matrices) {

@@ -1,5 +1,5 @@
 [![Fabric](https://img.shields.io/badge/Mod_Loader-Fabric-blue)](https://fabricmc.net/)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.19.3-green)](https://www.minecraft.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.19.4-green)](https://www.minecraft.net/)
 [![Java CI](https://github.com/umjammer/JustMap/actions/workflows/build.yml/badge.svg)](https://github.com/umjammer/JustMap/actions/workflows/build.yml)
 [![GitHub Release Assets](https://github.com/umjammer/JustMap/actions/workflows/publish.yml/badge.svg)](https://github.com/umjammer/JustMap/actions/workflows/publish.yml)
 ![Java](https://img.shields.io/badge/Java-17-b07219)

@@ -57,7 +57,7 @@ public class WorldnameScreen extends Screen {
 		Text defaultText = Text.literal("Default");
 		this.nameField = new TextFieldWidget(textRenderer, x + 20, y + 50, frameWidth - 40, 20, defaultText);
 		this.setFocused(this.nameField);
-		this.nameField.setTextFieldFocused(true);
+		this.nameField.setFocused(true);
 		this.addDrawableChild(ButtonWidget.builder(MutableText.of(LangUtil.getText("gui", "save")), this::onPressSave).dimensions(center - 30, btnY, 80, 20).build());
 		this.addSelectableChild(nameField);
 	}
@@ -73,7 +73,7 @@ public class WorldnameScreen extends Screen {
 	@Override
 	public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
 		this.renderBackground(matrices);
-		drawCenteredText(matrices, textRenderer, LangUtil.getString("gui", "worldname_title"), center, y + 25, Colors.WHITE);
+		drawCenteredTextWithShadow(matrices, textRenderer, LangUtil.getString("gui", "worldname_title"), center, y + 25, Colors.WHITE);
 		for (Element child : children()) {
 			if (child instanceof Drawable) {
 				((Drawable) child).render(matrices, mouseX, mouseY, delta);

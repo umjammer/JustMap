@@ -36,6 +36,6 @@ public class LangUtil {
 	}
 
 	public static TranslatableTextContent getText(String element, String key) {
-		return new TranslatableTextContent(getString(element, key));
+		return new TranslatableTextContent(getString(element, key), null, new Object[0]);
 	}
 }

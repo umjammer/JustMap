@@ -296,27 +296,27 @@ public class Minimap implements IMap {
 
 		int scaledW = scaledWidth;
 		int scaledH = scaledHeight;
-		double startX = posX - scaledW / 2.0;
-		double startZ = posZ - scaledH / 2.0;
+		float startX = posX - scaledW / 2f;
+		float startZ = posZ - scaledH / 2f;
 		if (ClientSettings.rotateMap) {
 			scaledW = (int) (mapWidth * mapScale);
 			scaledH = (int) (mapHeight * mapScale);
-			startX = posX - scaledW / 2.0;
-			startZ = posZ - scaledH / 2.0;
+			startX = posX - scaledW / 2f;
+			startZ = posZ - scaledH / 2f;
 		}
-		double endX = startX + scaledW;
-		double endZ = startZ + scaledH;
+		float endX = startX + scaledW;
+		float endZ = startZ + scaledH;
 
 		setupEntityRadarOnTick(player, pos, posX, posY, startX, startZ, endX, endZ);
 	}
 
-	private void setupEntityRadarOnTick(PlayerEntity player, BlockPos pos, int posX, int posY, double startX, double startZ, double endX, double endZ) {
+	private void setupEntityRadarOnTick(PlayerEntity player, BlockPos pos, int posX, int posY, float startX, float startZ, float endX, float endZ) {
 		int radius = (int) (posX - startX);
 		this.entityRadar.clear(pos, radius);
 		if (GameRulesUtil.allowEntityRadar()) {
 			int checkHeight = 24;
-			BlockPos start = new BlockPos(startX, posY - checkHeight / 2, startZ);
-			BlockPos end = new BlockPos(endX, posY + checkHeight / 2, endZ);
+			BlockPos start = new BlockPos((int) startX, posY - checkHeight / 2, (int) startZ);
+			BlockPos end = new BlockPos((int) endX, posY + checkHeight / 2, (int) endZ);
 			List<Entity> entities = world.getOtherEntities(player, new Box(start, end));
 
 			int amount = 0;

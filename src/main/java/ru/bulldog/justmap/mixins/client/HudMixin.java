@@ -98,9 +98,9 @@ abstract class HudMixin extends DrawableHelper {
 		   		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		   		float alpha = 1.0F;
 		   		if (statusEffectInstance.isAmbient()) {
-		   			this.drawTexture(matrixStack, x, y, 165, 166, size, size);
+		   			drawTexture(matrixStack, x, y, 165, 166, size, size);
 		   		} else {
-			   		this.drawTexture(matrixStack, x, y, 141, 166, size, size);
+			   		drawTexture(matrixStack, x, y, 141, 166, size, size);
 			  		if (effectDuration <= 200) {
 				  		int m = 10 - effectDuration / 20;
 				 		alpha = MathHelper.clamp(effectDuration / 10F / 5F * 0.5F, 0F, 0.5F) + MathHelper.cos((float) (effectDuration * Math.PI) / 5F) * MathHelper.clamp(m / 10F * 0.25F, 0.0F, 0.25F);
@@ -113,11 +113,11 @@ abstract class HudMixin extends DrawableHelper {
 		   		icons.add(() -> {
 					RenderSystem.setShaderTexture(0, sprite.getAtlasId());
 					RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, fa);
-					drawSprite(matrixStack, fx + 3, fy + 3, this.getZOffset(), 18, 18, sprite);
+					drawSprite(matrixStack, fx + 3, fy + 3, 0, 18, 18, sprite);
 		   		});
 		   		if (ClientSettings.showEffectTimers) {
 			   		timers.add(() ->
-						drawCenteredText(matrixStack, client.textRenderer, convertDuration(effectDuration), fx + size / 2, fy + (size + 1), Colors.WHITE));
+						drawCenteredTextWithShadow(matrixStack, client.textRenderer, convertDuration(effectDuration), fx + size / 2, fy + (size + 1), Colors.WHITE));
 		   		}
 			}
 	 	}

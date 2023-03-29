@@ -74,7 +74,7 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		int ey = y;
 		int ew = screenW - PADDING * 2;
 		this.nameField = new TitledButtonWidget<>(textRenderer, new TextFieldWidget(textRenderer, 0, 0, ew - 30, 12, Text.literal("Name")), ex, ey, ew, ROW_HEIGHT, "", lang("name").getString());
-		this.nameField.changeFocus(true);
+		this.nameField.setFocused(true);
 		this.nameField.widget.setMaxLength(48);
 		this.nameField.widget.setText(waypoint.name);
 
@@ -176,7 +176,7 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float delta) {
 		super.render(matrixStack, mouseX, mouseY, delta);
 		String dimensionName = info == null ? lang("unknown").getString() : I18n.translate(info.getFirst());
-		drawCenteredText(matrixStack, textRenderer, dimensionName, center, 15, Colors.WHITE);
+		drawCenteredTextWithShadow(matrixStack, textRenderer, dimensionName, center, 15, Colors.WHITE);
 	}
 
 	private void cycleColor(int i) {

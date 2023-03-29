@@ -35,7 +35,7 @@ public class ItemInfo extends InfoText {
 				posX = x - offsetX;
 		}
 		MinecraftClient minecraft = MinecraftClient.getInstance();
-		minecraft.getItemRenderer().renderInGuiWithOverrides(itemStack, posX, y - 5);
+		minecraft.getItemRenderer().renderInGuiWithOverrides(matrix, itemStack, posX, y - 5);
 	}
 
 	@Override
