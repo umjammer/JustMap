@@ -1,6 +1,7 @@
 package ru.bulldog.justmap.map.icon;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 
@@ -30,25 +31,25 @@ public class WaypointIcon extends MapIcon<WaypointIcon> {
 		this.map = map;
 	}
 
-	public void draw(int size) {
+	public void draw(DrawContext context, int size) {
 		double x = this.x - size / 2;
 		double y = this.y - size / 2;
 
 		Waypoint.Icon icon = waypoint.getIcon();
 		if (icon != null) {
-			icon.draw(x, y, size);
+			icon.draw(context, x, y, size);
 		}
 	}
 
-	public void draw(MatrixStack matrices, VertexConsumerProvider consumerProvider, int mapX, int mapY, int mapW, int mapH, double offX, double offY, double rotation) {
+	public void draw(DrawContext context, VertexConsumerProvider consumerProvider, int mapX, int mapY, int mapW, int mapH, double offX, double offY, double rotation) {
 		rotation = MathUtil.correctAngle(rotation + 180);
 		this.updatePos(mapX, mapY, mapW, mapH, iconSize, rotation);
 		this.applyOffset(offX, offY, rotation);
-		this.draw(matrices, consumerProvider, mapX, mapY, mapW, mapH, (float) rotation);
+		this.draw(context, consumerProvider, mapX, mapY, mapW, mapH, (float) rotation);
 	}
 
 	@Override
-	public void draw(MatrixStack matrices, VertexConsumerProvider consumerProvider, int mapX, int mapY, int mapW, int mapH, float rotation) {
+	public void draw(DrawContext context, VertexConsumerProvider consumerProvider, int mapX, int mapY, int mapW, int mapH, float rotation) {
 		Waypoint.Icon icon = waypoint.getIcon();
 		if (icon != null) {
 			if (ClientSettings.entityIconsShading) {
@@ -64,7 +65,7 @@ public class WaypointIcon extends MapIcon<WaypointIcon> {
 				}
 				RenderSystem.setShaderColor(hmod, hmod, hmod, 1.0F);
 			}
-			icon.draw(matrices, iconPos.x - offX, iconPos.y - offY, iconSize);
+			icon.draw(context, iconPos.x - offX, iconPos.y - offY, iconSize);
 			RenderUtil.texEnvMode(GLC.GL_MODULATE);
 			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		}

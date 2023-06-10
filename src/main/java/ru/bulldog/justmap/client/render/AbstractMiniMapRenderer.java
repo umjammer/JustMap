@@ -4,11 +4,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.Window;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.advancedinfo.InfoText;
 import ru.bulldog.justmap.advancedinfo.MapText;
@@ -76,7 +75,7 @@ public abstract class AbstractMiniMapRenderer {
 		}
 	}
 
-	protected abstract void render(MatrixStack matrices, double scale);
+	protected abstract void render(DrawContext context, double scale);
 
 	public void updateParamsOnRender() {
 		this.worldMapper = minimap.getWorldMapper();
@@ -187,7 +186,7 @@ public abstract class AbstractMiniMapRenderer {
 		dir.x = posX; dir.y = posY;
 	}
 
-	public void renderMap(MatrixStack matrices) {
+	public void renderMap(DrawContext context) {
 		if (!minimap.isMapVisible() || !JustMapClient.canMapping()) return;
 
 		this.updateParamsOnRender();
@@ -201,17 +200,17 @@ public abstract class AbstractMiniMapRenderer {
 		this.offY = this.calcOffset(currZ, lastZ, mapScale);
 
 		RenderSystem.disableDepthTest();
-		this.render(matrices, scale);
+		this.render(context, scale);
 
 		if (mapSkin != null) {
 			int skinX = minimap.getSkinX();
 			int skinY = minimap.getSkinY();
 			int brd = minimap.getBorder() * 2;
-			this.mapSkin.draw(matrices, skinX, skinY, mapWidth + brd, mapHeight + brd);
+			this.mapSkin.draw(context, skinX, skinY, mapWidth + brd, mapHeight + brd);
 		}
 
 		RenderUtil.drawRightAlignedString(
-				matrices, Double.toString(1 / mapScale),
+				context, Double.toString(1 / mapScale),
 				mapX + mapWidth - 3, mapY + mapHeight - 10, Colors.WHITE);
 
 		int iconSize = ClientSettings.arrowIconSize;
@@ -219,9 +218,9 @@ public abstract class AbstractMiniMapRenderer {
 			float direction = mapRotation ? 180 : minecraft.player.headYaw;
 			DirectionArrow.draw(centerX, centerY, iconSize, direction);
 		} else {
-			MapPlayerManager.getPlayer(minecraft.player).getIcon().draw(centerX, centerY, iconSize, true);
+			MapPlayerManager.getPlayer(minecraft.player).getIcon().draw(context, centerX, centerY, iconSize, true);
 		}
-		textManager.draw(matrices);
+		textManager.draw(context);
 
 		RenderSystem.enableDepthTest();
 	}

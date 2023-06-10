@@ -56,8 +56,8 @@ public class ServerNetworkHandler extends NetworkHandler {
 		int z = data.readInt();
 
 		boolean slime = false;
-		if (GameRulesUtil.allowSlimeChunks() && Dimension.isOverworld(player.world)) {
-			ServerWorld world = player.getWorld();
+		if (GameRulesUtil.allowSlimeChunks() && Dimension.isOverworld(player.getWorld())) {
+			ServerWorld world = player.getServerWorld();
 			slime = ChunkRandom.getSlimeRandom(x, z, world.getSeed(), 987234911L).nextInt(10) == 0;
 		}
 		PacketByteBuf response = new PacketByteBuf(Unpooled.buffer());

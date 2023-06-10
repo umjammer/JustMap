@@ -1,10 +1,9 @@
 package ru.bulldog.justmap.advancedinfo;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
-
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.util.render.RenderUtil;
 
@@ -20,8 +19,8 @@ public class ItemInfo extends InfoText {
 	}
 
 	@Override
-	public void draw(MatrixStack matrix) {
-		super.draw(matrix);
+	public void draw(DrawContext context) {
+		super.draw(context);
 		int posX;
 		switch (alignment) {
 			case RIGHT:
@@ -34,8 +33,7 @@ public class ItemInfo extends InfoText {
 			default:
 				posX = x - offsetX;
 		}
-		MinecraftClient minecraft = MinecraftClient.getInstance();
-		minecraft.getItemRenderer().renderInGuiWithOverrides(matrix, itemStack, posX, y - 5);
+		context.drawItem(itemStack, posX, y - 5);
 	}
 
 	@Override

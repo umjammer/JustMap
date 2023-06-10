@@ -2,6 +2,7 @@ package ru.bulldog.justmap.map.icon;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
@@ -38,26 +39,26 @@ public class PlayerIcon extends MapIcon<PlayerIcon> {
 		return this.player.getZ();
 	}
 
-	public void draw(MatrixStack matrices, int size) {
+	public void draw(DrawContext context, int size) {
 		double x = this.x - size / 2;
 		double y = this.y - size / 2;
 		if (ClientSettings.showPlayerHeads) {
-			MapPlayerManager.getPlayer(player).getIcon().draw(matrices, x, y, size, true);
+			MapPlayerManager.getPlayer(player).getIcon().draw(context, x, y, size, true);
 		} else {
 			int darken = ColorUtil.colorBrigtness(color, -3);
 			RenderUtil.fill(x - 0.5, y - 0.5, size + 1, size + 1, darken);
 			RenderUtil.fill(x, y, size, size, color);
 		}
-		this.drawPlayerName(matrices, x, y);
+		this.drawPlayerName(context, x, y);
 	}
 
 	@Override
-	public void draw(MatrixStack matrices, VertexConsumerProvider consumerProvider, int mapX, int mapY, int mapW, int mapH, float rotation) {
+	public void draw(DrawContext context, VertexConsumerProvider consumerProvider, int mapX, int mapY, int mapW, int mapH, float rotation) {
 		int size = ClientSettings.entityIconSize;
 		this.updatePos(mapX, mapY, mapW, mapH, size);
 		if (!allowRender) return;
 		if (ClientSettings.renderEntityModel) {
-			EntityModelRenderer.renderModel(matrices, consumerProvider, player, iconPos.x, iconPos.y);
+			EntityModelRenderer.renderModel(context.getMatrices(), consumerProvider, player, iconPos.x, iconPos.y);
 		} else if (ClientSettings.showPlayerHeads) {
 			if (ClientSettings.entityIconsShading) {
 				int posY = CurrentWorldPos.coordY();
@@ -72,7 +73,7 @@ public class PlayerIcon extends MapIcon<PlayerIcon> {
 				}
 				RenderSystem.setShaderColor(hmod, hmod, hmod, 1.0F);
 			}
-			MapPlayerManager.getPlayer(player).getIcon().draw(matrices, iconPos.x, iconPos.y);
+			MapPlayerManager.getPlayer(player).getIcon().draw(context, iconPos.x, iconPos.y);
 			RenderUtil.texEnvMode(GLC.GL_MODULATE);
 			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		} else {
@@ -80,21 +81,22 @@ public class PlayerIcon extends MapIcon<PlayerIcon> {
 			RenderUtil.fill(iconPos.x - 0.5, iconPos.y - 0.5, size + 1, size + 1, darken);
 			RenderUtil.fill(iconPos.x, iconPos.y, size, size, color);
 		}
-		this.drawPlayerName(matrices, iconPos.x, iconPos.y);
+		this.drawPlayerName(context, iconPos.x, iconPos.y);
 	}
 
-	private void drawPlayerName(MatrixStack matrices, double x, double y) {
+	private void drawPlayerName(DrawContext context, double x, double y) {
 		if (!ClientSettings.showPlayerNames) return;
 		MinecraftClient minecraft = MinecraftClient.getInstance();
 		Window window = minecraft.getWindow();
 		double sf = window.getScaleFactor();
 		float scale = (float) (1.0 / sf);
+		MatrixStack matrices = context.getMatrices();
 		matrices.push();
 		if (sf > 1.0 && !minecraft.options.getForceUnicodeFont().getValue()) {
 			matrices.scale(scale, scale, 1.0F);
 			matrices.translate(x * (sf - 1), y * (sf - 1), 0.0);
 		}
-		RenderUtil.drawCenteredText(matrices, player.getName(), x, y + 12, Colors.WHITE);
+		RenderUtil.drawCenteredText(context, player.getName(), x, y + 12, Colors.WHITE);
 		matrices.pop();
 	}
 }

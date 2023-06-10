@@ -18,8 +18,8 @@ import net.minecraft.world.ChunkSerializer;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.EmptyChunk;
-import net.minecraft.world.chunk.ReadOnlyChunk;
 import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.world.chunk.WrapperProtoChunk;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.storage.VersionedChunkStorage;
 
@@ -126,8 +126,8 @@ class ChunkDataManager {
 			if (chunkTag == null) return this.emptyChunk;
 			Chunk chunk = ChunkSerializer.deserialize(
 					serverWorld, serverWorld.getPointOfInterestStorage(), chunkPos, chunkTag);
-			if (chunk instanceof ReadOnlyChunk) {
-				return ((ReadOnlyChunk) chunk).getWrappedChunk();
+			if (chunk instanceof WrapperProtoChunk) {
+				return ((WrapperProtoChunk) chunk).getWrappedChunk();
 			}
 			return this.emptyChunk;
 		} catch (Exception ex) {

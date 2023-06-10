@@ -1,11 +1,11 @@
 package ru.bulldog.justmap.client.widget;
 
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.sound.SoundManager;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.Text;
 
@@ -40,9 +40,9 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	}
 
 	@Override
-	public void render(MatrixStack matrixStack, int int_1, int int_2, float float_1) {
-		drawTextWithShadow(matrixStack, font, title.string(), getX(), getY(), 0xFFFFFFFF);
-		widget.render(matrixStack, int_1, int_2, float_1);
+	public void render(DrawContext context, int int_1, int int_2, float float_1) {
+		context.drawTextWithShadow(font, title.string(), getX(), getY(), 0xFFFFFFFF);
+		widget.render(context, int_1, int_2, float_1);
 	}
 
 	@Override
@@ -76,8 +76,8 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	}
 
 	@Override
-	public void renderButton(MatrixStack matrixStack, int int_1, int int_2, float float_1) {
-		this.widget.renderButton(matrixStack, int_1, int_2, float_1);
+	public void renderButton(DrawContext context, int int_1, int int_2, float float_1) {
+		this.widget.renderButton(context, int_1, int_2, float_1);
 	}
 
 	@Override

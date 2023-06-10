@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -11,7 +12,6 @@ import net.minecraft.client.gui.widget.CheckboxWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.resource.language.I18n;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -173,10 +173,10 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 	}
 
 	@Override
-	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float delta) {
-		super.render(matrixStack, mouseX, mouseY, delta);
+	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+		super.render(context, mouseX, mouseY, delta);
 		String dimensionName = info == null ? lang("unknown").getString() : I18n.translate(info.getFirst());
-		drawCenteredTextWithShadow(matrixStack, textRenderer, dimensionName, center, 15, Colors.WHITE);
+		context.drawCenteredTextWithShadow(textRenderer, dimensionName, center, 15, Colors.WHITE);
 	}
 
 	private void cycleColor(int i) {
@@ -230,7 +230,7 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 	}
 
 	@Override
-	public void renderForeground(MatrixStack matrixStack) {
+	public void renderForeground(DrawContext context) {
 		int x = prevColorButton.getX() + prevColorButton.getWidth() + 2;
 		int y = prevColorButton.getY() + 3;
 		int w = nextColorButton.getX() - x - 2;
@@ -247,18 +247,18 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		int ix = center - icon.getWidth() / 2;
 		int iy = y + ROW_HEIGHT + (ROW_HEIGHT / 2 - icon.getHeight() / 2);
 		int color = iconIndex > 0 ? icon.color : col;
-		this.borderedRect(matrixStack, x, y, w, h, color, 2, 0xFFCCCCCC);
-		icon.draw(ix, iy);
+		this.borderedRect(context, x, y, w, h, color, 2, 0xFFCCCCCC);
+		icon.draw(context, ix, iy);
 	}
 
-	private void rect(MatrixStack matrixStack, int x, int y, int w, int h, int color) {
-		fill(matrixStack, x, y, x + w, y + h, color);
+	private void rect(DrawContext context, int x, int y, int w, int h, int color) {
+		context.fill(x, y, x + w, y + h, color);
 	}
 
-	private void borderedRect(MatrixStack matrixStack, int x, int y, int w, int h, int color, int border, int borderColor) {
+	private void borderedRect(DrawContext context, int x, int y, int w, int h, int color, int border, int borderColor) {
 		int hb = border >> 1;
-		this.rect(matrixStack, x, y, w, h, borderColor);
-		this.rect(matrixStack, x + hb, y + hb, w - border, h - border, color);
+		this.rect(context, x, y, w, h, borderColor);
+		this.rect(context, x + hb, y + hb, w - border, h - border, color);
 	}
 
 	private int getColorIndex(int color) {

@@ -3,8 +3,10 @@ package ru.bulldog.justmap.client.render;
 import java.util.List;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.systems.VertexSorter;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -49,7 +51,7 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 	}
 
 	@Override
-	protected void render(MatrixStack matrices, double scale) {
+	protected void render(DrawContext context, double scale) {
 		VertexConsumerProvider.Immediate consumerProvider = minecraft.getBufferBuilders().getEntityVertexConsumers();
 
 		int scaledW = (int) (imgW * scale);
@@ -68,24 +70,25 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 			this.paramsUpdated = false;
 		}
 
+		MatrixStack matrices = context.getMatrices();
 		matrices.push();
 		this.primaryFramebuffer.beginWrite(true);
 		RenderSystem.clear(GLC.GL_COLOR_OR_DEPTH_BUFFER_BIT, isMac);
 		RenderSystem.backupProjectionMatrix();
 		Matrix4f orthographic = projectionMatrix(0.0F, scaledW, 0.0F, scaledH, 1000.0F, 3000.0F);
-		RenderSystem.setProjectionMatrix(orthographic);
+		RenderSystem.setProjectionMatrix(orthographic, VertexSorter.BY_DISTANCE);
 		matrices.loadIdentity();
 		matrices.translate(0.0F, 0.0F, -2000.0F);
 		matrices.scale((float) scale, (float) scale, 1.0F);
 		RenderSystem.applyModelViewMatrix();
 		RenderSystem.enableBlend();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		this.drawMap(matrices);
+		this.drawMap(context);
 		if (ClientSettings.showGrid) {
 			this.drawGrid();
 		}
 		if (!mapRotation) {
-			this.drawEntities(matrices, consumerProvider);
+			this.drawEntities(context, consumerProvider);
 		}
 		this.primaryFramebuffer.endWrite();
 		matrices.pop();
@@ -116,7 +119,7 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		if (mapRotation) {
 			matrices.push();
 			matrices.scale((float) scale, (float) scale, 1.0F);
-			this.drawEntities(matrices, consumerProvider);
+			this.drawEntities(context, consumerProvider);
 			matrices.pop();
 		}
 		matrices.pop();
@@ -160,7 +163,7 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		matrices.pop();
 		List<WaypointIcon> drawableWaypoints = minimap.getWaypoints(playerPos, centerX, centerY);
 		for (WaypointIcon icon : drawableWaypoints) {
-			icon.draw(matrices, consumerProvider, mapX, mapY, mapWidth, mapHeight, offX, offY, rotation);
+			icon.draw(context, consumerProvider, mapX, mapY, mapWidth, mapHeight, offX, offY, rotation);
 		}
 		consumerProvider.draw();
 		RenderUtil.disableScissor();
@@ -182,7 +185,7 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		return matrix4f;
 	}
 
-	private void drawMap(MatrixStack matrices) {
+	private void drawMap(DrawContext context) {
 		int cornerX = lastX - scaledW / 2;
 		int cornerZ = lastZ - scaledH / 2;
 
@@ -210,7 +213,7 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 				double scW = (double) texW / mapScale;
 				double scH = (double) texH / mapScale;
 
-				region.drawLayer(matrices, minimap.getLayer(), minimap.getLevel(), scX, scY, scW, scH, texX, texY, texW, texH);
+				region.drawLayer(context, minimap.getLayer(), minimap.getLevel(), scX, scY, scW, scH, texX, texY, texW, texH);
 
 				picY += texH > 0 ? texH : 512;
 			}
@@ -228,14 +231,14 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		this.chunkGrid.draw();
 	}
 
-	private void drawEntities(MatrixStack matrices, VertexConsumerProvider.Immediate consumerProvider) {
+	private void drawEntities(DrawContext context, VertexConsumerProvider.Immediate consumerProvider) {
 		float halfW = imgW / 2.0F;
 		float halfH = imgH / 2.0F;
 		int iconX = imgW - mapWidth;
 		int iconY = imgH - mapHeight;
 		List<MapIcon<?>> drawableEntities = minimap.getDrawableIcons(lastX, lastZ, halfW, halfH, delta);
 		for (MapIcon<?> icon : drawableEntities) {
-			icon.draw(matrices, consumerProvider, iconX, iconY, mapWidth, mapHeight, rotation);
+			icon.draw(context, consumerProvider, iconX, iconY, mapWidth, mapHeight, rotation);
 			consumerProvider.draw();
 		}
 	}

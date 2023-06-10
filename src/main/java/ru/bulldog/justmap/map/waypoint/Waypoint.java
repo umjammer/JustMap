@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
@@ -226,9 +227,9 @@ public class Waypoint {
 		}
 
 		@Override
-		public void draw(MatrixStack matrices, double x, double y, int w, int h) {
+		public void draw(DrawContext context, double x, double y, int w, int h) {
 			this.bindTexture();
-			this.draw(matrices, x, y, (float) w, (float) h);
+			this.draw(context, x, y, (float) w, (float) h);
 		}
 
 		private Identifier getColoredTexture() {

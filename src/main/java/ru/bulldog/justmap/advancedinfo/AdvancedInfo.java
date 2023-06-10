@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.EquipmentSlot;
@@ -89,11 +90,11 @@ public class AdvancedInfo {
 		});
 	}
 
-	public void draw(MatrixStack matrixStack) {
+	public void draw(DrawContext context) {
 		if (!ClientSettings.advancedInfo) return;
 		if (minecraft.currentScreen != null &&
 		  !(minecraft.currentScreen instanceof ChatScreen)) return;
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		this.managers.forEach((position, manager) -> manager.draw(matrixStack));
+		this.managers.forEach((position, manager) -> manager.draw(context));
 	}
 }

@@ -40,7 +40,7 @@ public class JustMapClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		JustMap.setSide(EnvType.CLIENT);
 		KeyHandler.initKeyBindings();
-		ClientLifecycleEvents.CLIENT_STARTED.register((client) -> {
+		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
 			minecraft = client;
 			networkHandler = new ClientNetworkHandler();
 			networkHandler.registerPacketsListeners();
@@ -49,10 +49,10 @@ public class JustMapClient implements ClientModInitializer {
 			Colors.INSTANCE.loadData();
 		});
 		ClientChunkEvents.CHUNK_LOAD.register(MapDataProvider.getManager()::onChunkLoad);
-		HudRenderCallback.EVENT.register((matrices, delta) -> {
+		HudRenderCallback.EVENT.register((context, delta) -> {
 			if (!minecraft.options.debugEnabled) {
-				JustMapClient.minimap.getRenderer().renderMap(matrices);
-				AdvancedInfo.getInstance().draw(matrices);
+				JustMapClient.minimap.getRenderer().renderMap(context);
+				AdvancedInfo.getInstance().draw(context);
 			}
 		});
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {

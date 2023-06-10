@@ -283,7 +283,7 @@ public class Minimap implements IMap {
 	}
 
 	public void prepareMapOnTick(PlayerEntity player) {
-		this.world = player.world;
+		this.world = player.getWorld();
 		this.worldMapper = MapDataProvider.getManager().getWorldMapper();
 		BlockPos pos = CurrentWorldPos.currentPos();
 

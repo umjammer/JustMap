@@ -7,14 +7,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.texture.TextureManager;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.minimap.Minimap;
@@ -125,19 +123,19 @@ public class MapSkin extends Image {
 	}
 
 	@Override
-	public void draw(MatrixStack matrixStack, double x, double y, int w, int h) {
+	public void draw(DrawContext context, double x, double y, int w, int h) {
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		float hMult = (float) this.getWidth() / this.getHeight();
 		if (resizable || repeating) {
 			if (type != SkinType.ROUND && (w > this.getWidth() || h > this.getHeight())) {
-				RenderUtil.drawSkin(matrixStack, this, x, y, w, h);
+				RenderUtil.drawSkin(context, this, x, y, w, h);
 			} else {
-				RenderUtil.drawImage(matrixStack, this, x, y, w, h / hMult);
+				RenderUtil.drawImage(context, this, x, y, w, h / hMult);
 			}
 		} else {
 			this.registerPavedTexture(w, h);
-			RenderUtil.drawImage(matrixStack, this, x, y, w, h);
+			RenderUtil.drawImage(context, this, x, y, w, h);
 		}
 	}
 

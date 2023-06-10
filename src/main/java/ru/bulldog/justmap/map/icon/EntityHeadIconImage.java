@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
@@ -60,17 +61,17 @@ public class EntityHeadIconImage extends Image {
 	}
 
 	@Override
-	public void draw(MatrixStack matrices, double x, double y, int w, int h) {
+	public void draw(DrawContext context, double x, double y, int w, int h) {
 		if (ClientSettings.showIconsOutline) {
 			double thickness = ClientSettings.entityOutlineSize;
 			if (solid) {
-				RenderUtil.fill(matrices, x - thickness / 2, y - thickness / 2, w + thickness, h + thickness, this.color);
+				RenderUtil.fill(context.getMatrices(), x - thickness / 2, y - thickness / 2, w + thickness, h + thickness, this.color);
 			} else {
 				this.bindOutline();
-				RenderUtil.draw(matrices, x - thickness / 2, y - thickness / 2, (float) (w + thickness), (float) (h + thickness));
+				RenderUtil.draw(context, x - thickness / 2, y - thickness / 2, (float) (w + thickness), (float) (h + thickness));
 			}
 		}
-		this.draw(matrices, x, y, (float) w, (float) h);
+		this.draw(context, x, y, (float) w, (float) h);
 	}
 
 	private void bindOutline() {

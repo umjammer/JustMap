@@ -4,15 +4,13 @@ import java.io.IOException;
 import java.util.UUID;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.client.texture.PlayerSkinTexture;
 import net.minecraft.client.texture.ResourceTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.DefaultSkinHelper;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
-
 import net.minecraft.util.StringHelper;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
@@ -29,27 +27,21 @@ public class PlayerHeadIconImage {
 	private ResourceTexture playerSkin;
 	private Identifier skinId;
 
-	public void draw(MatrixStack matrices, double x, double y) {
+	public void draw(DrawContext context, double x, double y) {
 		// Draw other players
 		int size = ClientSettings.entityIconSize;
-		this.draw(matrices, x, y, size, ClientSettings.showIconsOutline);
+		this.draw(context, x, y, size, ClientSettings.showIconsOutline);
 	}
 
-	public void draw(double x, double y, int size, boolean outline) {
-		// Draw yourself
-		MatrixStack matrix = new MatrixStack();
-		this.draw(matrix, x, y, size, outline);
-	}
-
-	public void draw(MatrixStack matrices, double x, double y, int size, boolean outline) {
+	public void draw(DrawContext context, double x, double y, int size, boolean outline) {
 		double drawX = x - size / 2;
 		double drawY = y - size / 2;
 		if (outline) {
 			double thickness = ClientSettings.entityOutlineSize;
-			RenderUtil.fill(matrices, drawX - thickness / 2, drawY - thickness / 2, size + thickness, size + thickness, Colors.LIGHT_GRAY);
+			RenderUtil.fill(context.getMatrices(), drawX - thickness / 2, drawY - thickness / 2, size + thickness, size + thickness, Colors.LIGHT_GRAY);
 		}
 		RenderUtil.bindTexture(this.skinId);
-		RenderUtil.drawPlayerHead(matrices, drawX, drawY, size, size);
+		RenderUtil.drawPlayerHead(context, drawX, drawY, size, size);
 	}
 
 	public void updatePlayerSkin(MapPlayer player) {

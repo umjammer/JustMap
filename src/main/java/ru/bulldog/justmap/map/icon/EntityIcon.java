@@ -1,6 +1,7 @@
 package ru.bulldog.justmap.map.icon;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
@@ -28,7 +29,7 @@ public class EntityIcon extends MapIcon<EntityIcon> {
 	}
 
 	@Override
-	public void draw(MatrixStack matrices, VertexConsumerProvider consumerProvider, int mapX, int mapY, int mapW, int mapH, float rotation) {
+	public void draw(DrawContext context, VertexConsumerProvider consumerProvider, int mapX, int mapY, int mapW, int mapH, float rotation) {
 		if (!GameRulesUtil.allowCreatureRadar() && !hostile) { return; }
 		if (!GameRulesUtil.allowHostileRadar() && hostile) { return; }
 
@@ -43,7 +44,7 @@ public class EntityIcon extends MapIcon<EntityIcon> {
 		this.updatePos(mapX, mapY, mapW, mapH, size);
 		if (!allowRender) return;
 		if (ClientSettings.renderEntityModel) {
-			EntityModelRenderer.renderModel(matrices, consumerProvider, entity, iconPos.x, iconPos.y);
+			EntityModelRenderer.renderModel(context.getMatrices(), consumerProvider, entity, iconPos.x, iconPos.y);
 		} else if (ClientSettings.showEntityHeads) {
 			EntityHeadIconImage icon = EntityHeadIconImage.getIcon(entity);
 			if (icon != null) {
@@ -63,6 +64,7 @@ public class EntityIcon extends MapIcon<EntityIcon> {
 				double moveX = iconPos.x + size / 2;
 				double moveY = iconPos.y + size / 2;
 				float scale = MathUtil.clamp(1.0F / ClientSettings.mapScale, 0.5F, 1.5F);
+				MatrixStack matrices = context.getMatrices();
 				matrices.push();
 				matrices.translate(moveX, moveY, 0.0);
 				if (ClientSettings.rotateMap) {
@@ -70,7 +72,7 @@ public class EntityIcon extends MapIcon<EntityIcon> {
 				}
 				matrices.scale(scale, scale, 1.0F);
 				matrices.translate(-moveX, -moveY, 0.0);
-				icon.draw(matrices, iconPos.x, iconPos.y, size);
+				icon.draw(context, iconPos.x, iconPos.y, size);
 				matrices.pop();
 				RenderUtil.texEnvMode(GLC.GL_MODULATE);
 				RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);

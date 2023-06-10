@@ -1,8 +1,11 @@
 package ru.bulldog.justmap.util;
 
+import net.minecraft.block.AbstractPlantPartBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.Material;
+import net.minecraft.block.FluidFillable;
+import net.minecraft.block.PlantBlock;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.state.property.Properties;
 
@@ -20,8 +23,8 @@ public class BlockStateUtil {
 	}
 
 	public static boolean isLiquid(BlockState state, boolean lava) {
-		Material material = state.getMaterial();
-		return material.isLiquid() && (lava || material != Material.LAVA);
+		Block material = state.getBlock();
+		return state.isLiquid() && (lava || material != Blocks.LAVA);
 	}
 
 	public static boolean isWater(BlockState state) {
@@ -29,14 +32,13 @@ public class BlockStateUtil {
 	}
 
 	public static boolean isPlant(BlockState state) {
-		Material material = state.getMaterial();
-		return material == Material.PLANT || material == Material.REPLACEABLE_PLANT ||
-			   isSeaweed(state);
+		Block material = state.getBlock();
+		return material instanceof PlantBlock || isSeaweed(state);
 	}
 
 	public static boolean isSeaweed(BlockState state) {
-		Material material = state.getMaterial();
-		return material == Material.UNDERWATER_PLANT || material == Material.REPLACEABLE_UNDERWATER_PLANT;
+		Block material = state.getBlock();
+		return material instanceof FluidFillable;
 	}
 
 	public static boolean isWaterlogged(BlockState state) {

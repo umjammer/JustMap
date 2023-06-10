@@ -4,16 +4,15 @@ import java.util.HashMap;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
-
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.util.LangUtil;
 import ru.bulldog.justmap.util.render.RenderUtil;
@@ -53,24 +52,24 @@ public abstract class AbstractJustMapScreen extends Screen {
 	}
 
 	@Override
-	public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 		RenderSystem.disableDepthTest();
-		this.renderBackground(matrices);
-		this.renderForeground(matrices);
+		this.renderBackground(context);
+		this.renderForeground(context);
 		for (Element e : children()) {
 			if (e instanceof Drawable) {
-				((Drawable) e).render(matrices, mouseX, mouseY, delta);
+				((Drawable) e).render(context, mouseX, mouseY, delta);
 			}
 		}
 		RenderSystem.enableDepthTest();
 	}
 
-	public void renderBackground(MatrixStack matrixStack) {
-		fill(matrixStack, 0, 0, width, height, 0x88444444);
+	public void renderBackground(DrawContext context) {
+		context.fill(0, 0, width, height, 0, 0x88444444);
 		this.drawBorders();
 	}
 
-	public void renderForeground(MatrixStack matrixStack) {}
+	public void renderForeground(DrawContext context) {}
 
 	@Override
 	public void close() {

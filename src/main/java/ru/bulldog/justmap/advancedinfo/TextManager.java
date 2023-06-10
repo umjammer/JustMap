@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
 
 import ru.bulldog.justmap.client.config.ClientSettings;
@@ -22,7 +23,7 @@ public class TextManager {
 		this.elements = new ArrayList<>();
 	}
 
-	public void draw(MatrixStack matrixStack) {
+	public void draw(DrawContext context) {
 		int yp = this.y;
 		for (InfoText line : elements) {
 			if (!line.visible) continue;
@@ -37,7 +38,7 @@ public class TextManager {
 					yp += spacing;
 				}
 			}
-			line.draw(matrixStack);
+			line.draw(context);
 		}
 	}
 

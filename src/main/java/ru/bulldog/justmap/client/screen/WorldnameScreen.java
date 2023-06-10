@@ -1,6 +1,7 @@
 package ru.bulldog.justmap.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
@@ -71,20 +72,20 @@ public class WorldnameScreen extends Screen {
 	}
 
 	@Override
-	public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-		this.renderBackground(matrices);
-		drawCenteredTextWithShadow(matrices, textRenderer, LangUtil.getString("gui", "worldname_title"), center, y + 25, Colors.WHITE);
+	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+		this.renderBackground(context);
+		context.drawCenteredTextWithShadow(textRenderer, LangUtil.getString("gui", "worldname_title"), center, y + 25, Colors.WHITE);
 		for (Element child : children()) {
 			if (child instanceof Drawable) {
-				((Drawable) child).render(matrices, mouseX, mouseY, delta);
+				((Drawable) child).render(context, mouseX, mouseY, delta);
 			}
 		}
-		super.render(matrices, mouseX, mouseY, delta);
+		super.render(context, mouseX, mouseY, delta);
 	}
 
 	@Override
-	public void renderBackground(MatrixStack matrices) {
-		super.renderBackground(matrices);
+	public void renderBackground(DrawContext context) {
+		super.renderBackground(context);
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		RenderUtil.bindTexture(FRAME_TEXTURE);

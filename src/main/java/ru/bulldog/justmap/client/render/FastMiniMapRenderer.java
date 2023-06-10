@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.RotationAxis;
@@ -22,7 +23,7 @@ public class FastMiniMapRenderer extends AbstractMiniMapRenderer {
 		super(map);
 	}
 
-	protected void render(MatrixStack matrices, double scale) {
+	protected void render(DrawContext context, double scale) {
 		Framebuffer minecraftFramebuffer = minecraft.getFramebuffer();
 		int fbuffH = minecraftFramebuffer.viewportHeight;
 		int scissX = (int) (mapX * scale);
@@ -44,6 +45,7 @@ public class FastMiniMapRenderer extends AbstractMiniMapRenderer {
 			RenderUtil.endDraw();
 			RenderSystem.blendFunc(GLC.GL_DST_ALPHA, GLC.GL_ONE_MINUS_DST_ALPHA);
 		}
+		MatrixStack matrices = context.getMatrices();
 		matrices.push();
 		if (mapRotation) {
 			float moveX = mapX + mapWidth / 2.0F;
@@ -54,7 +56,7 @@ public class FastMiniMapRenderer extends AbstractMiniMapRenderer {
 		}
 		matrices.translate(-offX, -offY, 0.0);
 
-		this.drawMap(matrices);
+		this.drawMap(context);
 		if (ClientSettings.showGrid) {
 			this.drawGrid();
 		}
@@ -62,7 +64,7 @@ public class FastMiniMapRenderer extends AbstractMiniMapRenderer {
 		VertexConsumerProvider.Immediate consumerProvider = minecraft.getBufferBuilders().getEntityVertexConsumers();
 		List<MapIcon<?>> drawableEntities = minimap.getDrawableIcons(lastX, lastZ, centerX, centerY, delta);
 		for (MapIcon<?> icon : drawableEntities) {
-			icon.draw(matrices, consumerProvider, mapX, mapY, mapWidth, mapHeight, rotation);
+			icon.draw(context, consumerProvider, mapX, mapY, mapWidth, mapHeight, rotation);
 		}
 		consumerProvider.draw();
 
@@ -70,13 +72,13 @@ public class FastMiniMapRenderer extends AbstractMiniMapRenderer {
 
 		List<WaypointIcon> drawableWaypoints = minimap.getWaypoints(playerPos, centerX, centerY);
 		for (WaypointIcon icon : drawableWaypoints) {
-			icon.draw(matrices, consumerProvider, mapX, mapY, mapWidth, mapHeight, offX, offY, rotation);
+			icon.draw(context, consumerProvider, mapX, mapY, mapWidth, mapHeight, offX, offY, rotation);
 		}
 		consumerProvider.draw();
 		RenderUtil.disableScissor();
 	}
 
-	private void drawMap(MatrixStack matrices) {
+	private void drawMap(DrawContext context) {
 		int cornerX = lastX - scaledW / 2;
 		int cornerZ = lastZ - scaledH / 2;
 
@@ -104,7 +106,7 @@ public class FastMiniMapRenderer extends AbstractMiniMapRenderer {
 				double scW = (double) texW / mapScale;
 				double scH = (double) texH / mapScale;
 
-				region.drawLayer(matrices, minimap.getLayer(), minimap.getLevel(), imgX + scX, imgY + scY, scW, scH, texX, texY, texW, texH);
+				region.drawLayer(context, minimap.getLayer(), minimap.getLevel(), imgX + scX, imgY + scY, scW, scH, texX, texY, texW, texH);
 
 				picY += texH > 0 ? texH : 512;
 			}

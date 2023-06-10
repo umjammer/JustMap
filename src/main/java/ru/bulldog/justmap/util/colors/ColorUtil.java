@@ -169,6 +169,7 @@ public class ColorUtil {
 				shift -= 8;
 			}
 		} catch(NumberFormatException ex) {
+			JustMap.LOGGER.error(ex.toString());
 			JustMap.LOGGER.catching(ex);
 			return -1;
 		}

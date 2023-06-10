@@ -6,6 +6,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
@@ -35,7 +36,7 @@ public class WaypointRenderer {
 	private final static Identifier BEAM_TEX = new Identifier("textures/entity/beacon_beam.png");
 	private final static MinecraftClient minecraft = MinecraftClient.getInstance();
 
-	public static void renderHUD(float delta, float fov) {
+	public static void renderHUD(DrawContext context, float delta, float fov) {
 		if (!ClientSettings.showWaypoints || !ClientSettings.waypointsTracking) return;
 		if (minecraft.world == null || minecraft.player == null || minecraft.currentScreen != null) {
 			return;
@@ -45,12 +46,12 @@ public class WaypointRenderer {
 		for (Waypoint wp : wayPoints) {
 			int dist = (int) MathUtil.getDistance(wp.pos, minecraft.player.getBlockPos(), false);
 			if (wp.tracking && dist <= wp.showRange) {
-				renderer.renderHUD(wp, delta, fov, dist);
+				renderer.renderHUD(context, wp, delta, fov, dist);
 			}
 		}
 	}
 
-	private void renderHUD(Waypoint waypoint, float delta, float fov, int dist) {
+	private void renderHUD(DrawContext context, Waypoint waypoint, float delta, float fov, int dist) {
 		int wpX = waypoint.pos.getX();
 		int wpZ = waypoint.pos.getZ();
 
@@ -72,18 +73,18 @@ public class WaypointRenderer {
 		int y = ClientSettings.positionOffset;
 
 		if (icon != null) {
-			icon.draw(x, y);
+			icon.draw(context, x, y);
 		} else {
 			RenderUtil.drawDiamond(x, y, size, size, waypoint.color);
 		}
-		RenderUtil.drawBoundedString(dist + "m", x + size / 2, y + size + 2, 0, screenWidth, Colors.WHITE);
+		RenderUtil.drawBoundedString(context, dist + "m", x + size / 2, y + size + 2, 0, screenWidth, Colors.WHITE);
 	}
 
 	public static void renderWaypoints(MatrixStack matrixStack, Camera camera, float tickDelta) {
 		if (minecraft == null) return;
 		if (!ClientSettings.showWaypoints || !ClientSettings.waypointsWorldRender) return;
 
-		long time = minecraft.player.world.getTime();
+		long time = minecraft.player.getWorld().getTime();
 		float tick = (float) Math.floorMod(time, 125L) + tickDelta;
 
 		BlockPos playerPos = minecraft.player.getBlockPos();

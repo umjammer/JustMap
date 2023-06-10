@@ -5,9 +5,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.math.ChunkPos;
-
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.client.screen.WorldmapScreen;
@@ -15,8 +14,8 @@ import ru.bulldog.justmap.map.IMap;
 import ru.bulldog.justmap.map.data.Layer;
 import ru.bulldog.justmap.map.data.MapRegion;
 import ru.bulldog.justmap.map.data.RegionPos;
-import ru.bulldog.justmap.util.Logger;
 import ru.bulldog.justmap.util.GameRulesUtil;
+import ru.bulldog.justmap.util.Logger;
 import ru.bulldog.justmap.util.colors.Colors;
 import ru.bulldog.justmap.util.math.Plane;
 import ru.bulldog.justmap.util.math.Point;
@@ -295,7 +294,7 @@ public class RegionData implements MapRegion {
 		return new File(dir, String.format("r%d.%d.png", regPos.x, regPos.z));
 	}
 
-	public void draw(MatrixStack matrices, double x, double y, double width, double height, int imgX, int imgY, int imgW, int imgH) {
+	public void draw(DrawContext context, double x, double y, double width, double height, int imgX, int imgY, int imgW, int imgH) {
 		if (width <= 0 || height <= 0) return;
 
 		float u1 = imgX / 512F;
@@ -303,16 +302,16 @@ public class RegionData implements MapRegion {
 		float u2 = (imgX + imgW) / 512F;
 		float v2 = (imgY + imgH) / 512F;
 
-		this.drawTexture(matrices, x, y, width, height, u1, v1, u2, v2);
+		this.drawTexture(context, x, y, width, height, u1, v1, u2, v2);
 	}
 
 	@Override
-	public void drawLayer(MatrixStack matrices, Layer layer, int level, double x, double y, double width, double height, int imgX, int imgY, int imgW, int imgH) {
+	public void drawLayer(DrawContext context, Layer layer, int level, double x, double y, double width, double height, int imgX, int imgY, int imgW, int imgH) {
 		swapLayer(layer, level);
-		draw(matrices, x, y, width, height, imgX, imgY, imgW, imgH);
+		draw(context, x, y, width, height, imgX, imgY, imgW, imgH);
 	}
 
-	private void drawTexture(MatrixStack matrices, double x, double y, double w, double h, float u1, float v1, float u2, float v2) {
+	private void drawTexture(DrawContext context, double x, double y, double w, double h, float u1, float v1, float u2, float v2) {
 		if (texture != null && texture.changed) {
 			this.texture.upload();
 		} else if (texture == null && image.changed) {
@@ -322,7 +321,7 @@ public class RegionData implements MapRegion {
 		RenderUtil.bindTexture(id);
 		RenderUtil.applyFilter(false);
 		RenderUtil.startDraw();
-		RenderUtil.addQuad(matrices, x, y, w, h, u1, v1, u2, v2);
+		RenderUtil.addQuad(context.getMatrices(), x, y, w, h, u1, v1, u2, v2);
 		RenderUtil.endDraw();
 	}
 

@@ -1,5 +1,6 @@
 package ru.bulldog.justmap.client.widget;
 
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
@@ -55,17 +56,17 @@ public class MinimapWidget implements Element, Drawable {
 	}
 
 	@Override
-	public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 		int color = 0xDD00AA00;
 		if (Minimap.isRound()) {
 			double centerX = x + border + bgW / 2;
 			double centerY = y + border + bgH / 2;
 			RenderUtil.drawCircle(centerX, centerY, bgW / 2, color);
 		} else {
-			RenderUtil.fill(matrices, x + border, y + border, bgW, bgH, color);
+			RenderUtil.fill(context.getMatrices(), x + border, y + border, bgW, bgH, color);
 		}
 		if (map.getSkin() != null) {
-			map.getSkin().draw(matrices, x, y, width, height);
+			map.getSkin().draw(context, x, y, width, height);
 		}
 	}
 

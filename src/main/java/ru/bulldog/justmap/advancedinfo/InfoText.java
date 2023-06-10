@@ -2,10 +2,9 @@ package ru.bulldog.justmap.advancedinfo;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.Text;
-
 import ru.bulldog.justmap.enums.TextAlignment;
 import ru.bulldog.justmap.util.colors.Colors;
 import ru.bulldog.justmap.util.render.RenderUtil;
@@ -41,23 +40,23 @@ public abstract class InfoText {
 		this.color = color;
 	}
 
-	public void draw(MatrixStack matrixStack) {
-		this.draw(matrixStack, x, y);
+	public void draw(DrawContext context) {
+		this.draw(context, x, y);
 	}
 
-	public void draw(MatrixStack matrixStack, int x, int y) {
+	public void draw(DrawContext context, int x, int y) {
 		MinecraftClient minecraft = MinecraftClient.getInstance();
 		TextRenderer textRenderer = minecraft.textRenderer;
 		int width = minecraft.getWindow().getScaledWidth();
 		switch (alignment) {
 			 case LEFT:
-				RenderUtil.drawTextWithShadow(matrixStack, textRenderer, text.getString(), x, y, color);
+				 context.drawTextWithShadow(textRenderer, text.getString(), x, y, color);
 			 break;
 			 case CENTER:
-				RenderUtil.drawBoundedString(matrixStack, text.getString(), x, y, 0, width - 2, color);
+				RenderUtil.drawBoundedString(context, text.getString(), x, y, 0, width - 2, color);
 			 break;
 			 case RIGHT:
-				RenderUtil.drawRightAlignedString(matrixStack, text.getString(), x, y, color);
+				RenderUtil.drawRightAlignedString(context, text.getString(), x, y, color);
 			 break;
 		}
 	}

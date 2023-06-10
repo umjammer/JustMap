@@ -1,5 +1,8 @@
 package ru.bulldog.justmap.mixins.client;
 
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import org.spongepowered.asm.mixin.Final;
@@ -18,11 +21,20 @@ public abstract class GameRenderMixin {
 	@Shadow
 	private Camera camera;
 
+	@Final
+	@Shadow
+	MinecraftClient client;
+
+	@Final
+	@Shadow
+	private BufferBuilderStorage buffers;
+
 	@Shadow
 	protected abstract double getFov(Camera camera, float f, boolean bl);
 
 	@Inject(method = "render", at = @At("RETURN"))
 	public void renderHUD(float f, long l, boolean bl, CallbackInfo ci) {
-		WaypointRenderer.renderHUD(f, (float) this.getFov(camera, f, true));
+		DrawContext context = new DrawContext(this.client, this.buffers.getEntityVertexConsumers());
+		WaypointRenderer.renderHUD(context, f, (float) this.getFov(camera, f, true));
 	}
 }
