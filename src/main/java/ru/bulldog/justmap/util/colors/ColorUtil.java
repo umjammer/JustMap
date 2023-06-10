@@ -207,9 +207,9 @@ public class ColorUtil {
 
 		Identifier blockSprite;
 		if (quads.size() > 0) {
-			blockSprite = ((BakedSpriteAccessor) quads.get(0)).getSprite().getAtlasId();
+			blockSprite = ((BakedSpriteAccessor) quads.get(0)).getSprite().getContents().getId();
 		} else {
-			blockSprite = blockModels.getModelParticleSprite(state).getAtlasId();
+			blockSprite = blockModels.getModelParticleSprite(state).getContents().getId();
 		}
 
 		int color = colorPalette.getTextureColor(state, blockSprite);

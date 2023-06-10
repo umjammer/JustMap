@@ -47,7 +47,7 @@ public class DirectionArrow extends Sprite {
 
 			VertexConsumer vertexConsumer = ARROW.getTextureSpecificVertexConsumer(builder);
 
-			RenderUtil.bindTexture(ARROW.getAtlasId());
+			RenderUtil.bindTexture(ARROW.getContents().getId());
 
 			RenderSystem.enableCull();
 			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
