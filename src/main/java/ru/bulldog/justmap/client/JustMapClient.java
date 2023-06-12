@@ -22,6 +22,7 @@ import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.advancedinfo.AdvancedInfo;
 import ru.bulldog.justmap.client.config.ClientConfig;
 import ru.bulldog.justmap.client.control.KeyHandler;
+import ru.bulldog.justmap.client.render.WaypointRenderer;
 import ru.bulldog.justmap.map.data.MapDataProvider;
 import ru.bulldog.justmap.map.minimap.Minimap;
 import ru.bulldog.justmap.network.ClientNetworkHandler;
@@ -47,6 +48,7 @@ public class JustMapClient implements ClientModInitializer {
 			config = ClientConfig.get();
 			minimap = new Minimap();
 			Colors.INSTANCE.loadData();
+			WaypointRenderer.startWaypointRender();
 		});
 		ClientChunkEvents.CHUNK_LOAD.register(MapDataProvider.getManager()::onChunkLoad);
 		HudRenderCallback.EVENT.register((context, delta) -> {

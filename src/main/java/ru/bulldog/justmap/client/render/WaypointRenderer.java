@@ -1,17 +1,16 @@
 package ru.bulldog.justmap.client.render;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -20,6 +19,7 @@ import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.data.MapDataProvider;
 import ru.bulldog.justmap.map.waypoint.Waypoint;
@@ -51,7 +51,36 @@ public class WaypointRenderer {
 		}
 	}
 
-	private void renderHUD(DrawContext context, Waypoint waypoint, float delta, float fov, int dist) {
+    public static void startWaypointRender() {
+		WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
+			RenderSystem.setShader( GameRenderer::getPositionColorProgram );
+			RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+			RenderSystem.depthMask(false);
+			RenderSystem.enableBlend();
+			RenderSystem.defaultBlendFunc();
+			GL11.glEnable(GL11.GL_LINE_SMOOTH);
+
+			MatrixStack matrixStack = context.matrixStack();
+
+			matrixStack.push();
+			Tessellator tessellator = Tessellator.getInstance();
+			BufferBuilder buffer  = tessellator.getBuffer();
+			buffer.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
+			RenderSystem.applyModelViewMatrix();
+
+			Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
+			float tickDelta = MinecraftClient.getInstance().getTickDelta();
+
+			renderWaypoints(matrixStack, camera, tickDelta);
+
+			tessellator.draw();
+			matrixStack.pop();
+			RenderSystem.applyModelViewMatrix();
+			RenderSystem.disableBlend();
+		});
+    }
+
+    private void renderHUD(DrawContext context, Waypoint waypoint, float delta, float fov, int dist) {
 		int wpX = waypoint.pos.getX();
 		int wpZ = waypoint.pos.getZ();
 
@@ -137,15 +166,15 @@ public class WaypointRenderer {
 				matrixStack.translate(0.0, swing, 0.0);
 			}
 			matrixStack.multiply(camera.getRotation());
-   	 		matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F));
-   	 		matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-90.0F));
+			matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F));
+			matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-90.0F));
 
-   	 		alpha = MathUtil.clamp(alpha * 3, 0.0F, 1.0F);
+			alpha = MathUtil.clamp(alpha * 3, 0.0F, 1.0F);
 
-   	 		Identifier texture = waypoint.getIcon().getTexture();
-   	 		VertexConsumer vertexConsumer = consumerProvider.getBuffer(RenderLayer.getBeaconBeam(texture, true));
-   	 		this.renderIcon(matrixStack, vertexConsumer, colors, alpha);
-   	 		matrixStack.pop();
+			Identifier texture = waypoint.getIcon().getTexture();
+			VertexConsumer vertexConsumer = consumerProvider.getBuffer(RenderLayer.getBeaconBeam(texture, true));
+			this.renderIcon(matrixStack, vertexConsumer, colors, alpha);
+			matrixStack.pop();
 		}
 		matrixStack.pop();
 	}
