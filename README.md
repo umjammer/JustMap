@@ -6,12 +6,17 @@
 
 # Just Map
 
-[![JustMap](src/main/resources/assets/justmap/icon.png)](https://github.com/Bulldog83/JustMap)
+<img src="src/main/resources/assets/justmap/icon.png" width="200" alt="Just Map logo"/><sub><a href="https://github.com/Bulldog83/JustMap">© Bulldog83</a></sub>
 
-A minimap mod for Minecraft with Fabric launcher. [Original](https://github.com/Bulldog83/JustMap)
+A minimap/worldmap mod for Minecraft with Fabric launcher. [Original](https://github.com/Bulldog83/JustMap)
 
 Mod page on [CurseForge](https://www.curseforge.com/minecraft/mc-mods/just-map) \
 Translation via [Crowdin](https://crowdin.com/project/justmap)
+
+## Depends
+
+ * [Cloth Config API](https://modrinth.com/mod/cloth-config)
+ * [Mod Menu](https://modrinth.com/mod/modmenu)
 
 ## TODO
 

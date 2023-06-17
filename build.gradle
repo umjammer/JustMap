@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.1-SNAPSHOT'
+	id 'fabric-loom' version '1.2-SNAPSHOT'
 	id 'maven-publish'
 	id 'eclipse'
 	id 'idea'
@@ -55,6 +55,10 @@ dependencies {
 	include ("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}") {
 		exclude (group: "net.fabricmc.fabric-api")
 	}
+}
+
+loom {
+	accessWidenerPath = file("src/main/resources/justmap.accesswidener")
 }
 
 processResources {

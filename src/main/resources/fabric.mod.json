@@ -35,7 +35,7 @@
         "justmap.mixins.client.json",
         "justmap.mixins.server.json"
     ],
-
+    "accessWidener" : "justmap.accesswidener",
     "depends": {
         "fabricloader": ">=0.9.0",
         "fabric-api": ">=0.15.0"
