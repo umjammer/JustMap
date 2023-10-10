@@ -15,6 +15,7 @@ Translation via [Crowdin](https://crowdin.com/project/justmap)
 
 ## Depends
 
+ * [Fabric Loader](https://fabricmc.net/develop/)
  * [Cloth Config API](https://modrinth.com/mod/cloth-config)
  * [Mod Menu](https://modrinth.com/mod/modmenu)
 

@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
+import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -24,7 +24,7 @@ public class ServerNetworkHandler extends NetworkHandler {
 		PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
 		ServerWorld world = server.getWorld(World.OVERWORLD);
 		data.writeLong(world.getSeed());
-		CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(INIT_PACKET_ID, data);
+		CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(data);
 		this.sendToPlayer(player, packet);
 	}
 
@@ -64,7 +64,7 @@ public class ServerNetworkHandler extends NetworkHandler {
 		response.writeByte(PacketType.SLIME_CHUNK_PACKET.ordinal());
 		response.writeInt(packet_id);
 		response.writeBoolean(slime);
-		CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(CHANNEL_ID, response);
+		CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(response);
 		this.sendToPlayer(player, packet);
 	}
 }

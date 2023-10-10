@@ -52,7 +52,7 @@ public class JustMapClient implements ClientModInitializer {
 		});
 		ClientChunkEvents.CHUNK_LOAD.register(MapDataProvider.getManager()::onChunkLoad);
 		HudRenderCallback.EVENT.register((context, delta) -> {
-			if (!minecraft.options.debugEnabled) {
+			if (!minecraft.options.getReducedDebugInfo().getValue()) {
 				JustMapClient.minimap.getRenderer().renderMap(context);
 				AdvancedInfo.getInstance().draw(context);
 			}

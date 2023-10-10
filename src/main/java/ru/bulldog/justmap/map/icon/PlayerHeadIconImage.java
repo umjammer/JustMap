@@ -63,15 +63,15 @@ public class PlayerHeadIconImage {
 	public void getPlayerSkin(MapPlayer player) {
 		this.lastCheck = System.currentTimeMillis();
 
-		Identifier defaultSkin = DefaultSkinHelper.getTexture(player.getUuid());
-		if (!player.getSkinTexture().equals(defaultSkin)) {
-			ResourceTexture skinTexture = loadSkinTexture(player.getSkinTexture(), player.getName().getString(), player.getUuid());
+		Identifier defaultSkin = DefaultSkinHelper.getSkinTextures(player.getUuid()).texture();
+		if (!player.getSkinTextures().texture().equals(defaultSkin)) {
+			ResourceTexture skinTexture = loadSkinTexture(player.getSkinTextures().texture(), player.getName().getString(), player.getUuid());
 			if (skinTexture != this.playerSkin) {
 				if (this.playerSkin != null) {
 					this.playerSkin.clearGlId();
 				}
 				this.playerSkin = skinTexture;
-				this.skinId = player.getSkinTexture();
+				this.skinId = player.getSkinTextures().texture();
 
 				try {
 					this.playerSkin.load(MinecraftClient.getInstance().getResourceManager());
@@ -97,7 +97,7 @@ public class PlayerHeadIconImage {
 		TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 		AbstractTexture abstractTexture = textureManager.getTexture(id);
 		if (abstractTexture == null) {
-			abstractTexture = new PlayerSkinTexture(null, String.format("http://skins.minecraft.net/MinecraftSkins/%s.png", StringHelper.stripTextFormat(playerName)), DefaultSkinHelper.getTexture(playerUUID), true, null);
+			abstractTexture = new PlayerSkinTexture(null, String.format("http://skins.minecraft.net/MinecraftSkins/%s.png", StringHelper.stripTextFormat(playerName)), DefaultSkinHelper.getSkinTextures(playerUUID).texture(), true, null);
 			textureManager.registerTexture(id, abstractTexture);
 		}
 		return (ResourceTexture) abstractTexture;

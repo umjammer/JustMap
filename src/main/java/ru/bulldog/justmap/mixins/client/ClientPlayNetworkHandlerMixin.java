@@ -1,17 +1,9 @@
 package ru.bulldog.justmap.mixins.client;
 
-import com.mojang.authlib.GameProfile;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.network.ClientConnectionState;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.network.ServerInfo;
-import net.minecraft.client.util.telemetry.TelemetryManager;
-import net.minecraft.client.util.telemetry.TelemetrySender;
-import net.minecraft.client.util.telemetry.WorldSession;
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.message.MessageType;
-import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
-import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.HealthUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlayerSpawnPositionS2CPacket;
@@ -19,6 +11,7 @@ import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -32,13 +25,14 @@ import ru.bulldog.justmap.map.waypoint.Waypoint;
 @Mixin(value = ClientPlayNetworkHandler.class, priority = 100)
 public abstract class ClientPlayNetworkHandlerMixin {
 
-	@Final
-	@Shadow
-	private MinecraftClient client;
+	// TODO how to deal super class field
+	@Unique
+	protected MinecraftClient client;
 
 	@Inject(method = "<init>", at = @At("TAIL"))
-	public void onConnect(MinecraftClient client, Screen screen, ClientConnection connection, ServerInfo serverInfo, GameProfile profile, WorldSession worldSession, CallbackInfo ci) {
+	public void onConnect(MinecraftClient client, ClientConnection clientConnection, ClientConnectionState clientConnectionState, CallbackInfo ci) {
 		MapDataProvider.getMultiworldManager().onServerConnect();
+		this.client = client;
 	}
 
 	@Inject(method = "onPlayerSpawnPosition", at = @At("TAIL"))

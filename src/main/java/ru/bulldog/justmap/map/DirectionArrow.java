@@ -13,6 +13,7 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteContents;
 import net.minecraft.client.texture.SpriteDimensions;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.resource.metadata.ResourceMetadata;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.RotationAxis;
 import org.joml.Matrix3f;
@@ -29,7 +30,7 @@ public class DirectionArrow extends Sprite {
 	private static DirectionArrow ARROW;
 
 	private DirectionArrow(Identifier texture, int w, int h) {
-		super(SpriteAtlas.MAP_ICONS.getId(), new SpriteContents(texture, new SpriteDimensions(w, h), ImageUtil.loadImage(texture, w, h), AnimationResourceMetadata.EMPTY), 0, w, h, 0);
+		super(SpriteAtlas.MAP_ICONS.getId(), new SpriteContents(texture, new SpriteDimensions(w, h), ImageUtil.loadImage(texture, w, h), ResourceMetadata.NONE), 0, w, h, 0);
 	}
 
 	public static void draw(double x, double y, int size, float rotation) {

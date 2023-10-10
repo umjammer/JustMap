@@ -7,8 +7,6 @@ import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -73,7 +71,7 @@ public class WorldnameScreen extends Screen {
 
 	@Override
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-		this.renderBackground(context);
+		this.renderInGameBackground(context);
 		context.drawCenteredTextWithShadow(textRenderer, LangUtil.getString("gui", "worldname_title"), center, y + 25, Colors.WHITE);
 		for (Element child : children()) {
 			if (child instanceof Drawable) {
@@ -84,8 +82,8 @@ public class WorldnameScreen extends Screen {
 	}
 
 	@Override
-	public void renderBackground(DrawContext context) {
-		super.renderBackground(context);
+	public void renderInGameBackground(DrawContext context) {
+		super.renderInGameBackground(context);
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		RenderUtil.bindTexture(FRAME_TEXTURE);

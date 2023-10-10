@@ -277,8 +277,8 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 	}
 
 	@Override
-	public boolean mouseScrolled(double double_1, double double_2, double double_3) {
-		scrollAmount = MathUtil.clamp(scrollAmount + (int) (double_3 * 12), -maxScroll + 80, 0);
+	public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+		scrollAmount = MathUtil.clamp(scrollAmount + (int) (horizontalAmount * 12), -maxScroll + 80, 0);
 		this.updateEntries();
 
 		return true;

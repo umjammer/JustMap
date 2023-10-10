@@ -399,9 +399,9 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 	}
 
 	@Override
-	public boolean mouseScrolled(double d, double e, double f) {
-		boolean scrolled = super.mouseScrolled(d, e, f);
-		this.changeScale(f > 0 ? -0.25F : 0.25F);
+	public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+		boolean scrolled = super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+		this.changeScale(horizontalAmount > 0 ? -0.25F : 0.25F);
 		return scrolled;
 	}
 

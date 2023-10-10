@@ -51,8 +51,8 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	}
 
 	@Override
-	public boolean mouseScrolled(double double_1, double double_2, double double_3) {
-		return this.widget.mouseScrolled(double_1, double_2, double_3);
+	public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+		return this.widget.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
 	}
 
 	@Override

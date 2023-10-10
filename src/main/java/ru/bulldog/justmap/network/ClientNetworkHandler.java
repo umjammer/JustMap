@@ -9,7 +9,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.c2s.play.CustomPayloadC2SPacket;
+import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
 import net.minecraft.util.math.ChunkPos;
 
 import ru.bulldog.justmap.JustMap;
@@ -55,7 +55,7 @@ public class ClientNetworkHandler extends NetworkHandler {
 		data.writeInt(packet_id);
 		data.writeInt(chunkPos.x);
 		data.writeInt(chunkPos.z);
-		CustomPayloadC2SPacket packet = new CustomPayloadC2SPacket(CHANNEL_ID, data);
+		CustomPayloadC2SPacket packet = new CustomPayloadC2SPacket(data);
 		this.sendToServer(packet);
 	}
 
