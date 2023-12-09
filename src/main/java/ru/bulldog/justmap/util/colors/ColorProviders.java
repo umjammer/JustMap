@@ -29,7 +29,7 @@ public class ColorProviders implements ColorProvider {
 
 	private static ColorProviders registerProviders() {
 		ColorProviders blockColors = new ColorProviders();
-		blockColors.registerColorProvider((state, world, pos) -> blockColors.getGrassColor(world, pos), Blocks.LARGE_FERN, Blocks.TALL_GRASS, Blocks.GRASS_BLOCK, Blocks.FERN, Blocks.GRASS, Blocks.POTTED_FERN);
+		blockColors.registerColorProvider((state, world, pos) -> blockColors.getGrassColor(world, pos), Blocks.LARGE_FERN, Blocks.TALL_GRASS, Blocks.GRASS_BLOCK, Blocks.FERN, Blocks.SHORT_GRASS, Blocks.POTTED_FERN);
 		blockColors.registerColorProvider((state, world, pos) -> blockColors.getGrassColor(world, pos), Blocks.SUGAR_CANE);
 		blockColors.registerColorProvider((state, world, pos) -> Colors.SPRUCE_LEAVES, Blocks.SPRUCE_LEAVES);
 		blockColors.registerColorProvider((state, world, pos) -> Colors.BIRCH_LEAVES, Blocks.BIRCH_LEAVES);

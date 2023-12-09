@@ -130,9 +130,9 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		int sliderW = (int) (screenW * 0.6);
 		int elemX = width / 2 - sliderW / 2;
 
-		this.isHidden = new CheckboxWidget(elemX, ey, ew, ROW_HEIGHT, lang("wp_hidden"), waypoint.hidden);
-		this.isTrackable = new CheckboxWidget(elemX + 100, ey, ew, ROW_HEIGHT, lang("wp_tracking"), waypoint.tracking);
-		this.isRenderable = new CheckboxWidget(elemX + 200, ey, ew, ROW_HEIGHT, lang("wp_render"), waypoint.render);
+		this.isHidden = CheckboxWidget.builder(lang("wp_hidden"), textRenderer).pos(elemX, ey).checked(waypoint.hidden).build();
+		this.isTrackable = CheckboxWidget.builder(lang("wp_tracking"), textRenderer).pos(elemX + 100, ey).checked(waypoint.tracking).build();
+		this.isRenderable = CheckboxWidget.builder(lang("wp_render"), textRenderer).pos(elemX + 200, ey).checked(waypoint.render).build();
 		children.add(isHidden);
 		children.add(isTrackable);
 		children.add(isRenderable);

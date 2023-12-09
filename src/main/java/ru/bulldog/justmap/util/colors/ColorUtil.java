@@ -11,12 +11,12 @@ import net.minecraft.block.AttachedStemBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.FernBlock;
 import net.minecraft.block.FlowerBlock;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.block.GrassBlock;
 import net.minecraft.block.LeavesBlock;
 import net.minecraft.block.LilyPadBlock;
+import net.minecraft.block.ShortPlantBlock;
 import net.minecraft.block.StemBlock;
 import net.minecraft.block.SugarCaneBlock;
 import net.minecraft.block.TallPlantBlock;
@@ -320,7 +320,7 @@ public class ColorUtil {
 		Block block = blockState.getBlock();
 		if (block instanceof VineBlock) {
 			blockColor = processAlternateColor(blockColor, textureColor, colorProvider.getFoliageColor(world, pos));
-		} else if (block instanceof FernBlock || block instanceof TallPlantBlock || block instanceof SugarCaneBlock) {
+		} else if (block instanceof ShortPlantBlock || block instanceof TallPlantBlock || block instanceof SugarCaneBlock) {
 			blockColor = processAlternateColor(blockColor, textureColor, colorProvider.getGrassColor(world, pos));
 		} else if (block instanceof LilyPadBlock || block instanceof StemBlock || block instanceof AttachedStemBlock) {
 			blockColor = processAlternateColor(blockColor, textureColor, blockState.getMapColor(world, pos).color);

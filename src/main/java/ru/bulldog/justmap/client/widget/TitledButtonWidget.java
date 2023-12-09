@@ -6,13 +6,13 @@ import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.sound.SoundManager;
-import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.Text;
 
 
 public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidget implements Element {
 	public final W widget;
-	public final LiteralTextContent title;
+	public final PlainTextContent.Literal title;
 	private final TextRenderer font;
 
 	private final static int SPACING = 3;
@@ -20,7 +20,7 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	public TitledButtonWidget(TextRenderer font, W widget, int x, int y, int width, int height, String message, String title) {
 		super(x, y, width, height, Text.literal(message));
 		this.widget = widget;
-		this.title = new LiteralTextContent(title);
+		this.title = new PlainTextContent.Literal(title);
 		this.font = font;
 
 		update();
@@ -40,9 +40,9 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	}
 
 	@Override
-	public void render(DrawContext context, int int_1, int int_2, float float_1) {
+	public void renderWidget(DrawContext context, int int_1, int int_2, float float_1) {
 		context.drawTextWithShadow(font, title.string(), getX(), getY(), 0xFFFFFFFF);
-		widget.render(context, int_1, int_2, float_1);
+		widget.renderWidget(context, int_1, int_2, float_1);
 	}
 
 	@Override
@@ -73,11 +73,6 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	@Override
 	public void setFocused(boolean boolean_1) {
 		this.widget.setFocused(boolean_1);
-	}
-
-	@Override
-	public void renderButton(DrawContext context, int int_1, int int_2, float float_1) {
-		this.widget.renderButton(context, int_1, int_2, float_1);
 	}
 
 	@Override
