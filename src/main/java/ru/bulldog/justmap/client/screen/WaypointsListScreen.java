@@ -10,6 +10,8 @@ import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.resource.language.I18n;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 import ru.bulldog.justmap.JustMap;
@@ -272,7 +274,10 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 	public void teleport(Waypoint waypoint) {
 		if (!MapDataProvider.getMultiworldManager().getCurrentWorldKey().equals(currentWorld)) return;
 		int y = waypoint.pos.getY() > 0 ? waypoint.pos.getY() : (Dimension.isNether(client.world) ? 128 : 64);
-		this.client.player.sendMessage(Text.of("/tp " + this.client.player.getName().getContent() + " " + waypoint.pos.getX() + " " + y + " " + waypoint.pos.getZ()), true);
+		String command = "/tp " + ((PlainTextContent) this.client.player.getName().getContent()).string() + " " + waypoint.pos.getX() + " " + y + " " + waypoint.pos.getZ();
+		this.client.player.sendMessage(Text.of(command), true);
+		MinecraftServer server = MinecraftClient.getInstance().getServer();
+		server.getCommandManager().executeWithPrefix(server.getCommandSource(), command);
 		this.close();
 	}
 
