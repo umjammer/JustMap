@@ -8,37 +8,40 @@ import java.util.function.Consumer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
 import net.minecraft.util.math.ChunkPos;
-
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.map.data.RegionPos;
 
+import static ru.bulldog.justmap.network.NetworkHandler.PacketByteBufPayload.channelPacketCodec;
+
+
 public class ClientNetworkHandler extends NetworkHandler {
+
 	private final Map<Integer, Consumer<?>> responseListeners = new HashMap<>();
 	private boolean serverReady = false;
 	private Random random;
 
 	public void registerPacketsListeners() {
-		ClientPlayNetworking.registerGlobalReceiver(INIT_PACKET_ID, (client, handler, buf, responseSender) -> {
-			long seed = buf.readLong();
+		PayloadTypeRegistry.playS2C().register(INIT_PACKET_ID, PacketByteBufPayload.initPacketCodec);
+		ClientPlayNetworking.registerGlobalReceiver(INIT_PACKET_ID, (payload, context) -> {
+			PacketByteBuf packetData = new PacketByteBuf(Unpooled.buffer());
+			channelPacketCodec.encode(packetData, payload);
+			long seed = packetData.readLong();
 			this.random = new Random(seed);
 			this.serverReady = true;
 			JustMap.LOGGER.info("Networking successfully initialized.");
 		});
-		ClientPlayNetworking.registerGlobalReceiver(CHANNEL_ID, (client, handler, buf, responseSender) -> {
-			ByteBuf packetData = buf.copy();
+		PayloadTypeRegistry.playS2C().register(CHANNEL_ID, PacketByteBufPayload.channelPacketCodec);
+		ClientPlayNetworking.registerGlobalReceiver(CHANNEL_ID, (payload, context) -> {
+			PacketByteBuf packetData = new PacketByteBuf(Unpooled.buffer());
+			channelPacketCodec.encode(packetData, payload);
 			PacketType packetType = PacketType.get(packetData.readByte());
 			switch (packetType) {
-			case SLIME_CHUNK_PACKET: {
-				client.execute(() -> this.onChunkHasSlimeResponse(packetData));
-				break;
-			}
-			case GET_IMAGE_PACKET: {
-				client.execute(() -> this.onRegionImageResponse(packetData));
-				break;
-			}
+				case SLIME_CHUNK_PACKET -> context.client().execute(() -> this.onChunkHasSlimeResponse(packetData));
+				case GET_IMAGE_PACKET -> context.client().execute(() -> this.onRegionImageResponse(packetData));
 			}
 		});
 	}
@@ -55,7 +58,8 @@ public class ClientNetworkHandler extends NetworkHandler {
 		data.writeInt(packet_id);
 		data.writeInt(chunkPos.x);
 		data.writeInt(chunkPos.z);
-		CustomPayloadC2SPacket packet = new CustomPayloadC2SPacket(data);
+		PacketByteBufPayload payload = channelPacketCodec.decode(data);
+		CustomPayloadC2SPacket packet = new CustomPayloadC2SPacket(payload);
 		this.sendToServer(packet);
 	}
 

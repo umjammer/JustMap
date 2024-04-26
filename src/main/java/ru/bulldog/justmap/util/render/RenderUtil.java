@@ -375,9 +375,9 @@ public class RenderUtil {
 		matrixStack.translate(x, y, 0);
 
 		Matrix4f m4f = matrixStack.peek().getPositionMatrix();
-		Matrix3f m3f = matrixStack.peek().getNormalMatrix();
+		MatrixStack.Entry mse = matrixStack.peek();
 
-		addVertices(m4f, m3f, vertexConsumer, w, h, minU, minV, maxU, maxV);
+		addVertices(m4f, mse, vertexConsumer, w, h, minU, minV, maxU, maxV);
 
 		matrixStack.pop();
 	}
@@ -386,15 +386,15 @@ public class RenderUtil {
 		draw(context, vertexBuffer, x, y, w, h, minU, minV, maxU, maxV);
 	}
 
-	private static void addVertices(Matrix4f m4f, Matrix3f m3f, VertexConsumer vertexConsumer, float w, float h, float minU, float minV, float maxU, float maxV) {
-		addVertices(m4f, m3f, vertexConsumer, 0, w, 0, h, minU, minV, maxU, maxV);
+	private static void addVertices(Matrix4f m4f, MatrixStack.Entry mse, VertexConsumer vertexConsumer, float w, float h, float minU, float minV, float maxU, float maxV) {
+		addVertices(m4f, mse, vertexConsumer, 0, w, 0, h, minU, minV, maxU, maxV);
 	}
 
-	private static void addVertices(Matrix4f m4f, Matrix3f m3f, VertexConsumer vertexConsumer, float minX, float maxX, float minY, float maxY, float minU, float minV, float maxU, float maxV) {
-		vertex(m4f, m3f, vertexConsumer, minX, minY, 1.0F, minU, minV);
-		vertex(m4f, m3f, vertexConsumer, minX, maxY, 1.0F, minU, maxV);
-		vertex(m4f, m3f, vertexConsumer, maxX, maxY, 1.0F, maxU, maxV);
-		vertex(m4f, m3f, vertexConsumer, maxX, minY, 1.0F, maxU, minV);
+	private static void addVertices(Matrix4f m4f, MatrixStack.Entry mse, VertexConsumer vertexConsumer, float minX, float maxX, float minY, float maxY, float minU, float minV, float maxU, float maxV) {
+		vertex(m4f, mse, vertexConsumer, minX, minY, 1.0F, minU, minV);
+		vertex(m4f, mse, vertexConsumer, minX, maxY, 1.0F, minU, maxV);
+		vertex(m4f, mse, vertexConsumer, maxX, maxY, 1.0F, maxU, maxV);
+		vertex(m4f, mse, vertexConsumer, maxX, minY, 1.0F, maxU, minV);
 	}
 
 	public static void addQuad(double x, double y, double w, double h) {
@@ -410,16 +410,16 @@ public class RenderUtil {
 
 	public static void addQuad(MatrixStack matrices, double x, double y, double w, double h, float minU, float minV, float maxU, float maxV) {
 		Matrix4f m4f = matrices.peek().getPositionMatrix();
-		Matrix3f m3f = matrices.peek().getNormalMatrix();
+		MatrixStack.Entry mse = matrices.peek();
 
-		vertex(m4f, m3f, vertexBuffer, (float) x, (float) (y + h), 1.0F, minU, maxV);
-		vertex(m4f, m3f, vertexBuffer, (float) (x + w), (float) (y + h), 1.0F, maxU, maxV);
-		vertex(m4f, m3f, vertexBuffer, (float) (x + w), (float) y, 1.0F, maxU, minV);
-		vertex(m4f, m3f, vertexBuffer, (float) x, (float) y, 1.0F, minU, minV);
+		vertex(m4f, mse, vertexBuffer, (float) x, (float) (y + h), 1.0F, minU, maxV);
+		vertex(m4f, mse, vertexBuffer, (float) (x + w), (float) (y + h), 1.0F, maxU, maxV);
+		vertex(m4f, mse, vertexBuffer, (float) (x + w), (float) y, 1.0F, maxU, minV);
+		vertex(m4f, mse, vertexBuffer, (float) x, (float) y, 1.0F, minU, minV);
 	}
 
-	private static void vertex(Matrix4f m4f, Matrix3f m3f, VertexConsumer vertexConsumer, float x, float y, float z, float u, float v) {
-		vertexConsumer.vertex(m4f, x, y, z).texture(u, v).normal(m3f, 0.0F, 1.0F, 0.0F).next();
+	private static void vertex(Matrix4f m4f, MatrixStack.Entry mse, VertexConsumer vertexConsumer, float x, float y, float z, float u, float v) {
+		vertexConsumer.vertex(m4f, x, y, z).texture(u, v).normal(mse, 0.0F, 1.0F, 0.0F).next();
 	}
 
 	private static void vertex(double x, double y, double z, float u, float v) {

@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.Optional;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.world.ServerWorld;
@@ -120,7 +121,7 @@ class ChunkDataManager {
 
 		ServerWorld serverWorld = (ServerWorld) world;
 		try (VersionedChunkStorage storage = StorageUtil.getChunkStorage(serverWorld)) {
-			Optional<RegistryKey<Codec<? extends ChunkGenerator>>> opt = Optional.ofNullable(null);
+			Optional<RegistryKey<MapCodec<? extends ChunkGenerator>>> opt = Optional.ofNullable(null);
 			NbtCompound chunkTag = storage.updateChunkNbt(serverWorld.getRegistryKey(),
 					CurrentWorldPos.getPersistentSupplier(), storage.getNbt(chunkPos).get().get(), opt);
 			if (chunkTag == null) return this.emptyChunk;

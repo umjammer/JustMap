@@ -1,6 +1,7 @@
 package ru.bulldog.justmap.mixins.client;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.DownloadingTerrainScreen.WorldEntryReason;
 import net.minecraft.client.world.ClientWorld;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,7 +15,7 @@ import ru.bulldog.justmap.util.CurrentWorldPos;
 public abstract class MinecraftClientMixin {
 
 	@Inject(method = "joinWorld", at = @At("TAIL"))
-	public void onJoinWorld(ClientWorld world, CallbackInfo cinfo) {
+	public void onJoinWorld(ClientWorld world, WorldEntryReason worldEntryReason, CallbackInfo ci) {
 		MapDataProvider.getMultiworldManager().onWorldChanged(world);
 		CurrentWorldPos.updateWorld(world);
 	}

@@ -182,12 +182,11 @@ public class WaypointRenderer {
 	private void renderIcon(MatrixStack matrixStack, VertexConsumer vertexConsumer, float[] colors, float alpha) {
 		MatrixStack.Entry entry = matrixStack.peek();
 		Matrix4f matrix4f = entry.getPositionMatrix();
-		Matrix3f matrix3f = entry.getNormalMatrix();
 
-		this.addVertex(matrix4f, matrix3f, vertexConsumer, colors[0], colors[1], colors[2], alpha, -0.5F, -0.5F, 0.0F, 0.0F, 0.0F);
-		this.addVertex(matrix4f, matrix3f, vertexConsumer, colors[0], colors[1], colors[2], alpha, -0.5F, 0.5F, 0.0F, 0.0F, 1.0F);
-		this.addVertex(matrix4f, matrix3f, vertexConsumer, colors[0], colors[1], colors[2], alpha, 0.5F, 0.5F, 0.0F, 1.0F, 1.0F);
-		this.addVertex(matrix4f, matrix3f, vertexConsumer, colors[0], colors[1], colors[2], alpha, 0.5F, -0.5F, 0.0F, 1.0F, 0.0F);
+		this.addVertex(matrix4f, entry, vertexConsumer, colors[0], colors[1], colors[2], alpha, -0.5F, -0.5F, 0.0F, 0.0F, 0.0F);
+		this.addVertex(matrix4f, entry, vertexConsumer, colors[0], colors[1], colors[2], alpha, -0.5F, 0.5F, 0.0F, 0.0F, 1.0F);
+		this.addVertex(matrix4f, entry, vertexConsumer, colors[0], colors[1], colors[2], alpha, 0.5F, 0.5F, 0.0F, 1.0F, 1.0F);
+		this.addVertex(matrix4f, entry, vertexConsumer, colors[0], colors[1], colors[2], alpha, 0.5F, -0.5F, 0.0F, 1.0F, 0.0F);
 	}
 
 	private void renderLightBeam(MatrixStack matrixStack, VertexConsumer vertexConsumer, float tick, int i, int j, float[] colors, float alpha, float h, float k) {
@@ -223,22 +222,21 @@ public class WaypointRenderer {
 	private void renderBeam(MatrixStack matrixStack, VertexConsumer vertexConsumer, float red, float green, float blue, float alpha, int j, int k, float l, float m, float n, float o, float p, float q, float r, float s, float t, float u, float v, float w) {
 		MatrixStack.Entry entry = matrixStack.peek();
 		Matrix4f matrix4f = entry.getPositionMatrix();
-		Matrix3f matrix3f = entry.getNormalMatrix();
-		this.renderBeam(matrix4f, matrix3f, vertexConsumer, red, green, blue, alpha, j, k, l, m, n, o, t, u, v, w);
-		this.renderBeam(matrix4f, matrix3f, vertexConsumer, red, green, blue, alpha, j, k, r, s, p, q, t, u, v, w);
-		this.renderBeam(matrix4f, matrix3f, vertexConsumer, red, green, blue, alpha, j, k, n, o, r, s, t, u, v, w);
-		this.renderBeam(matrix4f, matrix3f, vertexConsumer, red, green, blue, alpha, j, k, p, q, l, m, t, u, v, w);
+		this.renderBeam(matrix4f, entry, vertexConsumer, red, green, blue, alpha, j, k, l, m, n, o, t, u, v, w);
+		this.renderBeam(matrix4f, entry, vertexConsumer, red, green, blue, alpha, j, k, r, s, p, q, t, u, v, w);
+		this.renderBeam(matrix4f, entry, vertexConsumer, red, green, blue, alpha, j, k, n, o, r, s, t, u, v, w);
+		this.renderBeam(matrix4f, entry, vertexConsumer, red, green, blue, alpha, j, k, p, q, l, m, t, u, v, w);
 	}
 
-	private void renderBeam(Matrix4f matrix4f, Matrix3f matrix3f, VertexConsumer vertexConsumer, float red, float green, float blue, float alpha, int j, int k, float l, float m, float n, float o, float p, float q, float r, float s) {
-		this.addVertex(matrix4f, matrix3f, vertexConsumer, red, green, blue, alpha, k, l, m, q, r);
-		this.addVertex(matrix4f, matrix3f, vertexConsumer, red, green, blue, alpha, j, l, m, q, s);
-		this.addVertex(matrix4f, matrix3f, vertexConsumer, red, green, blue, alpha, j, n, o, p, s);
-		this.addVertex(matrix4f, matrix3f, vertexConsumer, red, green, blue, alpha, k, n, o, p, r);
+	private void renderBeam(Matrix4f matrix4f, MatrixStack.Entry matrixSE, VertexConsumer vertexConsumer, float red, float green, float blue, float alpha, int j, int k, float l, float m, float n, float o, float p, float q, float r, float s) {
+		this.addVertex(matrix4f, matrixSE, vertexConsumer, red, green, blue, alpha, k, l, m, q, r);
+		this.addVertex(matrix4f, matrixSE, vertexConsumer, red, green, blue, alpha, j, l, m, q, s);
+		this.addVertex(matrix4f, matrixSE, vertexConsumer, red, green, blue, alpha, j, n, o, p, s);
+		this.addVertex(matrix4f, matrixSE, vertexConsumer, red, green, blue, alpha, k, n, o, p, r);
 	}
 
-	private void addVertex(Matrix4f matrix4f, Matrix3f matrix3f, VertexConsumer vertexConsumer, float red, float green, float blue, float alpha, float y, float x, float l, float m, float n) {
-		vertexConsumer.vertex(matrix4f, x, y, l).color(red, green, blue, alpha).texture(m, n).overlay(OverlayTexture.DEFAULT_UV).light(Colors.LIGHT).normal(matrix3f, 0.0F, 1.0F, 0.0F).next();
+	private void addVertex(Matrix4f matrix4f, MatrixStack.Entry matrixSE, VertexConsumer vertexConsumer, float red, float green, float blue, float alpha, float y, float x, float l, float m, float n) {
+		vertexConsumer.vertex(matrix4f, x, y, l).color(red, green, blue, alpha).texture(m, n).overlay(OverlayTexture.DEFAULT_UV).light(Colors.LIGHT).normal(matrixSE, 0.0F, 1.0F, 0.0F).next();
 	}
 
 	private double correctAngle(float angle) {

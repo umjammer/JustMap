@@ -13,6 +13,10 @@ import net.minecraft.world.World;
 import ru.bulldog.justmap.util.Dimension;
 import ru.bulldog.justmap.util.GameRulesUtil;
 
+import static ru.bulldog.justmap.network.NetworkHandler.PacketByteBufPayload.channelPacketCodec;
+import static ru.bulldog.justmap.network.NetworkHandler.PacketByteBufPayload.initPacketCodec;
+
+
 public class ServerNetworkHandler extends NetworkHandler {
 	private final MinecraftServer server;
 
@@ -24,23 +28,19 @@ public class ServerNetworkHandler extends NetworkHandler {
 		PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
 		ServerWorld world = server.getWorld(World.OVERWORLD);
 		data.writeLong(world.getSeed());
-		CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(data);
+		PacketByteBufPayload payload = initPacketCodec.decode(data);
+		CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(payload);
 		this.sendToPlayer(player, packet);
 	}
 
 	public void registerPacketsListeners() {
-		ServerPlayNetworking.registerGlobalReceiver(CHANNEL_ID, (server, player, handler, buf, responseSender) -> {
-			ByteBuf packetData = buf.copy();
+		ServerPlayNetworking.registerGlobalReceiver(CHANNEL_ID, (payload, context) -> {
+			PacketByteBuf packetData = new PacketByteBuf(Unpooled.buffer());
+			channelPacketCodec.encode(packetData, payload);
 			PacketType packetType = PacketType.get(packetData.readByte());
 			switch (packetType) {
-			case GET_IMAGE_PACKET: {
-				server.execute(() -> this.onRegionImageRequest(player, packetData));
-				break;
-			}
-			case SLIME_CHUNK_PACKET: {
-				server.execute(() -> this.onChunkHasSlimeRequest(player, packetData));
-				break;
-			}
+				case GET_IMAGE_PACKET -> server.execute(() -> this.onRegionImageRequest(context.player(), packetData));
+				case SLIME_CHUNK_PACKET -> server.execute(() -> this.onChunkHasSlimeRequest(context.player(), packetData));
 			}
 		});
 	}
@@ -64,7 +64,8 @@ public class ServerNetworkHandler extends NetworkHandler {
 		response.writeByte(PacketType.SLIME_CHUNK_PACKET.ordinal());
 		response.writeInt(packet_id);
 		response.writeBoolean(slime);
-		CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(response);
+		PacketByteBufPayload payload = channelPacketCodec.decode(response);
+		CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(payload);
 		this.sendToPlayer(player, packet);
 	}
 }

@@ -1,8 +1,8 @@
 [![Fabric](https://img.shields.io/badge/Mod_Loader-Fabric-blue)](https://fabricmc.net/)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.4-green)](https://www.minecraft.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.5-green)](https://www.minecraft.net/)
 [![Java CI](https://github.com/umjammer/JustMap/actions/workflows/build.yml/badge.svg)](https://github.com/umjammer/JustMap/actions/workflows/build.yml)
 [![GitHub Release Assets](https://github.com/umjammer/JustMap/actions/workflows/publish.yml/badge.svg)](https://github.com/umjammer/JustMap/actions/workflows/publish.yml)
-![Java](https://img.shields.io/badge/Java-17-b07219)
+![Java](https://img.shields.io/badge/Java-21-b07219)
 
 # Just Map
 
@@ -22,3 +22,4 @@ Translation via [Crowdin](https://crowdin.com/project/justmap)
 ## TODO
 
  * new entities' texture for minimap
+ * jump always teleports to the overworld from other worlds? 

@@ -58,9 +58,9 @@ public class DirectionArrow extends Sprite {
 			matrix.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(rotation + 180));
 
 			Matrix4f m4f = matrix.peek().getPositionMatrix();
-			Matrix3f m3f = matrix.peek().getNormalMatrix();
+			MatrixStack.Entry mse = matrix.peek();
 
-			addVertices(m4f, m3f, vertexConsumer, size);
+			addVertices(m4f, mse, vertexConsumer, size);
 			tessellator.draw();
 
 			matrix.pop();
@@ -82,13 +82,13 @@ public class DirectionArrow extends Sprite {
 		}
 	}
 
-	private static void addVertices(Matrix4f m4f, Matrix3f m3f, VertexConsumer vertexConsumer, int size) {
-		float half = size / 2;
+	private static void addVertices(Matrix4f m4f, MatrixStack.Entry mse, VertexConsumer vertexConsumer, int size) {
+		float half = size / 2f;
 
-		vertexConsumer.vertex(m4f, -half, -half, 0.0F).texture(0.0F, 0.0F).normal(m3f, 0.0F, 1.0F, 0.0F).next();
-		vertexConsumer.vertex(m4f, -half, half, 0.0F).texture(0.0F, 1.0F).normal(m3f, 0.0F, 1.0F, 0.0F).next();
-		vertexConsumer.vertex(m4f, half, half, 0.0F).texture(1.0F, 1.0F).normal(m3f, 0.0F, 1.0F, 0.0F).next();
-		vertexConsumer.vertex(m4f, half, -half, 0.0F).texture(1.0F, 0.0F).normal(m3f, 0.0F, 1.0F, 0.0F).next();
+		vertexConsumer.vertex(m4f, -half, -half, 0.0F).texture(0.0F, 0.0F).normal(mse, 0.0F, 1.0F, 0.0F).next();
+		vertexConsumer.vertex(m4f, -half, half, 0.0F).texture(0.0F, 1.0F).normal(mse, 0.0F, 1.0F, 0.0F).next();
+		vertexConsumer.vertex(m4f, half, half, 0.0F).texture(1.0F, 1.0F).normal(mse, 0.0F, 1.0F, 0.0F).next();
+		vertexConsumer.vertex(m4f, half, -half, 0.0F).texture(1.0F, 0.0F).normal(mse, 0.0F, 1.0F, 0.0F).next();
 	}
 
 }

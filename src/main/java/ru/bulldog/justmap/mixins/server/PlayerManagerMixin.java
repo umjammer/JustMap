@@ -4,6 +4,7 @@ import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
@@ -26,7 +27,7 @@ public abstract class PlayerManagerMixin {
 	private MinecraftServer server;
 
 	@Inject(method = "onPlayerConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/packet/s2c/play/DifficultyS2CPacket;<init>(Lnet/minecraft/world/Difficulty;Z)V"))
-	public void onPlayerConnectPre(ClientConnection connection, ServerPlayerEntity player, CallbackInfo info) {
+	public void onPlayerConnectPre(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
 		ServerNetworkHandler networkHandler = JustMapServer.getNetworkHandler();
 		if (networkHandler != null) {
 			networkHandler.onPlayerConnect(player);
@@ -34,7 +35,7 @@ public abstract class PlayerManagerMixin {
 	}
 
 	@Inject(method = "onPlayerConnect", at = @At("TAIL"))
-	public void onPlayerConnectPost(ClientConnection clientConnection, ServerPlayerEntity serverPlayerEntity, CallbackInfo info) {
+	public void onPlayerConnectPost(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
 		StringBuilder command = new StringBuilder("§0§0");
 		if (ServerSettings.useGameRules) {
 			GameRules gameRules = server.getGameRules();
@@ -85,7 +86,7 @@ public abstract class PlayerManagerMixin {
 		command.append("§f§f");
 
 		if (command.length() > 8) {
-			this.sendCommand(serverPlayerEntity, Text.of(command.toString()));
+			this.sendCommand(player, Text.of(command.toString()));
 		}
 	}
 

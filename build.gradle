@@ -5,7 +5,6 @@ plugins {
 	id 'idea'
 }
 
-archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
@@ -34,10 +33,18 @@ if (versionPropsFile.canWrite()) {
 
 version = "${major}.${minor}.${build}"
 
+base {
+	archivesName = project.archives_base_name
+}
+
 repositories {
     maven { url "https://maven.fabricmc.net/" }
     maven { url "https://maven.shedaniel.me/" }
     maven { url "https://maven.terraformersmc.com/releases/" }
+}
+
+loom {
+	accessWidenerPath = file("src/main/resources/justmap.accesswidener")
 }
 
 dependencies {
@@ -57,10 +64,6 @@ dependencies {
 	}
 }
 
-loom {
-	accessWidenerPath = file("src/main/resources/justmap.accesswidener")
-}
-
 processResources {
 	inputs.property "version", project.version
 	duplicatesStrategy = 'WARN'
@@ -71,19 +74,19 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 17
+    it.options.release = 21
 }
 
 java {
     withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {
 	from("LICENSE") {
-		rename { "${it}_${base.archivesName.get()}"}
+		rename { "${it}_${project.base.archivesName.get()}"}
 	}
 }
 

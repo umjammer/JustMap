@@ -13,6 +13,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
+import net.minecraft.world.storage.StorageKey;
 import net.minecraft.world.storage.VersionedChunkStorage;
 import org.apache.commons.io.FileUtils;
 
@@ -43,7 +44,7 @@ public final class StorageUtil {
 
 	public static VersionedChunkStorage getChunkStorage(ServerWorld world) {
 		File regionDir = new File(savesDir(world), "region");
-		return new VersionedChunkStorage(regionDir.toPath(), world.getServer().getDataFixer(), true);
+		return new VersionedChunkStorage(new StorageKey("chunk", world.getRegistryKey(), "region"), regionDir.toPath(), world.getServer().getDataFixer(), true); // TODO 1.20.5 ??? StorageKey
 	}
 
 	public static File savesDir(ServerWorld world) {

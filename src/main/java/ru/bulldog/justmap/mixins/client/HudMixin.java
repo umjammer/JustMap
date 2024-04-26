@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
+import com.ibm.icu.text.ListFormatter.Width;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -15,10 +16,12 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.StatusEffectSpriteManager;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.math.MathHelper;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -34,13 +37,10 @@ abstract class HudMixin {
 	@Shadow
 	private MinecraftClient client;
 
-	@Shadow
-	private int scaledWidth;
-
 	@Inject(at = @At("HEAD"), method = "renderStatusEffectOverlay", cancellable = true)
-	protected void renderStatusEffects(DrawContext context, CallbackInfo info) {
+	protected void renderStatusEffects(DrawContext context, float tickDelta, CallbackInfo info) {
 		if (ClientSettings.moveEffects) {
-			int posX = this.scaledWidth;
+			int posX = context.getScaledWindowWidth();
 			int posY = ClientSettings.positionOffset;
 			if (ClientSettings.mapPosition == ScreenPosition.TOP_RIGHT) {
 				posX = JustMapClient.getMiniMap().getSkinX();
@@ -51,6 +51,7 @@ abstract class HudMixin {
 		}
 	}
 
+	@Unique
 	private void drawMovedEffects(DrawContext context, int screenX, int screenY) {
 		Collection<StatusEffectInstance> statusEffects = this.client.player.getStatusEffects();
 		if (statusEffects.isEmpty()) return;
@@ -75,7 +76,7 @@ abstract class HudMixin {
 	 	int i = 0, j = 0;
 		while (effectsIterator.hasNext()) {
 	 		StatusEffectInstance statusEffectInstance = effectsIterator.next();
-			StatusEffect statusEffect = statusEffectInstance.getEffectType();
+			RegistryEntry<StatusEffect> statusEffect = statusEffectInstance.getEffectType();
 			if (statusEffectInstance.shouldShowIcon()) {
 				int x = screenX;
 			   	int y = screenY;
@@ -83,7 +84,7 @@ abstract class HudMixin {
 				   y += 15;
 			   	}
 
-			   	if (statusEffect.isBeneficial()) {
+			   	if (statusEffect.value().isBeneficial()) {
 			   		++i;
 				  	x -= (size + hOffset) * i;
 			   	} else {
@@ -124,7 +125,8 @@ abstract class HudMixin {
 	 	timers.forEach(Runnable::run);
 	}
 
-	private String convertDuration(int time) {
+	@Unique
+	private static String convertDuration(int time) {
 		int mils = time * 50;
 		int s = (mils / 1000) % 60;
 		int m = (mils / (1000 * 60)) % 60;
