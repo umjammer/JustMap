@@ -22,7 +22,7 @@ public class Dimension {
 			case 1: return DimensionTypes.THE_END.getValue();
 		}
 
-		return new Identifier("unknown");
+		return Identifier.of("unknown");
 	}
 
 	public static boolean isEnd(World world) {

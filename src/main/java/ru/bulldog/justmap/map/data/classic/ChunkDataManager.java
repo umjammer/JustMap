@@ -38,7 +38,7 @@ class ChunkDataManager {
 	private final WorldChunk emptyChunk;
 
 	ChunkDataManager(WorldData data, World world) {
-		this.emptyChunk = new EmptyChunk(world, new ChunkPos(0, 0), null); // TODO null
+		this.emptyChunk = new EmptyChunk(world, new ChunkPos(0, 0), null); // TODO 1.18.2 null
 		this.mapData = data;
 	}
 
@@ -126,7 +126,7 @@ class ChunkDataManager {
 					CurrentWorldPos.getPersistentSupplier(), storage.getNbt(chunkPos).get().get(), opt);
 			if (chunkTag == null) return this.emptyChunk;
 			Chunk chunk = ChunkSerializer.deserialize(
-					serverWorld, serverWorld.getPointOfInterestStorage(), chunkPos, chunkTag);
+					serverWorld, serverWorld.getPointOfInterestStorage(), null, chunkPos, chunkTag); // TODO 1.21
 			if (chunk instanceof WrapperProtoChunk) {
 				return ((WrapperProtoChunk) chunk).getWrappedChunk();
 			}

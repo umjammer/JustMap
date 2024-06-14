@@ -48,23 +48,23 @@ public class Waypoint {
 
 	private static final Icon[] WAYPOINT_ICONS = new Icon[] {
 		null,
-		new Icon(1, new Identifier(JustMap.MODID, "textures/icon/circle.png"), 0xFFFF9000, 18, 18),
-		new Icon(2, new Identifier(JustMap.MODID, "textures/icon/cross.png"), 0xFFFF0000, 18, 18),
-		new Icon(3, new Identifier(JustMap.MODID, "textures/icon/diamond.png"), 0xFFE70CE3, 18, 18),
-		new Icon(4, new Identifier(JustMap.MODID, "textures/icon/moon.png"), 0xFFADE4F0, 18, 18),
-		new Icon(5, new Identifier(JustMap.MODID, "textures/icon/skull.png"), 0xFFFFFEFA, 18, 18),
-		new Icon(6, new Identifier(JustMap.MODID, "textures/icon/square.png"), 0xFF00D0FF, 18, 18),
-		new Icon(7, new Identifier(JustMap.MODID, "textures/icon/star.png"), 0xFFFFEE00, 18, 18),
-		new Icon(8, new Identifier(JustMap.MODID, "textures/icon/triangle.png"), 0xFF00FF00, 18, 18),
-		new Icon(9, new Identifier(JustMap.MODID, "textures/icon/house.png"), 0xFFEBA700, 18, 18),
-		new Icon(10, new Identifier(JustMap.MODID, "textures/icon/village.png"), 0xFFFC4A01, 18, 18),
-		new Icon(11, new Identifier("textures/item/iron_pickaxe.png"), 0xFFB0B0B0, 16, 16),
-		new Icon(12, new Identifier("textures/item/iron_axe.png"), 0xFFB0B0B0, 16, 16),
-		new Icon(13, new Identifier("textures/item/iron_hoe.png"), 0xFFB0B0B0, 16, 16),
-		new Icon(14, new Identifier("textures/item/iron_sword.png"), 0xFFB0B0B0, 16, 16),
-		new Icon(15, new Identifier("textures/item/wheat.png"), 0xFFFFEE91, 16, 16),
-		new Icon(16, new Identifier("textures/item/trident.png"), 0xFF54E1B2, 16, 16),
-		new Icon(17, new Identifier("textures/item/slime_ball.png"), 0xFF88DB71, 16, 16)
+		new Icon(1, Identifier.of(JustMap.MODID, "textures/icon/circle.png"), 0xFFFF9000, 18, 18),
+		new Icon(2, Identifier.of(JustMap.MODID, "textures/icon/cross.png"), 0xFFFF0000, 18, 18),
+		new Icon(3, Identifier.of(JustMap.MODID, "textures/icon/diamond.png"), 0xFFE70CE3, 18, 18),
+		new Icon(4, Identifier.of(JustMap.MODID, "textures/icon/moon.png"), 0xFFADE4F0, 18, 18),
+		new Icon(5, Identifier.of(JustMap.MODID, "textures/icon/skull.png"), 0xFFFFFEFA, 18, 18),
+		new Icon(6, Identifier.of(JustMap.MODID, "textures/icon/square.png"), 0xFF00D0FF, 18, 18),
+		new Icon(7, Identifier.of(JustMap.MODID, "textures/icon/star.png"), 0xFFFFEE00, 18, 18),
+		new Icon(8, Identifier.of(JustMap.MODID, "textures/icon/triangle.png"), 0xFF00FF00, 18, 18),
+		new Icon(9, Identifier.of(JustMap.MODID, "textures/icon/house.png"), 0xFFEBA700, 18, 18),
+		new Icon(10, Identifier.of(JustMap.MODID, "textures/icon/village.png"), 0xFFFC4A01, 18, 18),
+		new Icon(11, Identifier.of("textures/item/iron_pickaxe.png"), 0xFFB0B0B0, 16, 16),
+		new Icon(12, Identifier.of("textures/item/iron_axe.png"), 0xFFB0B0B0, 16, 16),
+		new Icon(13, Identifier.of("textures/item/iron_hoe.png"), 0xFFB0B0B0, 16, 16),
+		new Icon(14, Identifier.of("textures/item/iron_sword.png"), 0xFFB0B0B0, 16, 16),
+		new Icon(15, Identifier.of("textures/item/wheat.png"), 0xFFFFEE91, 16, 16),
+		new Icon(16, Identifier.of("textures/item/trident.png"), 0xFF54E1B2, 16, 16),
+		new Icon(17, Identifier.of("textures/item/slime_ball.png"), 0xFF88DB71, 16, 16)
 	};
 
 	public static final Integer[] WAYPOINT_COLORS = new Integer[] {
@@ -172,7 +172,7 @@ public class Waypoint {
 			try {
 				waypoint.world = new WorldKey(Dimension.fromId(JsonHelper.getInt(jsonObject, "dimension", 0)));
 			} catch (Exception ex) {
-				Identifier dimension = new Identifier(JsonHelper.getString(jsonObject, "dimension", "unknown"));
+				Identifier dimension = Identifier.of(JsonHelper.getString(jsonObject, "dimension", "unknown"));
 				waypoint.world = new WorldKey(dimension);
 			}
 		} else {
@@ -184,7 +184,7 @@ public class Waypoint {
 
 	public static class Icon extends Image {
 
-		public final static Identifier DEFAULT_ICON = new Identifier(JustMap.MODID, "textures/icon/default.png");
+		public final static Identifier DEFAULT_ICON = Identifier.of(JustMap.MODID, "textures/icon/default.png");
 		private final static NativeImage DEFAULT_TEXTURE = ImageUtil.loadImage(DEFAULT_ICON, 18, 18);
 
 		public final int key;
@@ -234,7 +234,7 @@ public class Waypoint {
 
 		private Identifier getColoredTexture() {
 			if (colorId == null) {
-				colorId = new Identifier(JustMap.MODID, String.format("wp_icon_%d", this.color));
+				colorId = Identifier.of(JustMap.MODID, String.format("wp_icon_%d", this.color));
 				textureManager.registerTexture(colorId, new NativeImageBackedTexture(this.image));
 			}
 			return colorId;

@@ -32,7 +32,7 @@ import ru.bulldog.justmap.util.render.RenderUtil;
 @Environment(EnvType.CLIENT)
 public abstract class AbstractMiniMapRenderer {
 
-	protected static final Identifier roundMask = new Identifier(JustMap.MODID, "textures/round_mask.png");
+	protected static final Identifier roundMask = Identifier.of(JustMap.MODID, "textures/round_mask.png");
 	protected static final MinecraftClient minecraft = MinecraftClient.getInstance();
 	protected static TextManager textManager;
 	protected static final InfoText dirN = new MapText(TextAlignment.CENTER, "N");
@@ -89,7 +89,7 @@ public abstract class AbstractMiniMapRenderer {
 			this.winHeight = winH;
 		}
 
-		this.delta = minecraft.getTickDelta();
+		this.delta = minecraft.getRenderTickCounter().getTickDelta(false); // TODO 1.21
 		this.currX = CurrentWorldPos.doubleX(delta);
 		this.currZ = CurrentWorldPos.doubleZ(delta);
 

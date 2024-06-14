@@ -15,8 +15,8 @@ import ru.bulldog.justmap.JustMap;
 
 public class NetworkHandler {
 
-	public final static Id<PacketByteBufPayload> CHANNEL_ID = new Id<>(new Identifier(JustMap.MODID, "networking"));
-	public final static Id<PacketByteBufPayload> INIT_PACKET_ID = new Id<>(new Identifier(JustMap.MODID, "networking_init"));
+	public final static Id<PacketByteBufPayload> CHANNEL_ID = new Id<>(Identifier.of(JustMap.MODID, "networking"));
+	public final static Id<PacketByteBufPayload> INIT_PACKET_ID = new Id<>(Identifier.of(JustMap.MODID, "networking_init"));
 
 	public static class PacketByteBufPayload implements CustomPayload {
 		Id<? extends CustomPayload> id;

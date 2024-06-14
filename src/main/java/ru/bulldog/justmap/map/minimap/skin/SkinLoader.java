@@ -50,7 +50,7 @@ public final class SkinLoader extends JsonFactory {
 		boolean repeating = JsonHelper.getBoolean(skinData, "repeating", false);
 		String textureType = JsonHelper.getString(skinData, "texture_type");
 		if (textureType.equals("source")) {
-			Identifier texture = new Identifier(JsonHelper.getString(skinData, "texture"));
+			Identifier texture = Identifier.of(JsonHelper.getString(skinData, "texture"));
 			MapSkin.addUniversalSkin(name, texture, width, height, border);
 		} else if (textureType.equals("image")) {
 			String imageName = JsonHelper.getString(skinData, "image");

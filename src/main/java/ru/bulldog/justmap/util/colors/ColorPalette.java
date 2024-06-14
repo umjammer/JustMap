@@ -178,7 +178,7 @@ public class ColorPalette {
 						String key = entry.getKey();
 						String hexColor = entry.getValue().getAsString();
 						int color = ColorUtil.parseHex(hexColor);
-						this.textureColors.put(new Identifier(key), color);
+						this.textureColors.put(Identifier.of(key), color);
 					});
 					continue;
 				}
@@ -187,7 +187,7 @@ public class ColorPalette {
 					biomes.entrySet().forEach(entry -> {
 						String key = entry.getKey();
 						JsonObject biomeJson = entry.getValue().getAsJsonObject();
-						Identifier biomeId = new Identifier(key);
+						Identifier biomeId = Identifier.of(key);
 						Biome biome = BiomeColors.getBiomeRegistry().get(biomeId);
 						this.biomeColors.put(biomeId, BiomeColors.fromJson(biome, biomeJson));
 					});

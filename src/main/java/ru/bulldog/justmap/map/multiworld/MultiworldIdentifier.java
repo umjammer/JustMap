@@ -47,7 +47,7 @@ public class MultiworldIdentifier {
 	}
 
 	public static MultiworldIdentifier fromJson(JsonObject object) {
-		Identifier dimensionType = new Identifier(JsonHelper.getString(object, "dimension"));
+		Identifier dimensionType = Identifier.of(JsonHelper.getString(object, "dimension"));
 		BlockPos spawnPosition = PosUtil.fromJson(JsonHelper.getObject(object, "position"));
 		return new MultiworldIdentifier(spawnPosition, dimensionType);
 	}

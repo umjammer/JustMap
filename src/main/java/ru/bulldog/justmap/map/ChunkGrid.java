@@ -96,8 +96,8 @@ public class ChunkGrid {
 		}
 
 		private void draw(VertexConsumer builder) {
-			builder.vertex(first.x, first.y, 0).next();
-			builder.vertex(second.x, second.y, 0).next();
+			builder.vertex((float) first.x, (float) first.y, 0);
+			builder.vertex((float) second.x, (float) second.y, 0);
 		}
 	}
 

@@ -21,7 +21,7 @@ import ru.bulldog.justmap.util.render.RenderUtil;
 public class WorldnameScreen extends Screen {
 
 	private final static Text TITLE = MutableText.of(LangUtil.getText("gui", "screen.worldname"));
-	private final static Identifier FRAME_TEXTURE = new Identifier(JustMap.MODID, "textures/screen_background.png");
+	private final static Identifier FRAME_TEXTURE = Identifier.of(JustMap.MODID, "textures/screen_background.png");
 
 	private final Screen parent;
 	private TextFieldWidget nameField;

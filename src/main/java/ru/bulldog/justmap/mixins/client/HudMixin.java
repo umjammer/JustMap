@@ -12,6 +12,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.StatusEffectSpriteManager;
 import net.minecraft.entity.effect.StatusEffect;
@@ -38,7 +39,7 @@ abstract class HudMixin {
 	private MinecraftClient client;
 
 	@Inject(at = @At("HEAD"), method = "renderStatusEffectOverlay", cancellable = true)
-	protected void renderStatusEffects(DrawContext context, float tickDelta, CallbackInfo info) {
+	protected void renderStatusEffects(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
 		if (ClientSettings.moveEffects) {
 			int posX = context.getScaledWindowWidth();
 			int posY = ClientSettings.positionOffset;
@@ -47,7 +48,7 @@ abstract class HudMixin {
 			}
 
 			this.drawMovedEffects(context, posX, posY);
-			info.cancel();
+			ci.cancel();
 		}
 	}
 

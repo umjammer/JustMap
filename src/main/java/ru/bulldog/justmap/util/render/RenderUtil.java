@@ -6,10 +6,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormatElement;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.math.MatrixStack;
@@ -19,6 +21,7 @@ import net.minecraft.util.math.AffineTransformation;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
+import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.minimap.skin.MapSkin;
 import ru.bulldog.justmap.map.minimap.skin.MapSkin.RenderData;
 import ru.bulldog.justmap.util.colors.ColorUtil;
@@ -27,9 +30,9 @@ public class RenderUtil {
 
 	private RenderUtil() {}
 
-	private final static VertexFormat VF_POS_TEX_NORMAL = new VertexFormat(ImmutableMap.of("position", VertexFormats.POSITION_ELEMENT, "texture", VertexFormats.TEXTURE_ELEMENT, "normal", VertexFormats.NORMAL_ELEMENT, "padding", VertexFormats.PADDING_ELEMENT));
+	private final static VertexFormat VF_POS_TEX_NORMAL = VertexFormat.builder().add("Position", VertexFormatElement.POSITION).add("UV0", VertexFormatElement.UV_0).add("Normal", VertexFormatElement.NORMAL).build();
 	private final static Tessellator tessellator = Tessellator.getInstance();
-	private final static BufferBuilder vertexBuffer = tessellator.getBuffer();
+	private static BufferBuilder vertexBuffer;
 	private final static TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
 
 	public static int getWidth(Text text) {
@@ -89,15 +92,13 @@ public class RenderUtil {
 
 	public static void applyFilter(boolean force) {
 		// This is not working properly. Is it even needed?
-		/*
-		if (force || ClientSettings.textureFilter) {
-			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MIN_FILTER, GLC.GL_LINEAR_MIPMAP_LINEAR);
-			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MAG_FILTER, GLC.GL_LINEAR);
-		} else {
-			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MIN_FILTER, GLC.GL_LINEAR_MIPMAP_NEAREST);
-			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MAG_FILTER, GLC.GL_NEAREST);
-		}
-		 */
+//		if (force || ClientSettings.textureFilter) {
+//			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MIN_FILTER, GLC.GL_LINEAR_MIPMAP_LINEAR);
+//			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MAG_FILTER, GLC.GL_LINEAR);
+//		} else {
+//			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MIN_FILTER, GLC.GL_LINEAR_MIPMAP_NEAREST);
+//			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MAG_FILTER, GLC.GL_NEAREST);
+//		}
 	}
 
 	public static void enable(int target) {
@@ -141,11 +142,14 @@ public class RenderUtil {
 	}
 
 	public static void startDraw(VertexFormat.DrawMode mode, VertexFormat vertexFormat) {
-		vertexBuffer.begin(mode, vertexFormat);
+		vertexBuffer = tessellator.begin(mode, vertexFormat);
 	}
 
 	public static void endDraw() {
-		tessellator.draw();
+		var builtBuffer = vertexBuffer.endNullable();
+		if (builtBuffer != null) {
+			BufferRenderer.drawWithGlobalProgram(builtBuffer);
+		}
 	}
 
 	public static void drawQuad(double x, double y, double w, double h) {
@@ -167,9 +171,9 @@ public class RenderUtil {
 		RenderSystem.setShaderColor(r, g, b, a);
 		RenderSystem.setShader(GameRenderer::getPositionProgram);
 		startDraw(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION);
-		vertexBuffer.vertex(x1, y1, 0).next();
-		vertexBuffer.vertex(x2, y2, 0).next();
-		vertexBuffer.vertex(x3, y3, 0).next();
+		vertexBuffer.vertex((float) x1, (float) y1, 0);
+		vertexBuffer.vertex((float) x2, (float) y2, 0);
+		vertexBuffer.vertex((float) x3, (float) y3, 0);
 		endDraw();
 	}
 
@@ -182,8 +186,8 @@ public class RenderUtil {
 		RenderSystem.setShaderColor(r, g, b, a);
 		RenderSystem.setShader(GameRenderer::getPositionProgram);
 		startDraw(VertexFormat.DrawMode.LINES, VertexFormats.POSITION);
-		vertexBuffer.vertex(x1, y1, 0).next();
-		vertexBuffer.vertex(x2, y2, 0).next();
+		vertexBuffer.vertex((float) x1, (float) y1, 0);
+		vertexBuffer.vertex((float) x2, (float) y2, 0);
 		endDraw();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 	}
@@ -212,13 +216,13 @@ public class RenderUtil {
 	public static void drawCircleVertices(double x, double y, double radius) {
 		double pi2 = Math.PI * 2;
 		startDraw(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION);
-		vertexBuffer.vertex(x, y, 0).next();
+		vertexBuffer.vertex((float) x, (float) y, 0);
 		int sides = 50;
 		for (int i = 0; i <= sides; i++) {
 			double angle = (pi2 * i / sides) + Math.toRadians(180);
 			double vx = x + Math.sin(angle) * radius;
 			double vy = y + Math.cos(angle) * radius;
-			vertexBuffer.vertex(vx, vy, 0).next();
+			vertexBuffer.vertex((float) vx, (float) vy, 0);
 		}
 		endDraw();
 	}
@@ -241,10 +245,10 @@ public class RenderUtil {
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
 		startDraw(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-		vertexBuffer.vertex(matrix4f, (float) x, (float) (y + h), 0.0F).color(r, g, b, a).next();
-		vertexBuffer.vertex(matrix4f, (float) (x + w), (float) (y + h), 0.0F).color(r, g, b, a).next();
-		vertexBuffer.vertex(matrix4f, (float) (x + w), (float) y, 0.0F).color(r, g, b, a).next();
-		vertexBuffer.vertex(matrix4f, (float) x, (float) y, 0.0F).color(r, g, b, a).next();
+		vertexBuffer.vertex(matrix4f, (float) x, (float) (y + h), 0.0F).color(r, g, b, a);
+		vertexBuffer.vertex(matrix4f, (float) (x + w), (float) (y + h), 0.0F).color(r, g, b, a);
+		vertexBuffer.vertex(matrix4f, (float) (x + w), (float) y, 0.0F).color(r, g, b, a);
+		vertexBuffer.vertex(matrix4f, (float) x, (float) y, 0.0F).color(r, g, b, a);
 		endDraw();
 		RenderSystem.disableBlend();
 	}
@@ -402,10 +406,10 @@ public class RenderUtil {
 	}
 
 	public static void addQuad(double x, double y, double w, double h, float minU, float minV, float maxU, float maxV) {
-		vertex(x, y + h, 0.0, minU, maxV);
-		vertex(x + w, y + h, 0.0, maxU, maxV);
-		vertex(x + w, y, 0.0, maxU, minV);
-		vertex(x, y, 0.0, minU, minV);
+		vertex((float) x, (float) (y + h), 0.0f, minU, maxV);
+		vertex((float) (x + w), (float) (y + h), 0.0f, maxU, maxV);
+		vertex((float) (x + w), (float) y, 0.0f, maxU, minV);
+		vertex((float) x, (float) y, 0.0f, minU, minV);
 	}
 
 	public static void addQuad(MatrixStack matrices, double x, double y, double w, double h, float minU, float minV, float maxU, float maxV) {
@@ -419,10 +423,10 @@ public class RenderUtil {
 	}
 
 	private static void vertex(Matrix4f m4f, MatrixStack.Entry mse, VertexConsumer vertexConsumer, float x, float y, float z, float u, float v) {
-		vertexConsumer.vertex(m4f, x, y, z).texture(u, v).normal(mse, 0.0F, 1.0F, 0.0F).next();
+		vertexConsumer.vertex(m4f, x, y, z).texture(u, v).normal(mse, 0.0F, 1.0F, 0.0F);
 	}
 
 	private static void vertex(double x, double y, double z, float u, float v) {
-		vertexBuffer.vertex(x, y, z).texture(u, v).next();
+		vertexBuffer.vertex((float) x, (float) y, (float) z).texture(u, v);
 	}
 }

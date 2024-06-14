@@ -103,7 +103,7 @@ public class EntityHeadIconImage extends Image {
 
 	private static Identifier iconId(Identifier id) {
 		String path = String.format("textures/minimap/entities/%s.png", id.getPath());
-		return new Identifier(id.getNamespace(), path);
+		return Identifier.of(id.getNamespace(), path);
 	}
 
 	private static EntityHeadIconImage registerIcon(Entity entity, Identifier entityId, Identifier texture) {

@@ -216,7 +216,7 @@ public class ColorUtil {
 		int color = colorPalette.getTextureColor(state, blockSprite);
 		if (color != 0x0) return color;
 
-		Identifier texture = new Identifier(blockSprite.getNamespace(), String.format("textures/%s.png", blockSprite.getPath()));
+		Identifier texture = Identifier.of(blockSprite.getNamespace(), String.format("textures/%s.png", blockSprite.getPath()));
 		NativeImage image = ImageUtil.loadImage(texture, 16, 16);
 
 		int height = state.getBlock() instanceof FlowerBlock ? image.getHeight() / 2 : image.getHeight();

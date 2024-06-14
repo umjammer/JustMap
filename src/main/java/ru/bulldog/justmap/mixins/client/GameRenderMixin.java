@@ -5,6 +5,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.RenderTickCounter;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -33,8 +34,9 @@ public abstract class GameRenderMixin {
 	protected abstract double getFov(Camera camera, float f, boolean bl);
 
 	@Inject(method = "render", at = @At("RETURN"))
-	public void renderHUD(float f, long l, boolean bl, CallbackInfo ci) {
+	public void renderHUD(RenderTickCounter tickCounter, boolean tick, CallbackInfo ci) {
 		DrawContext context = new DrawContext(this.client, this.buffers.getEntityVertexConsumers());
-		WaypointRenderer.renderHUD(context, f, (float) this.getFov(camera, f, true));
+		float tickDelta = tickCounter.getTickDelta(false);
+		WaypointRenderer.renderHUD(context, tickDelta, (float) this.getFov(camera, tickDelta, true));
 	}
 }

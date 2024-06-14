@@ -33,7 +33,7 @@ import ru.bulldog.justmap.util.render.RenderUtil;
 @Environment(EnvType.CLIENT)
 public class WaypointRenderer {
 	private static final WaypointRenderer renderer = new WaypointRenderer();
-	private final static Identifier BEAM_TEX = new Identifier("textures/entity/beacon_beam.png");
+	private final static Identifier BEAM_TEX = Identifier.of("textures/entity/beacon_beam.png");
 	private final static MinecraftClient minecraft = MinecraftClient.getInstance();
 
 	public static void renderHUD(DrawContext context, float delta, float fov) {
@@ -64,16 +64,15 @@ public class WaypointRenderer {
 
 			matrixStack.push();
 			Tessellator tessellator = Tessellator.getInstance();
-			BufferBuilder buffer  = tessellator.getBuffer();
-			buffer.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
+			BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
 			RenderSystem.applyModelViewMatrix();
 
 			Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
-			float tickDelta = MinecraftClient.getInstance().getTickDelta();
+			float tickDelta = MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(false); // TODO 1.21
 
 			renderWaypoints(matrixStack, camera, tickDelta);
 
-			tessellator.draw();
+			buffer.endNullable();
 			matrixStack.pop();
 			RenderSystem.applyModelViewMatrix();
 			RenderSystem.disableBlend();
@@ -236,7 +235,7 @@ public class WaypointRenderer {
 	}
 
 	private void addVertex(Matrix4f matrix4f, MatrixStack.Entry matrixSE, VertexConsumer vertexConsumer, float red, float green, float blue, float alpha, float y, float x, float l, float m, float n) {
-		vertexConsumer.vertex(matrix4f, x, y, l).color(red, green, blue, alpha).texture(m, n).overlay(OverlayTexture.DEFAULT_UV).light(Colors.LIGHT).normal(matrixSE, 0.0F, 1.0F, 0.0F).next();
+		vertexConsumer.vertex(matrix4f, x, y, l).color(red, green, blue, alpha).texture(m, n).overlay(OverlayTexture.DEFAULT_UV).light(Colors.LIGHT).normal(matrixSE, 0.0F, 1.0F, 0.0F);
 	}
 
 	private double correctAngle(float angle) {

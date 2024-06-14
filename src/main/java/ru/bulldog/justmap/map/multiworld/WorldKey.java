@@ -91,7 +91,7 @@ public class WorldKey {
 
 	public static WorldKey fromJson(JsonObject element) {
 		if (!element.has("dimension")) return null;
-		Identifier dimension = new Identifier(JsonHelper.getString(element, "dimension"));
+		Identifier dimension = Identifier.of(JsonHelper.getString(element, "dimension"));
 		WorldKey worldKey = new WorldKey(dimension);
 		if (element.has("name")) {
 			worldKey.setWorldName(JsonHelper.getString(element, "name"));

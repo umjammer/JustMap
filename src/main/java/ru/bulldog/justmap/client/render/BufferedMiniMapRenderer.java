@@ -111,10 +111,10 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		this.primaryFramebuffer.beginRead();
 		RenderUtil.startDraw();
 		BufferBuilder buffer = RenderUtil.getBuffer();
-		buffer.vertex(0.0, scaledH, 0.0).texture(0.0F, 0.0F).next();
-		buffer.vertex(scaledW, scaledH, 0.0).texture(1.0F, 0.0F).next();
-		buffer.vertex(scaledW, 0.0, 0.0).texture(1.0F, 1.0F).next();
-		buffer.vertex(0.0, 0.0, 0.0).texture(0.0F, 1.0F).next();
+		buffer.vertex(0.0f, scaledH, 0.0f).texture(0.0F, 0.0F);
+		buffer.vertex(scaledW, scaledH, 0.0f).texture(1.0F, 0.0F);
+		buffer.vertex(scaledW, 0.0f, 0.0f).texture(1.0F, 1.0F);
+		buffer.vertex(0.0f, 0.0f, 0.0f).texture(0.0F, 1.0F);
 		RenderUtil.endDraw();
 		if (mapRotation) {
 			matrices.push();
@@ -155,10 +155,10 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		this.secondaryFramebuffer.beginRead();
 		RenderUtil.startDraw();
 		buffer = RenderUtil.getBuffer();
-		buffer.vertex(imgX, imgY + imgH, 0.0).texture(0.0F, 0.0F).next();
-		buffer.vertex(imgX + imgW, imgY + imgH, 0.0).texture(1.0F, 0.0F).next();
-		buffer.vertex(imgX + imgW, imgY, 0.0).texture(1.0F, 1.0F).next();
-		buffer.vertex(imgX, imgY, 0.0).texture(0.0F, 1.0F).next();
+		buffer.vertex(imgX, imgY + imgH, 0.0f).texture(0.0F, 0.0F);
+		buffer.vertex(imgX + imgW, imgY + imgH, 0.0f).texture(1.0F, 0.0F);
+		buffer.vertex(imgX + imgW, imgY, 0.0f).texture(1.0F, 1.0F);
+		buffer.vertex(imgX, imgY, 0.0f).texture(0.0F, 1.0F);
 		RenderUtil.endDraw();
 		matrices.pop();
 		List<WaypointIcon> drawableWaypoints = minimap.getWaypoints(playerPos, centerX, centerY);

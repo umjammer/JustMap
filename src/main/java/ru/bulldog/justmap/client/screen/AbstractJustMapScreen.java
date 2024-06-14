@@ -18,13 +18,13 @@ import ru.bulldog.justmap.util.LangUtil;
 import ru.bulldog.justmap.util.render.RenderUtil;
 
 public abstract class AbstractJustMapScreen extends Screen {
-	public static final Identifier DEFAULT_TEXTURE = new Identifier("textures/block/dirt.png");
+	public static final Identifier DEFAULT_TEXTURE = Identifier.of("textures/block/dirt.png");
 	public static final HashMap<String, Pair<String, Identifier>> DIMENSION_INFO = new HashMap<>() {
 		private static final long serialVersionUID = 1L;
 		{
-			put("minecraft:overworld", new Pair<>(JustMap.MODID + ".dim.overworld", new Identifier("textures/block/stone.png")));
-			put("minecraft:the_nether", new Pair<>(JustMap.MODID + ".dim.nether", new Identifier("textures/block/netherrack.png")));
-			put("minecraft:the_end", new Pair<>(JustMap.MODID + ".dim.the_end", new Identifier("textures/block/end_stone.png")));
+			put("minecraft:overworld", new Pair<>(JustMap.MODID + ".dim.overworld", Identifier.of("textures/block/stone.png")));
+			put("minecraft:the_nether", new Pair<>(JustMap.MODID + ".dim.nether", Identifier.of("textures/block/netherrack.png")));
+			put("minecraft:the_end", new Pair<>(JustMap.MODID + ".dim.the_end", Identifier.of("textures/block/end_stone.png")));
 		}
 	};
 
