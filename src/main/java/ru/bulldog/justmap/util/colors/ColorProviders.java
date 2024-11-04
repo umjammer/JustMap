@@ -9,7 +9,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.RedstoneWireBlock;
 import net.minecraft.block.StemBlock;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.ColorHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
@@ -37,8 +37,8 @@ public class ColorProviders implements ColorProvider {
 		blockColors.registerColorProvider((state, world, pos) -> blockColors.getWaterColor(world, pos), Blocks.WATER, Blocks.BUBBLE_COLUMN, Blocks.CAULDRON);
 		blockColors.registerColorProvider((state, world, pos) -> {
 			int power = state.get(RedstoneWireBlock.POWER);
-			Vec3d powerVector = RedstoneLevelAccessor.getPowerVectors()[power];
-			return MathUtil.packRgb((float) powerVector.getX(), (float) powerVector.getY(), (float) powerVector.getZ());
+			int powerColor = RedstoneLevelAccessor.getPowerColors()[power];
+			return MathUtil.packRgb((float) ColorHelper.getRed(powerColor), (float) ColorHelper.getGreen(powerColor), (float) ColorHelper.getBlue(powerColor));
 		}, Blocks.REDSTONE_WIRE);
 		blockColors.registerColorProvider((state, world, pos) -> Colors.ATTACHED_STEM, Blocks.ATTACHED_MELON_STEM, Blocks.ATTACHED_PUMPKIN_STEM);
 		blockColors.registerColorProvider((state, world, pos) -> {

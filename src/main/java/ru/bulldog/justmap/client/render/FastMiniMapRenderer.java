@@ -37,7 +37,7 @@ public class FastMiniMapRenderer extends AbstractMiniMapRenderer {
 		if (Minimap.isRound()) {
 			RenderSystem.colorMask(false, false, false, true);
 			RenderSystem.clearColor(0.0F, 0.0F, 0.0F, 0.0F);
-			RenderSystem.clear(GLC.GL_COLOR_BUFFER_BIT, false);
+			RenderSystem.clear(GLC.GL_COLOR_BUFFER_BIT);
 			RenderSystem.colorMask(true, true, true, true);
 			RenderUtil.bindTexture(roundMask);
 			RenderUtil.startDraw();

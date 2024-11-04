@@ -60,8 +60,8 @@ public class BiomeColors {
 	}
 
 	public static Identifier getBiomeId(World world, Biome biome) {
-		Identifier biomeId = world.getRegistryManager().get(RegistryKeys.BIOME).getId(biome);
-		return biomeId != null ? biomeId : BuiltinRegistries.createWrapperLookup().getWrapperOrThrow(RegistryKeys.BIOME).streamEntries().filter(b -> biome.equals(b.value())).map(b -> b.registryKey().getValue()).findFirst().get();
+		Identifier biomeId = world.getRegistryManager().getOrThrow(RegistryKeys.BIOME).getId(biome);
+		return biomeId != null ? biomeId : BuiltinRegistries.createWrapperLookup().getOrThrow(RegistryKeys.BIOME).streamEntries().filter(b -> biome.equals(b.value())).map(b -> b.registryKey().getValue()).findFirst().get();
 	}
 
 	public static Registry<Biome> getBiomeRegistry() {
@@ -69,15 +69,15 @@ public class BiomeColors {
 			MinecraftClient minecraft = MinecraftClient.getInstance();
 			ClientPlayNetworkHandler networkHandler = minecraft.getNetworkHandler();
 			if (networkHandler != null) {
-				return minecraft.getNetworkHandler().getRegistryManager().get(RegistryKeys.BIOME);
+				return minecraft.getNetworkHandler().getRegistryManager().getOrThrow(RegistryKeys.BIOME);
 			}
-			return registryManager.get(RegistryKeys.BIOME);
+			return registryManager.getOrThrow(RegistryKeys.BIOME);
 		}
 		MinecraftServer server = JustMapServer.getServer();
 		if (server != null) {
-			return server.getRegistryManager().get(RegistryKeys.BIOME);
+			return server.getRegistryManager().getOrThrow(RegistryKeys.BIOME);
 		}
-		return registryManager.get(RegistryKeys.BIOME);
+		return registryManager.getOrThrow(RegistryKeys.BIOME);
 	}
 
 	public static int getGrassColor(double temperature, double humidity) {

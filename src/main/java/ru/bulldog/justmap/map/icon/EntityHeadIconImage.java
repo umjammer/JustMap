@@ -7,7 +7,6 @@ import java.util.Map;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.HostileEntity;
@@ -92,7 +91,7 @@ public class EntityHeadIconImage extends Image {
 		boolean solid = true;
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
-				int alpha = (icon.getColor(i, j) >> 24) & 255;
+				int alpha = (icon.getColorArgb(i, j) >> 24) & 255;
 				solid = alpha > 0;
 				if (!solid) break;
 			}

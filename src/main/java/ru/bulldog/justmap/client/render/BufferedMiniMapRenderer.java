@@ -2,13 +2,12 @@ package ru.bulldog.justmap.client.render;
 
 import java.util.List;
 
+import com.mojang.blaze3d.systems.ProjectionType;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.systems.VertexSorter;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.RotationAxis;
@@ -56,9 +55,8 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 
 		int scaledW = (int) (imgW * scale);
 		int scaledH = (int) (imgH * scale);
-		boolean isMac = MinecraftClient.IS_SYSTEM_MAC;
 		if (paramsUpdated) {
-			this.resize(scaledW, scaledH, isMac);
+			this.resize(scaledW, scaledH);
 			if (ClientSettings.showGrid) {
 				if (chunkGrid == null) {
 					this.chunkGrid = new ChunkGrid(lastX, lastZ, 0, 0, imgW, imgH, mapScale);
@@ -73,14 +71,13 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		MatrixStack matrices = context.getMatrices();
 		matrices.push();
 		this.primaryFramebuffer.beginWrite(true);
-		RenderSystem.clear(GLC.GL_COLOR_OR_DEPTH_BUFFER_BIT, isMac);
+		RenderSystem.clear(GLC.GL_COLOR_OR_DEPTH_BUFFER_BIT);
 		RenderSystem.backupProjectionMatrix();
 		Matrix4f orthographic = projectionMatrix(0.0F, scaledW, 0.0F, scaledH, 1000.0F, 3000.0F);
-		RenderSystem.setProjectionMatrix(orthographic, VertexSorter.BY_DISTANCE);
+		RenderSystem.setProjectionMatrix(orthographic, ProjectionType.PERSPECTIVE);
 		matrices.loadIdentity();
 		matrices.translate(0.0F, 0.0F, -2000.0F);
 		matrices.scale((float) scale, (float) scale, 1.0F);
-		RenderSystem.applyModelViewMatrix();
 		RenderSystem.enableBlend();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		this.drawMap(context);
@@ -94,9 +91,8 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		matrices.pop();
 
 		this.secondaryFramebuffer.beginWrite(false);
-		RenderSystem.clear(GLC.GL_COLOR_OR_DEPTH_BUFFER_BIT, isMac);
+		RenderSystem.clear(GLC.GL_COLOR_OR_DEPTH_BUFFER_BIT);
 		matrices.push();
-		RenderSystem.applyModelViewMatrix();
 		RenderSystem.enableCull();
 		if (mapRotation) {
 			float shiftX = scaledW / 2.0F;
@@ -107,7 +103,7 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		}
 		matrices.translate(-offX * scale, -offY * scale, 0.0);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
 		this.primaryFramebuffer.beginRead();
 		RenderUtil.startDraw();
 		BufferBuilder buffer = RenderUtil.getBuffer();
@@ -125,7 +121,6 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		matrices.pop();
 		this.secondaryFramebuffer.endWrite();
 		RenderSystem.restoreProjectionMatrix();
-		RenderSystem.applyModelViewMatrix();
 		matrices.pop();
 
 		Framebuffer minecraftFramebuffer = minecraft.getFramebuffer();
@@ -143,7 +138,7 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 			RenderSystem.enableBlend();
 			RenderSystem.colorMask(false, false, false, true);
 			RenderSystem.clearColor(0.0F, 0.0F, 0.0F, 0.0F);
-			RenderSystem.clear(GLC.GL_COLOR_BUFFER_BIT, false);
+			RenderSystem.clear(GLC.GL_COLOR_BUFFER_BIT);
 			RenderSystem.colorMask(true, true, true, true);
 			RenderUtil.bindTexture(roundMask);
 			RenderUtil.drawQuad(mapX, mapY, mapWidth, mapHeight);
@@ -151,7 +146,7 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		}
 		matrices.push();
 		matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180.0F));
-		RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
 		this.secondaryFramebuffer.beginRead();
 		RenderUtil.startDraw();
 		buffer = RenderUtil.getBuffer();
@@ -243,9 +238,9 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		}
 	}
 
-	public void resize(int width, int height, boolean isMac) {
-		this.primaryFramebuffer.resize(width, height, isMac);
-		this.secondaryFramebuffer.resize(width, height, isMac);
+	public void resize(int width, int height) {
+		this.primaryFramebuffer.resize(width, height);
+		this.secondaryFramebuffer.resize(width, height);
 	}
 
 	public void deleteFramebuffers() {

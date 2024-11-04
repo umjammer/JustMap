@@ -26,18 +26,18 @@ public class ExtendedFramebuffer extends Framebuffer {
 	}
 
 	@Override
-	public void resize(int width, int height, boolean isMac) {
+	public void resize(int width, int height) {
 		RenderSystem.assertOnRenderThreadOrInit();
 		RenderSystem.enableDepthTest();
 		if (fbo >= 0) {
 			this.delete();
 		}
-		this.initFbo(width, height, isMac);
+		this.initFbo(width, height);
 		this.bindFramebuffer(GLC.GL_FRAMEBUFFER, 0);
 	}
 
 	@Override
-	public void initFbo(int width, int height, boolean isMac) {
+	public void initFbo(int width, int height) {
 		RenderSystem.assertOnRenderThreadOrInit();
 		this.viewportWidth = width;
 		this.viewportHeight = height;
@@ -67,7 +67,7 @@ public class ExtendedFramebuffer extends Framebuffer {
 		}
 		try {
 			this.checkFramebufferStatus();
-			this.clear(isMac);
+			this.clear();
 		} catch (Exception ex) {
 			// ignore
 		}

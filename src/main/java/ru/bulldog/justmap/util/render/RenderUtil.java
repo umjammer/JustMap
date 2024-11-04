@@ -1,27 +1,23 @@
 package ru.bulldog.justmap.util.render;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormatElement;
 import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.AffineTransformation;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
-import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.minimap.skin.MapSkin;
 import ru.bulldog.justmap.map.minimap.skin.MapSkin.RenderData;
 import ru.bulldog.justmap.util.colors.ColorUtil;
@@ -81,12 +77,12 @@ public class RenderUtil {
 	}
 
 	public static void bindTexture(Identifier id) {
-		RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
 		RenderSystem.setShaderTexture(0, id);
 	}
 
 	public static void bindTexture(int id) {
-		RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
 		RenderSystem.setShaderTexture(0, id);
 	}
 
@@ -169,7 +165,7 @@ public class RenderUtil {
 		float b = (float)(color & 255) / 255.0F;
 
 		RenderSystem.setShaderColor(r, g, b, a);
-		RenderSystem.setShader(GameRenderer::getPositionProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION);
 		startDraw(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION);
 		vertexBuffer.vertex((float) x1, (float) y1, 0);
 		vertexBuffer.vertex((float) x2, (float) y2, 0);
@@ -184,7 +180,7 @@ public class RenderUtil {
 		float b = (float)(color & 255) / 255.0F;
 
 		RenderSystem.setShaderColor(r, g, b, a);
-		RenderSystem.setShader(GameRenderer::getPositionProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION);
 		startDraw(VertexFormat.DrawMode.LINES, VertexFormats.POSITION);
 		vertexBuffer.vertex((float) x1, (float) y1, 0);
 		vertexBuffer.vertex((float) x2, (float) y2, 0);
@@ -207,7 +203,7 @@ public class RenderUtil {
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.setShaderColor(r, g, b, a);
-		RenderSystem.setShader(GameRenderer::getPositionProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION);
 		drawCircleVertices(x, y, radius);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.disableBlend();
@@ -243,7 +239,7 @@ public class RenderUtil {
 
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 		startDraw(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 		vertexBuffer.vertex(matrix4f, (float) x, (float) (y + h), 0.0F).color(r, g, b, a);
 		vertexBuffer.vertex(matrix4f, (float) (x + w), (float) (y + h), 0.0F).color(r, g, b, a);
@@ -308,7 +304,7 @@ public class RenderUtil {
 		RenderSystem.enableBlend();
 		RenderSystem.enableCull();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
 		skin.bindTexture();
 		startDrawNormal();
 
@@ -363,7 +359,7 @@ public class RenderUtil {
 	}
 
 	public static void drawImage(DrawContext context, Image image, double x, double y, float w, float h) {
-		RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
 		image.bindTexture();
 		startDrawNormal();
 		draw(context, vertexBuffer, x, y, w, h, 0.0F, 0.0F, 1.0F, 1.0F);

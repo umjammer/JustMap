@@ -2,7 +2,6 @@ package ru.bulldog.justmap.util;
 
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
 
 

@@ -10,7 +10,6 @@ import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.entity.mob.GhastEntity;
 import net.minecraft.entity.mob.WaterCreatureEntity;
 import net.minecraft.util.math.RotationAxis;
-import org.joml.Vector3f;
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.util.math.MathUtil;
@@ -48,7 +47,7 @@ public class EntityModelRenderer {
 		matrices.push();
 		matrices.scale(scale, scale, scale);
 		renderDispatcher.setRenderShadows(false);
-		renderDispatcher.render(livingEntity, 0.0, 0.0, 0.0, 0.0F, 1.0F, matrices, consumerProvider, 240);
+		renderDispatcher.render(livingEntity, 0.0, 0.0, 0.0, 1.0F, matrices, consumerProvider, 240);
 		renderDispatcher.setRenderShadows(true);
 		matrices.pop();
 		matrices.pop();

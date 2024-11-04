@@ -59,7 +59,8 @@ public class MapGameRules {
 				allow = minecraft.getServer().getGameRules().getBoolean(rule);
 			} else if (!minecraft.isInSingleplayer()) {
 				if (minecraft.world == null) return false;
-				allow = minecraft.world.getGameRules().getBoolean(rule);
+//				allow = minecraft.world.getGameRules().getBoolean(rule);
+				return false; // TODO 1.21.3
 			}
 		}
 		return allow;
@@ -84,7 +85,8 @@ public class MapGameRules {
 	public static void parseCommand(String command) {
 		MinecraftClient minecraft = MinecraftClient.getInstance();
 		MinecraftServer server = minecraft.getServer();
-		GameRules gameRules = minecraft.world.getGameRules();
+//		GameRules gameRules = minecraft.world.getGameRules();
+		GameRules gameRules = server.getGameRules(); // TODO 1.21.3
 		codes.forEach((key, rule) -> {
 			if (command.contains(key)) {
 				int valPos = command.indexOf(key) + 2;

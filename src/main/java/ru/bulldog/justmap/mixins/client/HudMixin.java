@@ -6,12 +6,12 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
-import com.ibm.icu.text.ListFormatter.Width;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.StatusEffectSpriteManager;
@@ -98,9 +98,9 @@ abstract class HudMixin {
 		   		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		   		float alpha = 1.0F;
 		   		if (statusEffectInstance.isAmbient()) {
-		   			context.drawTexture(HandledScreen.BACKGROUND_TEXTURE ,x, y, 165, 166, size, size);
+		   			context.drawTexture(RenderLayer::getGuiTextured, HandledScreen.BACKGROUND_TEXTURE ,x, y, 165, 166, size, size, size, size);
 		   		} else {
-			   		context.drawTexture(HandledScreen.BACKGROUND_TEXTURE ,x, y, 141, 166, size, size);
+			   		context.drawTexture(RenderLayer::getGuiTextured, HandledScreen.BACKGROUND_TEXTURE ,x, y, 141, 166, size, size, size, size);
 			  		if (effectDuration <= 200) {
 				  		int m = 10 - effectDuration / 20;
 				 		alpha = MathHelper.clamp(effectDuration / 10F / 5F * 0.5F, 0F, 0.5F) + MathHelper.cos((float) (effectDuration * Math.PI) / 5F) * MathHelper.clamp(m / 10F * 0.25F, 0.0F, 0.25F);
@@ -113,7 +113,7 @@ abstract class HudMixin {
 		   		icons.add(() -> {
 					RenderSystem.setShaderTexture(0, sprite.getContents().getId());
 					RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, fa);
-					context.drawSprite(fx + 3, fy + 3, 0, 18, 18, sprite);
+					context.drawSpriteStretched(RenderLayer::getGuiTextured, sprite, fx + 3, fy + 3, 18, 18);
 		   		});
 		   		if (ClientSettings.showEffectTimers) {
 			   		timers.add(() ->

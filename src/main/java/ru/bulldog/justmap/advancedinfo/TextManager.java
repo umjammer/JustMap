@@ -5,7 +5,6 @@ import java.util.List;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.util.math.MatrixStack;
 
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.enums.ScreenPosition;

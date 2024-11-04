@@ -9,16 +9,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Optional;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.ChunkSerializer;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.EmptyChunk;
+import net.minecraft.world.chunk.SerializedChunk;
 import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.world.chunk.WrapperProtoChunk;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
@@ -125,8 +124,9 @@ class ChunkDataManager {
 			NbtCompound chunkTag = storage.updateChunkNbt(serverWorld.getRegistryKey(),
 					CurrentWorldPos.getPersistentSupplier(), storage.getNbt(chunkPos).get().get(), opt);
 			if (chunkTag == null) return this.emptyChunk;
-			Chunk chunk = ChunkSerializer.deserialize(
-					serverWorld, serverWorld.getPointOfInterestStorage(), null, chunkPos, chunkTag); // TODO 1.21
+			SerializedChunk serializedChunk = SerializedChunk.fromNbt(serverWorld, serverWorld.getRegistryManager(), chunkTag); // TODO 1.21.3
+			Chunk chunk = serializedChunk.convert(
+					serverWorld, serverWorld.getPointOfInterestStorage(), null, chunkPos); // TODO 1.21
 			if (chunk instanceof WrapperProtoChunk) {
 				return ((WrapperProtoChunk) chunk).getWrappedChunk();
 			}

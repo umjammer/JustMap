@@ -1,14 +1,13 @@
 package ru.bulldog.justmap.client.render;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -17,7 +16,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import ru.bulldog.justmap.client.config.ClientSettings;
@@ -53,7 +51,7 @@ public class WaypointRenderer {
 
     public static void startWaypointRender() {
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
-			RenderSystem.setShader( GameRenderer::getPositionColorProgram );
+			RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 			RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 			RenderSystem.depthMask(false);
 			RenderSystem.enableBlend();
@@ -65,7 +63,6 @@ public class WaypointRenderer {
 			matrixStack.push();
 			Tessellator tessellator = Tessellator.getInstance();
 			BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
-			RenderSystem.applyModelViewMatrix();
 
 			Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
 			float tickDelta = MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(false); // TODO 1.21
@@ -74,7 +71,6 @@ public class WaypointRenderer {
 
 			buffer.endNullable();
 			matrixStack.pop();
-			RenderSystem.applyModelViewMatrix();
 			RenderSystem.disableBlend();
 		});
     }

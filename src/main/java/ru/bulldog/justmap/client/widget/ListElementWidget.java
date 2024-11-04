@@ -5,7 +5,6 @@ import java.util.function.Supplier;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
 import ru.bulldog.justmap.util.colors.Colors;

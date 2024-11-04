@@ -1,7 +1,6 @@
 package ru.bulldog.justmap.map.data;
 
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.util.math.MatrixStack;
 
 public interface MapRegion {
 	RegionPos getPos();

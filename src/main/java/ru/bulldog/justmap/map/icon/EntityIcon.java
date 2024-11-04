@@ -1,8 +1,8 @@
 package ru.bulldog.justmap.map.icon;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -80,7 +80,7 @@ public class EntityIcon extends MapIcon<EntityIcon> {
 				RenderUtil.drawOutlineCircle(iconPos.x, iconPos.y, size / 3, 0.6, color);
 			}
 		} else {
-			RenderSystem.setShader(GameRenderer::getPositionProgram);
+			RenderSystem.setShader(ShaderProgramKeys.POSITION);
 			RenderUtil.drawOutlineCircle(iconPos.x, iconPos.y, size / 3, 0.6, color);
 		}
 	}

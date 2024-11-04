@@ -1,15 +1,13 @@
 package ru.bulldog.justmap.map;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormatElement;
-import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteContents;
 import net.minecraft.client.texture.SpriteDimensions;
@@ -77,7 +75,7 @@ public class DirectionArrow extends Sprite {
 			double x3 = x + Math.cos(a3) * l;
 			double y3 = y + Math.sin(a3) * l;
 
-			RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+			RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 			RenderUtil.drawTriangle(x1, y1, x2, y2, x3, y3, Colors.RED);
 		}
 	}

@@ -188,7 +188,7 @@ public class ColorPalette {
 						String key = entry.getKey();
 						JsonObject biomeJson = entry.getValue().getAsJsonObject();
 						Identifier biomeId = Identifier.of(key);
-						Biome biome = BiomeColors.getBiomeRegistry().get(biomeId);
+						Biome biome = BiomeColors.getBiomeRegistry().getEntry(biomeId).get().value();
 						this.biomeColors.put(biomeId, BiomeColors.fromJson(biome, biomeJson));
 					});
 				}

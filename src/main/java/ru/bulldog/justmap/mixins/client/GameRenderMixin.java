@@ -31,12 +31,12 @@ public abstract class GameRenderMixin {
 	private BufferBuilderStorage buffers;
 
 	@Shadow
-	protected abstract double getFov(Camera camera, float f, boolean bl);
+	private float lastFovMultiplier;
 
 	@Inject(method = "render", at = @At("RETURN"))
 	public void renderHUD(RenderTickCounter tickCounter, boolean tick, CallbackInfo ci) {
 		DrawContext context = new DrawContext(this.client, this.buffers.getEntityVertexConsumers());
 		float tickDelta = tickCounter.getTickDelta(false);
-		WaypointRenderer.renderHUD(context, tickDelta, (float) this.getFov(camera, tickDelta, true));
+		WaypointRenderer.renderHUD(context, tickDelta, (float) this.lastFovMultiplier);
 	}
 }

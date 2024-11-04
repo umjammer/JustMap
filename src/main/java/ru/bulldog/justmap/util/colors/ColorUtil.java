@@ -224,7 +224,7 @@ public class ColorUtil {
 		List<Integer> colors = new ArrayList<>();
 		for (int i = 0; i < image.getWidth(); i++) {
 			for (int j = 0; j < height; j++) {
-				int col = image.getColor(i, j);
+				int col = image.getColorArgb(i, j);
 				if (((col >> 24) & 255) > 0) {
 					colors.add(ABGRtoARGB(col));
 				}
