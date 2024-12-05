@@ -2,11 +2,13 @@ package ru.bulldog.justmap.map.icon;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.client.texture.PlayerSkinTexture;
+import net.minecraft.client.texture.PlayerSkinTextureDownloader;
 import net.minecraft.client.texture.ResourceTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.DefaultSkinHelper;
@@ -74,7 +76,7 @@ public class PlayerHeadIconImage {
 				this.skinId = player.getSkinTextures().texture();
 
 				try {
-					this.playerSkin.load(MinecraftClient.getInstance().getResourceManager());
+					this.playerSkin.loadContents(MinecraftClient.getInstance().getResourceManager());
 				} catch (IOException ex) {
 					JustMap.LOGGER.warning(ex.getLocalizedMessage());
 				}
@@ -86,7 +88,7 @@ public class PlayerHeadIconImage {
 			this.success = false;
 
 			try {
-				this.playerSkin.load(MinecraftClient.getInstance().getResourceManager());
+				this.playerSkin.loadContents(MinecraftClient.getInstance().getResourceManager());
 			} catch (IOException ex) {
 				JustMap.LOGGER.warning(ex.getLocalizedMessage());
 			}
@@ -97,8 +99,12 @@ public class PlayerHeadIconImage {
 		TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
 		AbstractTexture abstractTexture = textureManager.getTexture(id);
 		if (abstractTexture == null) {
-			abstractTexture = new PlayerSkinTexture(null, String.format("http://skins.minecraft.net/MinecraftSkins/%s.png", StringHelper.stripTextFormat(playerName)), DefaultSkinHelper.getSkinTextures(playerUUID).texture(), true, null);
-			textureManager.registerTexture(id, abstractTexture);
+			CompletableFuture<Identifier> downloader = PlayerSkinTextureDownloader.downloadAndRegisterTexture(DefaultSkinHelper.getSkinTextures(playerUUID).texture(), null , String.format("https://skins.minecraft.net/MinecraftSkins/%s.png", StringHelper.stripTextFormat(playerName)), true); // TODO 1.21.4
+			try {
+				id = downloader.get();
+				abstractTexture = textureManager.getTexture(id);
+			} catch (ExecutionException | InterruptedException e) {
+			}
 		}
 		return (ResourceTexture) abstractTexture;
 	}
