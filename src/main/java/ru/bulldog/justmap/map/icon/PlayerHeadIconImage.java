@@ -1,17 +1,22 @@
 package ru.bulldog.justmap.map.icon;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import com.mojang.authlib.GameProfile;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.client.texture.PlayerSkinTextureDownloader;
+import net.minecraft.client.texture.ReloadableTexture;
 import net.minecraft.client.texture.ResourceTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.DefaultSkinHelper;
+import net.minecraft.client.util.SkinTextures;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.StringHelper;
 import ru.bulldog.justmap.JustMap;
@@ -97,15 +102,20 @@ public class PlayerHeadIconImage {
 
 	private ResourceTexture loadSkinTexture(Identifier id, String playerName, UUID playerUUID) {
 		TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
+		ResourceTexture resourceTexture = null;
 		AbstractTexture abstractTexture = textureManager.getTexture(id);
 		if (abstractTexture == null) {
-			CompletableFuture<Identifier> downloader = PlayerSkinTextureDownloader.downloadAndRegisterTexture(DefaultSkinHelper.getSkinTextures(playerUUID).texture(), null , String.format("https://skins.minecraft.net/MinecraftSkins/%s.png", StringHelper.stripTextFormat(playerName)), true); // TODO 1.21.4
+			// TODO 1.21.4
+			GameProfile gameProfile = MinecraftClient.getInstance().player.getGameProfile();
+			CompletableFuture<Optional<SkinTextures>> downloader = MinecraftClient.getInstance().getSkinProvider().fetchSkinTextures(gameProfile);
 			try {
-				id = downloader.get();
-				abstractTexture = textureManager.getTexture(id);
-			} catch (ExecutionException | InterruptedException e) {
+				skinId = downloader.getNow(Optional.of(DefaultSkinHelper.getSkinTextures(playerUUID))).orElseThrow().texture();
+				resourceTexture = new ResourceTexture(skinId);
+				textureManager.registerTexture(id, resourceTexture);
+			} catch (NoSuchElementException e) {
+				JustMap.LOGGER.warning(e.getLocalizedMessage(), null, e);
 			}
 		}
-		return (ResourceTexture) abstractTexture;
+		return resourceTexture;
 	}
 }
