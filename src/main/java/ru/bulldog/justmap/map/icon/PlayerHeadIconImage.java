@@ -1,29 +1,31 @@
 package ru.bulldog.justmap.map.icon;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.IOException;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Base64;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import com.mojang.authlib.GameProfile;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.client.texture.PlayerSkinTextureDownloader;
-import net.minecraft.client.texture.ReloadableTexture;
+import net.minecraft.client.texture.NativeImage;
+import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.texture.ResourceTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.DefaultSkinHelper;
-import net.minecraft.client.util.SkinTextures;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.StringHelper;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.MapPlayer;
 import ru.bulldog.justmap.util.colors.Colors;
 import ru.bulldog.justmap.util.render.RenderUtil;
+
+import static ru.bulldog.justmap.JustMap.MODID;
+
 
 public class PlayerHeadIconImage {
 
@@ -102,18 +104,30 @@ public class PlayerHeadIconImage {
 
 	private ResourceTexture loadSkinTexture(Identifier id, String playerName, UUID playerUUID) {
 		TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
-		ResourceTexture resourceTexture = null;
+		ResourceTexture resourceTexture = new ResourceTexture(DefaultSkinHelper.getSkinTextures(playerUUID).texture());
 		AbstractTexture abstractTexture = textureManager.getTexture(id);
 		if (abstractTexture == null) {
-			// TODO 1.21.4
-			GameProfile gameProfile = MinecraftClient.getInstance().player.getGameProfile();
-			CompletableFuture<Optional<SkinTextures>> downloader = MinecraftClient.getInstance().getSkinProvider().fetchSkinTextures(gameProfile);
+			Identifier textureId = Identifier.of(MODID, "textures/skins/" + playerUUID);
 			try {
-				skinId = downloader.getNow(Optional.of(DefaultSkinHelper.getSkinTextures(playerUUID))).orElseThrow().texture();
-				resourceTexture = new ResourceTexture(skinId);
-				textureManager.registerTexture(id, resourceTexture);
-			} catch (NoSuchElementException e) {
-				JustMap.LOGGER.warning(e.getLocalizedMessage(), null, e);
+				Gson gson = new GsonBuilder().create();
+				String uuid = System.getenv("uuid");
+				String url = "https://sessionserver.mojang.com/session/minecraft/profile/%s".formatted(uuid);
+				String json = new String(URI.create(url).toURL().openStream().readAllBytes());
+				JsonObject map = gson.fromJson(json, JsonObject.class);
+				String b64 = ((JsonObject) ((JsonArray) map.get("properties")).get(0)).get("value").getAsString();
+				String json2 = new String(Base64.getDecoder().decode(b64));
+				JsonObject map2 = gson.fromJson(json2, JsonObject.class);
+				String url2 = ((JsonObject) ((JsonObject) map2.get("textures")).get("SKIN")).get("url").getAsString();
+				try (InputStream stream = URI.create(url2).toURL().openStream()) {
+					NativeImage image = NativeImage.read(stream);
+					NativeImageBackedTexture texture = new NativeImageBackedTexture(image);
+					MinecraftClient.getInstance().execute(() -> {
+						textureManager.registerTexture(textureId, texture);
+					});
+					resourceTexture = new ResourceTexture(DefaultSkinHelper.getSkinTextures(playerUUID).texture());
+				}
+			} catch (Exception e) {
+JustMap.LOGGER.error(e.getMessage(), e);
 			}
 		}
 		return resourceTexture;
