@@ -25,10 +25,10 @@ public class EntityModelRenderer {
 
 		float headYaw = livingEntity.headYaw;
 		float bodyYaw = livingEntity.bodyYaw;
-		float prevHeadYaw = livingEntity.prevHeadYaw;
-		float prevBodyYaw = livingEntity.prevBodyYaw;
+		float prevHeadYaw = livingEntity.lastHeadYaw;
+		float prevBodyYaw = livingEntity.lastBodyYaw;
 		float pitch = livingEntity.getPitch();
-		float prevPitch = livingEntity.prevPitch;
+		float prevPitch = livingEntity.lastPitch;
 
 		setPitchAndYaw(livingEntity);
 
@@ -55,9 +55,9 @@ public class EntityModelRenderer {
 		livingEntity.setPitch(pitch);
 		livingEntity.headYaw = headYaw;
 		livingEntity.bodyYaw = bodyYaw;
-		livingEntity.prevPitch = prevPitch;
-		livingEntity.prevHeadYaw = prevHeadYaw;
-		livingEntity.prevBodyYaw = prevBodyYaw;
+		livingEntity.lastPitch = prevPitch;
+		livingEntity.lastHeadYaw = prevHeadYaw;
+		livingEntity.lastBodyYaw = prevBodyYaw;
 	}
 
 	private static double getScale(LivingEntity livingEntity) {
@@ -86,32 +86,32 @@ public class EntityModelRenderer {
 
 	private static void setPitchAndYaw(LivingEntity livingEntity) {
 		livingEntity.setPitch(0.0F);
-		livingEntity.prevPitch = 0.0F;
+		livingEntity.lastPitch = 0.0F;
 
 		switch(livingEntity.getMovementDirection()) {
 			case NORTH:
 				livingEntity.headYaw = 0.0F;
 				livingEntity.bodyYaw = 0.0F;
-				livingEntity.prevHeadYaw = 0.0F;
-				livingEntity.prevBodyYaw = 0.0F;
+				livingEntity.lastHeadYaw = 0.0F;
+				livingEntity.lastBodyYaw = 0.0F;
 				break;
 			case WEST:
 				livingEntity.headYaw = 135.0F;
 				livingEntity.bodyYaw = 135.0F;
-				livingEntity.prevHeadYaw = 135.0F;
-				livingEntity.prevBodyYaw = 135.0F;
+				livingEntity.lastHeadYaw = 135.0F;
+				livingEntity.lastBodyYaw = 135.0F;
 				break;
 			case EAST:
 				livingEntity.headYaw = 225.0F;
 				livingEntity.bodyYaw = 225.0F;
-				livingEntity.prevHeadYaw = 225.0F;
-				livingEntity.prevBodyYaw = 225.0F;
+				livingEntity.lastHeadYaw = 225.0F;
+				livingEntity.lastBodyYaw = 225.0F;
 				break;
 			default:
 				livingEntity.headYaw = 180.0F;
 				livingEntity.bodyYaw = 180.0F;
-				livingEntity.prevHeadYaw = 180.0F;
-				livingEntity.prevBodyYaw = 180.0F;
+				livingEntity.lastHeadYaw = 180.0F;
+				livingEntity.lastBodyYaw = 180.0F;
 			break;
 		}
 	}

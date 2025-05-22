@@ -1,5 +1,6 @@
 package ru.bulldog.justmap.client.screen;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
@@ -84,13 +85,13 @@ public class WorldnameScreen extends Screen {
 	@Override
 	public void renderInGameBackground(DrawContext context) {
 		super.renderInGameBackground(context);
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
+		GlStateManager._enableBlend();
+		RenderUtil.defaultBlendFunc();
 		RenderUtil.bindTexture(FRAME_TEXTURE);
 		RenderUtil.startDraw();
 		RenderUtil.addQuad(x, y, frameWidth, frameHeight);
 		RenderUtil.endDraw();
-		RenderSystem.disableBlend();
+		GlStateManager._disableBlend();
 	}
 
 	@Override

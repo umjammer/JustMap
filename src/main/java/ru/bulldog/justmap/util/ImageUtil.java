@@ -73,7 +73,7 @@ public class ImageUtil {
 		for (int i = 0; i < image.getWidth(); i++) {
 			for (int j = 0; j < image.getHeight(); j++) {
 				if (image.getOpacity(i, j) == -1) {
-					int newColor = ColorHelper.multiplyColor(image.getColorArgb(i, j), color);
+					int newColor = ColorUtil.multiplyColor(image.getColorArgb(i, j), color);
 					image.setColorArgb(i, j, ColorUtil.toABGR(newColor));
 				}
 			}

@@ -1,8 +1,8 @@
 package ru.bulldog.justmap.util.render;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.FilterMode;
 import net.minecraft.client.gl.Framebuffer;
 import org.lwjgl.opengl.ARBFramebufferObject;
 import org.lwjgl.opengl.EXTFramebufferObject;
@@ -13,9 +13,10 @@ public class ExtendedFramebuffer extends Framebuffer {
 	private int colorAttachment;
 	private int depthAttachment;
 	private FboType fboType;
+	private int fbo;
 
 	public ExtendedFramebuffer(boolean useDepthIn) {
-		super(useDepthIn);
+		super(null, useDepthIn);
 	}
 
 	public static boolean canUseFramebuffer() {
@@ -27,8 +28,8 @@ public class ExtendedFramebuffer extends Framebuffer {
 
 	@Override
 	public void resize(int width, int height) {
-		RenderSystem.assertOnRenderThreadOrInit();
-		RenderSystem.enableDepthTest();
+		RenderUtil.assertOnRenderThreadOrInit();
+		GlStateManager._enableDepthTest();
 		if (fbo >= 0) {
 			this.delete();
 		}
@@ -38,7 +39,7 @@ public class ExtendedFramebuffer extends Framebuffer {
 
 	@Override
 	public void initFbo(int width, int height) {
-		RenderSystem.assertOnRenderThreadOrInit();
+		RenderUtil.assertOnRenderThreadOrInit();
 		this.viewportWidth = width;
 		this.viewportHeight = height;
 		this.textureWidth = width;
@@ -47,16 +48,16 @@ public class ExtendedFramebuffer extends Framebuffer {
 		this.colorAttachment = TextureUtil.generateTextureId();
 		if (useDepthAttachment) {
 			this.depthAttachment = this.genRenderbuffers();
-			RenderSystem.bindTexture(depthAttachment);
-			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MIN_FILTER, GLC.GL_NEAREST);
-			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MAG_FILTER, GLC.GL_NEAREST);
-			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_S, GLC.GL_CLAMP);
-			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_T, GLC.GL_CLAMP);
-			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, 34892, 0);
+			GlStateManager._bindTexture(depthAttachment);
+			GlStateManager._texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MIN_FILTER, GLC.GL_NEAREST);
+			GlStateManager._texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MAG_FILTER, GLC.GL_NEAREST);
+			GlStateManager._texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_S, GLC.GL_CLAMP);
+			GlStateManager._texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_T, GLC.GL_CLAMP);
+			GlStateManager._texParameter(GLC.GL_TEXTURE_2D, 34892, 0);
 			GlStateManager._texImage2D(GLC.GL_TEXTURE_2D, 0, 6402, textureWidth, textureHeight, 0, 6402, 5126, null);
 		}
-		this.setTexFilter(GLC.GL_NEAREST);
-		RenderSystem.bindTexture(colorAttachment);
+		this.setFilter(FilterMode.values()[GLC.GL_NEAREST]);
+		GlStateManager._bindTexture(colorAttachment);
 		GlStateManager._texImage2D(GLC.GL_TEXTURE_2D, 0, GLC.GL_RGBA8, textureWidth, textureHeight, 0, GLC.GL_RGBA, GLC.GL_UNSIGNED_BYTE, null);
 		this.bindFramebuffer(GLC.GL_FRAMEBUFFER, fbo);
 		this.framebufferTexture2D(GLC.GL_FRAMEBUFFER, GLC.GL_COLOR_ATTACHMENT, GLC.GL_TEXTURE_2D, colorAttachment, 0);
@@ -309,7 +310,7 @@ public class ExtendedFramebuffer extends Framebuffer {
 	public void beginWrite(boolean setViewport) {
 		this.bindFramebuffer(GLC.GL_FRAMEBUFFER, fbo);
 		if (setViewport) {
-			RenderSystem.viewport(0, 0, viewportWidth, viewportHeight);
+			GlStateManager._viewport(0, 0, viewportWidth, viewportHeight);
 		}
 	}
 
@@ -321,24 +322,24 @@ public class ExtendedFramebuffer extends Framebuffer {
 	// yarn mapping missing for beginRead
 	@Override
 	public void beginRead() {
-		RenderSystem.bindTexture(colorAttachment);
+		GlStateManager._bindTexture(colorAttachment);
 	}
 
 	@Override
 	public void endRead() {
-		RenderSystem.bindTexture(0);
+		GlStateManager._bindTexture(0);
 	}
 
 	@Override
-	public void setTexFilter(int filter) {
-		RenderSystem.assertOnRenderThreadOrInit();
-		this.texFilter = filter;
-		RenderSystem.bindTexture(colorAttachment);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MIN_FILTER, filter);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MAG_FILTER, filter);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_S, GLC.GL_CLAMP);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_T, GLC.GL_CLAMP);
-		RenderSystem.bindTexture(0);
+	public void setFilter(FilterMode filter) {
+		RenderUtil.assertOnRenderThreadOrInit();
+		this.filterMode = filter;
+		GlStateManager._bindTexture(colorAttachment);
+		GlStateManager._texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MIN_FILTER, filter.ordinal());
+		GlStateManager._texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MAG_FILTER, filter.ordinal());
+		GlStateManager._texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_S, GLC.GL_CLAMP);
+		GlStateManager._texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_T, GLC.GL_CLAMP);
+		GlStateManager._bindTexture(0);
 		this.bindFramebuffer(GLC.GL_FRAMEBUFFER, 0);
 	}
 

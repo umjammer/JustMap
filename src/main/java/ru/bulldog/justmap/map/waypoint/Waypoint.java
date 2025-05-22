@@ -234,7 +234,7 @@ public class Waypoint {
 		private Identifier getColoredTexture() {
 			if (colorId == null) {
 				colorId = Identifier.of(JustMap.MODID, String.format("wp_icon_%d", this.color));
-				textureManager.registerTexture(colorId, new NativeImageBackedTexture(this.image));
+				textureManager.registerTexture(colorId, new NativeImageBackedTexture(null, this.image));
 			}
 			return colorId;
 		}

@@ -1,5 +1,6 @@
 package ru.bulldog.justmap.mixins.client;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -57,7 +58,7 @@ abstract class HudMixin {
 		Collection<StatusEffectInstance> statusEffects = this.client.player.getStatusEffects();
 		if (statusEffects.isEmpty()) return;
 
-		RenderSystem.enableBlend();
+		GlStateManager._enableBlend();
 
 		int size = 24;
 		int hOffset = 6;

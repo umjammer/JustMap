@@ -36,7 +36,7 @@ public abstract class GameRenderMixin {
 	@Inject(method = "render", at = @At("RETURN"))
 	public void renderHUD(RenderTickCounter tickCounter, boolean tick, CallbackInfo ci) {
 		DrawContext context = new DrawContext(this.client, this.buffers.getEntityVertexConsumers());
-		float tickDelta = tickCounter.getTickDelta(false);
+		float tickDelta = tickCounter.getTickProgress(false);
 		WaypointRenderer.renderHUD(context, tickDelta, (float) this.lastFovMultiplier);
 	}
 }

@@ -1,16 +1,15 @@
 package ru.bulldog.justmap.util.render;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormatElement;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormatElement;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
@@ -26,7 +25,7 @@ public class RenderUtil {
 
 	private RenderUtil() {}
 
-	private final static VertexFormat VF_POS_TEX_NORMAL = VertexFormat.builder().add("Position", VertexFormatElement.POSITION).add("UV0", VertexFormatElement.UV_0).add("Normal", VertexFormatElement.NORMAL).build();
+	private final static VertexFormat VF_POS_TEX_NORMAL = VertexFormat.builder().add("Position", VertexFormatElement.POSITION).add("UV0", VertexFormatElement.UV0).add("Normal", VertexFormatElement.NORMAL).build();
 	private final static Tessellator tessellator = Tessellator.getInstance();
 	private static BufferBuilder vertexBuffer;
 	private final static TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
@@ -200,13 +199,13 @@ public class RenderUtil {
 		float g = (float)(color >> 8 & 255) / 255.0F;
 		float b = (float)(color & 255) / 255.0F;
 
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
+		GlStateManager._enableBlend();
+		RenderUtil.defaultBlendFunc();
 		RenderSystem.setShaderColor(r, g, b, a);
 		RenderSystem.setShader(ShaderProgramKeys.POSITION);
 		drawCircleVertices(x, y, radius);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.disableBlend();
+		GlStateManager._disableBlend();
 	}
 
 	public static void drawCircleVertices(double x, double y, double radius) {
@@ -224,7 +223,7 @@ public class RenderUtil {
 	}
 
 	public static void fill(double x, double y, double w, double h, int color) {
-		fill(AffineTransformation.identity().getMatrix(), x, y, w, h, color);
+		fill((Matrix4f) AffineTransformation.identity().getMatrix(), x, y, w, h, color);
 	}
 
 	public static void fill(MatrixStack matrices, double x, double y, double w, double h, int color) {
@@ -237,8 +236,8 @@ public class RenderUtil {
 		float g = (float)(color >> 8 & 255) / 255.0F;
 		float b = (float)(color & 255) / 255.0F;
 
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
+		GlStateManager._enableBlend();
+		RenderUtil.defaultBlendFunc();
 		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 		startDraw(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 		vertexBuffer.vertex(matrix4f, (float) x, (float) (y + h), 0.0F).color(r, g, b, a);
@@ -246,7 +245,7 @@ public class RenderUtil {
 		vertexBuffer.vertex(matrix4f, (float) (x + w), (float) y, 0.0F).color(r, g, b, a);
 		vertexBuffer.vertex(matrix4f, (float) x, (float) y, 0.0F).color(r, g, b, a);
 		endDraw();
-		RenderSystem.disableBlend();
+		GlStateManager._disableBlend();
 	}
 
 	public static void draw(DrawContext context, double x, double y, float w, float h) {
@@ -256,8 +255,8 @@ public class RenderUtil {
 	}
 
 	public static void drawPlayerHead(DrawContext context, double x, double y, int w, int h) {
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
+		GlStateManager._enableBlend();
+		RenderUtil.defaultBlendFunc();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		startDrawNormal();
 		draw(context, x, y, w, h, 0.125F, 0.125F, 0.25F, 0.25F);
@@ -301,8 +300,8 @@ public class RenderUtil {
 		float topV = renderData.topV;
 		float bottomV = renderData.bottomV;
 
-		RenderSystem.enableBlend();
-		RenderSystem.enableCull();
+		GlStateManager._enableBlend();
+		GlStateManager._enableCull();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
 		skin.bindTexture();
@@ -367,8 +366,8 @@ public class RenderUtil {
 	}
 
 	private static void draw(DrawContext context, VertexConsumer vertexConsumer, double x, double y, float w, float h, float minU, float minV, float maxU, float maxV) {
-		RenderSystem.enableBlend();
-		RenderSystem.enableCull();
+		GlStateManager._enableBlend();
+		GlStateManager._enableCull();
 
 		MatrixStack matrixStack = context.getMatrices();
 		matrixStack.push();
@@ -424,5 +423,28 @@ public class RenderUtil {
 
 	private static void vertex(double x, double y, double z, float u, float v) {
 		vertexBuffer.vertex((float) x, (float) y, (float) z).texture(u, v);
+	}
+
+	public static void defaultBlendFunc() {
+		blendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+	}
+
+	public static void blendFuncSeparate(int srcFactor, int dstFactor, int srcAlpha, int dstAlpha) {
+		RenderSystem.assertOnRenderThread();
+		GlStateManager._blendFuncSeparate(srcFactor, dstFactor, srcAlpha, dstAlpha);
+	}
+
+	public static boolean isOnRenderThreadOrInit() {
+		return isInInit || RenderSystem.isOnRenderThread();
+	}
+
+	public static void assertOnRenderThreadOrInit() {
+		if (!isOnRenderThreadOrInit()) {
+			throw constructThreadException();
+		}
+	}
+
+	private static IllegalStateException constructThreadException() {
+		return new IllegalStateException("Rendersystem called from wrong thread");
 	}
 }

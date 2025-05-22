@@ -1,5 +1,6 @@
 package ru.bulldog.justmap.client.screen;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import java.util.HashMap;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -53,7 +54,7 @@ public abstract class AbstractJustMapScreen extends Screen {
 
 	@Override
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-		RenderSystem.disableDepthTest();
+		GlStateManager._disableDepthTest();
 		this.renderBackground(context);
 		this.renderForeground(context);
 		for (Element e : children()) {
@@ -61,7 +62,7 @@ public abstract class AbstractJustMapScreen extends Screen {
 				((Drawable) e).render(context, mouseX, mouseY, delta);
 			}
 		}
-		RenderSystem.enableDepthTest();
+		GlStateManager._enableDepthTest();
 	}
 
 	public void renderBackground(DrawContext context) {

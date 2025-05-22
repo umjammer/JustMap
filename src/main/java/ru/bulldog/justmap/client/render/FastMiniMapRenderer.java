@@ -1,5 +1,6 @@
 package ru.bulldog.justmap.client.render;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import java.util.List;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -8,6 +9,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.RotationAxis;
+import org.lwjgl.opengl.GL11;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.ChunkGrid;
 import ru.bulldog.justmap.map.data.MapRegion;
@@ -32,18 +34,18 @@ public class FastMiniMapRenderer extends AbstractMiniMapRenderer {
 		int scissH = (int) (mapHeight * scale);
 		RenderUtil.enableScissor();
 		RenderUtil.applyScissor(scissX, scissY, scissW, scissH);
-		RenderSystem.enableBlend();
+		GlStateManager._enableBlend();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		if (Minimap.isRound()) {
-			RenderSystem.colorMask(false, false, false, true);
-			RenderSystem.clearColor(0.0F, 0.0F, 0.0F, 0.0F);
-			RenderSystem.clear(GLC.GL_COLOR_BUFFER_BIT);
-			RenderSystem.colorMask(true, true, true, true);
+			GlStateManager._colorMask(false, false, false, true);
+			GL11.glClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+			GlStateManager._clear(GLC.GL_COLOR_BUFFER_BIT);
+			GL11.glColorMask(true, true, true, true);
 			RenderUtil.bindTexture(roundMask);
 			RenderUtil.startDraw();
 			RenderUtil.addQuad(mapX, mapY, mapWidth, mapHeight);
 			RenderUtil.endDraw();
-			RenderSystem.blendFunc(GLC.GL_DST_ALPHA, GLC.GL_ONE_MINUS_DST_ALPHA);
+			GlStateManager._blendFuncSeparate(-1, -1, GLC.GL_DST_ALPHA, GLC.GL_ONE_MINUS_DST_ALPHA); // TODO 1.21.5 -1, -1
 		}
 		MatrixStack matrices = context.getMatrices();
 		matrices.push();

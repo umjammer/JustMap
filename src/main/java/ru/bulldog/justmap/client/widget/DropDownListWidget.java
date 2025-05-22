@@ -1,5 +1,6 @@
 package ru.bulldog.justmap.client.widget;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,8 +38,8 @@ public class DropDownListWidget extends AbstractParentElement implements Drawabl
 	@Override
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 		if (!visible) return;
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
+		GlStateManager._enableBlend();
+		RenderUtil.defaultBlendFunc();
 		this.renderBackground(context.getMatrices());
 		int x = this.x + padding;
 		int y = this.y + padding;

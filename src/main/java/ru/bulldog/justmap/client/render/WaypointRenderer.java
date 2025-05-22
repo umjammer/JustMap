@@ -1,5 +1,7 @@
 package ru.bulldog.justmap.client.render;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import java.util.List;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -7,7 +9,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -53,9 +54,9 @@ public class WaypointRenderer {
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
 			RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 			RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-			RenderSystem.depthMask(false);
-			RenderSystem.enableBlend();
-			RenderSystem.defaultBlendFunc();
+			GlStateManager._depthMask(false);
+			GlStateManager._enableBlend();
+			RenderUtil.defaultBlendFunc();
 			GL11.glEnable(GL11.GL_LINE_SMOOTH);
 
 			MatrixStack matrixStack = context.matrixStack();
@@ -65,13 +66,13 @@ public class WaypointRenderer {
 			BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
 
 			Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
-			float tickDelta = MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(false); // TODO 1.21
+			float tickDelta = MinecraftClient.getInstance().getRenderTickCounter().getTickProgress(false); // TODO 1.21
 
 			renderWaypoints(matrixStack, camera, tickDelta);
 
 			buffer.endNullable();
 			matrixStack.pop();
-			RenderSystem.disableBlend();
+			GlStateManager._disableBlend();
 		});
     }
 
@@ -113,11 +114,11 @@ public class WaypointRenderer {
 
 		BlockPos playerPos = minecraft.player.getBlockPos();
 
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.enableCull();
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthMask(false);
+		GlStateManager._enableBlend();
+		RenderUtil.defaultBlendFunc();
+		GlStateManager._enableCull();
+		GlStateManager._enableDepthTest();
+		GlStateManager._depthMask(false);
 
 		VertexConsumerProvider.Immediate consumerProvider = minecraft.getBufferBuilders().getEntityVertexConsumers();
 		List<Waypoint> wayPoints = WaypointKeeper.getInstance().getWaypoints(MapDataProvider.getMultiworldManager().getCurrentWorldKey(), true);
@@ -129,7 +130,7 @@ public class WaypointRenderer {
 		}
 		consumerProvider.draw();
 
-		RenderSystem.depthMask(true);
+		GlStateManager._depthMask(true);
 	}
 
 	private void renderWaypoint(MatrixStack matrixStack, VertexConsumerProvider consumerProvider, Waypoint waypoint, Camera camera, float tick, int dist) {

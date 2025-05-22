@@ -120,7 +120,7 @@ public class PlayerHeadIconImage {
 				String url2 = ((JsonObject) ((JsonObject) map2.get("textures")).get("SKIN")).get("url").getAsString();
 				try (InputStream stream = URI.create(url2).toURL().openStream()) {
 					NativeImage image = NativeImage.read(stream);
-					NativeImageBackedTexture texture = new NativeImageBackedTexture(image);
+					NativeImageBackedTexture texture = new NativeImageBackedTexture(null, image);
 					MinecraftClient.getInstance().execute(() -> {
 						textureManager.registerTexture(textureId, texture);
 					});

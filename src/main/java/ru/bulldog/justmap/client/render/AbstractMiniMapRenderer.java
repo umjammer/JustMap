@@ -1,6 +1,6 @@
 package ru.bulldog.justmap.client.render;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.opengl.GlStateManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -89,7 +89,7 @@ public abstract class AbstractMiniMapRenderer {
 			this.winHeight = winH;
 		}
 
-		this.delta = minecraft.getRenderTickCounter().getTickDelta(false); // TODO 1.21
+		this.delta = minecraft.getRenderTickCounter().getTickProgress(false); // TODO 1.21
 		this.currX = CurrentWorldPos.doubleX(delta);
 		this.currZ = CurrentWorldPos.doubleZ(delta);
 
@@ -199,7 +199,7 @@ public abstract class AbstractMiniMapRenderer {
 		this.offX = this.calcOffset(currX, lastX, mapScale);
 		this.offY = this.calcOffset(currZ, lastZ, mapScale);
 
-		RenderSystem.disableDepthTest();
+		GlStateManager._disableDepthTest();
 		this.render(context, scale);
 
 		if (mapSkin != null) {
@@ -222,7 +222,7 @@ public abstract class AbstractMiniMapRenderer {
 		}
 		textManager.draw(context);
 
-		RenderSystem.enableDepthTest();
+		GlStateManager._enableDepthTest();
 	}
 
 	protected float calcOffset(double x, double lastX, double scale) {

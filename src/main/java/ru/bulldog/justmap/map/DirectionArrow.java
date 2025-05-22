@@ -1,13 +1,12 @@
 package ru.bulldog.justmap.map;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gl.ShaderProgramKeys;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormatElement;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormatElement;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteContents;
 import net.minecraft.client.texture.SpriteDimensions;
@@ -24,7 +23,7 @@ import ru.bulldog.justmap.util.colors.Colors;
 import ru.bulldog.justmap.util.render.RenderUtil;
 
 public class DirectionArrow extends Sprite {
-	private final static VertexFormat vertexFormat = VertexFormat.builder().add("Position", VertexFormatElement.POSITION).add("UV0", VertexFormatElement.UV_0).add("Normal", VertexFormatElement.NORMAL).build();
+	private final static VertexFormat vertexFormat = VertexFormat.builder().add("Position", VertexFormatElement.POSITION).add("UV0", VertexFormatElement.UV0).add("Normal", VertexFormatElement.NORMAL).build();
 	private static DirectionArrow ARROW;
 
 	private DirectionArrow(Identifier texture, int w, int h) {
@@ -45,7 +44,7 @@ public class DirectionArrow extends Sprite {
 
 			RenderUtil.bindTexture(ARROW.getContents().getId());
 
-			RenderSystem.enableCull();
+			GlStateManager._enableCull();
 			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
 			matrix.push();

@@ -76,7 +76,7 @@ public class EntityHeadIconImage extends Image {
 	private void bindOutline() {
 		if (outlineId == null) {
 			NativeImage outline = ImageUtil.generateOutline(image, width, height, color);
-			NativeImageBackedTexture outTexture = new NativeImageBackedTexture(outline);
+			NativeImageBackedTexture outTexture = new NativeImageBackedTexture(null, outline);
 			this.outlineId = Identifier.of(this.id.getNamespace(), "%s_outline".formatted(this.id.getPath()));
 			textureManager.registerTexture(outlineId, outTexture);
 		}
@@ -114,7 +114,7 @@ public class EntityHeadIconImage extends Image {
 	private static EntityHeadIconImage registerIcon(Entity entity, Identifier entityId, File image) {
 		NativeImage iconImage = ImageUtil.loadImage(image, 32, 32);
 		Identifier textureId = Identifier.of("icon_%s".formatted(entityId.getNamespace()), entityId.getPath());
-		textureManager.registerTexture(textureId, new NativeImageBackedTexture(iconImage));
+		textureManager.registerTexture(textureId, new NativeImageBackedTexture(null, iconImage));
 		EntityHeadIconImage icon = new EntityHeadIconImage(entityId, textureId, iconImage);
 		return registerIcon(entity, entityId, icon);
 	}

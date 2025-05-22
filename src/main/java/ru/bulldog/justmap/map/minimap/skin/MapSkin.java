@@ -1,5 +1,6 @@
 package ru.bulldog.justmap.map.minimap.skin;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,14 +119,14 @@ public class MapSkin extends Image {
 			} else {
 				pavedImage = ImageUtil.createSquareSkin(image, w, h, border);
 			}
-			textureManager.registerTexture(textureId, new NativeImageBackedTexture(pavedImage));
+			textureManager.registerTexture(textureId, new NativeImageBackedTexture(null, pavedImage));
 		}
 	}
 
 	@Override
 	public void draw(DrawContext context, double x, double y, int w, int h) {
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
+		GlStateManager._enableBlend();
+		RenderUtil.defaultBlendFunc();
 		float hMult = (float) this.getWidth() / this.getHeight();
 		if (resizable || repeating) {
 			if (type != SkinType.ROUND && (w > this.getWidth() || h > this.getHeight())) {

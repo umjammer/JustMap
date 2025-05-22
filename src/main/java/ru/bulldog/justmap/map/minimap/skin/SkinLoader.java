@@ -57,7 +57,7 @@ public final class SkinLoader extends JsonFactory {
 			File imageFile = new File(folder, imageName);
 			NativeImage skinImage = ImageUtil.loadImage(imageFile, width, height);
 			Identifier textureId = Identifier.of(JustMap.MODID, imageName);
-			textureManager.registerTexture(textureId, new NativeImageBackedTexture(skinImage));
+			textureManager.registerTexture(textureId, new NativeImageBackedTexture(null, skinImage));
 			switch (shape) {
 				case ROUND:
 					MapSkin.addRoundSkin(name, textureId, skinImage, width, height, border);

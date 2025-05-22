@@ -1,5 +1,6 @@
 package ru.bulldog.justmap.client.screen;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -39,6 +40,8 @@ import ru.bulldog.justmap.util.LangUtil;
 import ru.bulldog.justmap.util.PosUtil;
 import ru.bulldog.justmap.util.colors.Colors;
 import ru.bulldog.justmap.util.math.MathUtil;
+import ru.bulldog.justmap.util.render.RenderUtil;
+
 
 public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 
@@ -230,8 +233,8 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 				double scW = imgW / imageScale;
 				double scH = imgH / imageScale;
 
-				RenderSystem.enableBlend();
-				RenderSystem.defaultBlendFunc();
+				GlStateManager._enableBlend();
+				RenderUtil.defaultBlendFunc();
 				region.drawLayer(context, mapLayer, mapLevel, scX, scY, scW, scH, imgX, imgY, imgW, imgH);
 
 				picY += imgH > 0 ? imgH : 512;

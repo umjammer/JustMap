@@ -28,8 +28,8 @@ public abstract class ServerWorldMixin extends World {
 		super(properties, registryRef, registryManager, dimensionEntry, isClient, debugWorld, seed, maxChainedNeighborUpdates);
 	}
 
-	@Inject(method = "onBlockChanged", at = @At("HEAD"))
-	public void onBlockChanged(BlockPos pos, BlockState oldBlock, BlockState newBlock, CallbackInfo info) {
+	@Inject(method = "onBlockStateChanged", at = @At("HEAD"))
+	public void onBlockStateChanged(BlockPos pos, BlockState oldBlock, BlockState newBlock, CallbackInfo info) {
 //		if (!Objects.equals(oldBlock.getBlock(), newBlock.getBlock())) {
 //			if (!StateUtil.isAir(newBlock)) {
 //				Identifier blockId = Registry.BLOCK.getId(newBlock.getBlock());

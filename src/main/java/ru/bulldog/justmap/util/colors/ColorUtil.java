@@ -5,7 +5,6 @@ import java.util.List;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.impl.client.indigo.renderer.helper.ColorHelper;
 import net.fabricmc.fabric.impl.client.rendering.fluid.FluidRenderHandlerRegistryImpl;
 import net.minecraft.block.AttachedStemBlock;
 import net.minecraft.block.Block;
@@ -200,15 +199,15 @@ public class ColorUtil {
 	}
 
 	public static int applyTint(int color, int tint) {
-		return colorBrigtness(ColorHelper.multiplyColor(color, tint), 1.5F);
+		return colorBrigtness(multiplyColor(color, tint), 1.5F);
 	}
 
 	private static int extractColor(BlockState state) {
-		List<BakedQuad> quads = blockModels.getModel(state).getQuads(state, Direction.UP, Random.create());
+		List<BakedQuad> quads = blockModels.getModel(state).getParts(Random.create()).getFirst().getQuads(Direction.UP); // TODO 1.21.5 check
 
 		Identifier blockSprite;
-		if (quads.size() > 0) {
-			blockSprite = ((BakedSpriteAccessor) quads.get(0)).getSprite().getContents().getId();
+		if (!quads.isEmpty()) {
+			blockSprite = quads.getFirst().sprite().getContents().getId();
 		} else {
 			blockSprite = blockModels.getModelParticleSprite(state).getContents().getId();
 		}
@@ -232,7 +231,7 @@ public class ColorUtil {
 		}
 		image.close();
 
-		if (colors.size() == 0) return -1;
+		if (colors.isEmpty()) return -1;
 
 		ColorExtractor extractor = new ColorExtractor(colors);
 		color = extractor.analyze();
@@ -261,7 +260,7 @@ public class ColorUtil {
 	private static int processAlternateColor(int blockColor, int textureColor, int defaultColor) {
 		blockColor = blockColor == -1 ? defaultColor : blockColor;
 		if (blockColor != -1) {
-			return ColorHelper.multiplyColor(textureColor, blockColor);
+			return multiplyColor(textureColor, blockColor);
 		}
 
 		return textureColor;
@@ -333,7 +332,7 @@ public class ColorUtil {
 				colorPalette.addFluidColor(blockState, blockColor);
 			}
 		} else if (blockColor != -1) {
-			blockColor = ColorHelper.multiplyColor(textureColor, blockColor);
+			blockColor = multiplyColor(textureColor, blockColor);
 			if (block.equals(Blocks.BIRCH_LEAVES) || block.equals(Blocks.SPRUCE_LEAVES)) {
 				colorPalette.addBlockColor(blockState, blockColor);
 			} else if (!(block instanceof LeavesBlock) && !(block instanceof GrassBlock)) {
@@ -354,5 +353,19 @@ public class ColorUtil {
 			color = fluidRenderHandlerRegistry.get(fluidState.getFluid()).getFluidColor(world, pos, fluidState);
 		}
 		return color == -1 ? defColor : color;
+	}
+
+	public static int multiplyColor(int color1, int color2) {
+		if (color1 == -1) {
+			return color2;
+		} else if (color2 == -1) {
+			return color1;
+		} else {
+			int alpha = (color1 >>> 24 & 255) * (color2 >>> 24 & 255) / 255;
+			int red = (color1 >>> 16 & 255) * (color2 >>> 16 & 255) / 255;
+			int green = (color1 >>> 8 & 255) * (color2 >>> 8 & 255) / 255;
+			int blue = (color1 & 255) * (color2 & 255) / 255;
+			return alpha << 24 | red << 16 | green << 8 | blue;
+		}
 	}
 }

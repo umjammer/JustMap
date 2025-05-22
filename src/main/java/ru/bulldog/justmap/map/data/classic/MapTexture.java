@@ -1,5 +1,6 @@
 package ru.bulldog.justmap.map.data.classic;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
@@ -68,15 +69,15 @@ public class MapTexture {
 
 		this.refillBuffer();
 
-		RenderSystem.bindTexture(this.glId);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MIN_FILTER, GLC.GL_NEAREST);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MAG_FILTER, GLC.GL_NEAREST);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_S, GLC.GL_CLAMP_TO_EDGE);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_T, GLC.GL_CLAMP_TO_EDGE);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_GENERATE_MIPMAP, GLC.GL_TRUE);
-		RenderSystem.pixelStore(GLC.GL_UNPACK_ROW_LENGTH, 0);
-		RenderSystem.pixelStore(GLC.GL_UNPACK_SKIP_PIXELS, 0);
-		RenderSystem.pixelStore(GLC.GL_UNPACK_SKIP_ROWS, 0);
+		GlStateManager._bindTexture(this.glId);
+		GlStateManager._texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MIN_FILTER, GLC.GL_NEAREST);
+		GlStateManager._texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MAG_FILTER, GLC.GL_NEAREST);
+		GlStateManager._texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_S, GLC.GL_CLAMP_TO_EDGE);
+		GlStateManager._texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_T, GLC.GL_CLAMP_TO_EDGE);
+		GlStateManager._texParameter(GLC.GL_TEXTURE_2D, GLC.GL_GENERATE_MIPMAP, GLC.GL_TRUE);
+		GlStateManager._pixelStore(GLC.GL_UNPACK_ROW_LENGTH, 0);
+		GlStateManager._pixelStore(GLC.GL_UNPACK_SKIP_PIXELS, 0);
+		GlStateManager._pixelStore(GLC.GL_UNPACK_SKIP_ROWS, 0);
 
 		GL11.glTexImage2D(GLC.GL_TEXTURE_2D, 0, GLC.GL_RGBA, this.getWidth(), this.getHeight(), 0, GLC.GL_RGBA, GLC.GL_UNSIGNED_INT_8_8_8_8, this.buffer);
 

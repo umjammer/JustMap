@@ -76,12 +76,12 @@ public class CurrentWorldPos {
 
 	public static double doubleX(Entity entity, float delta) {
 		if (entity == null) return 0.0;
-		return MathUtil.lerp(delta, entity.prevX, entity.getX());
+		return MathUtil.lerp(delta, entity.lastX, entity.getX());
 	}
 
 	public static double doubleZ(Entity entity, float delta) {
 		if (entity == null) return 0.0;
-		return MathUtil.lerp(delta, entity.prevZ, entity.getZ());
+		return MathUtil.lerp(delta, entity.lastZ, entity.getZ());
 	}
 
 	public static double doubleX(float delta) {

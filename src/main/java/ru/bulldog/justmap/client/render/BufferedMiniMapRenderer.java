@@ -1,11 +1,11 @@
 package ru.bulldog.justmap.client.render;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import java.util.List;
 
 import com.mojang.blaze3d.systems.ProjectionType;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -13,6 +13,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.RotationAxis;
 
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.ChunkGrid;
@@ -78,7 +79,7 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		matrices.loadIdentity();
 		matrices.translate(0.0F, 0.0F, -2000.0F);
 		matrices.scale((float) scale, (float) scale, 1.0F);
-		RenderSystem.enableBlend();
+		GlStateManager._enableBlend();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		this.drawMap(context);
 		if (ClientSettings.showGrid) {
@@ -91,9 +92,9 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		matrices.pop();
 
 		this.secondaryFramebuffer.beginWrite(false);
-		RenderSystem.clear(GLC.GL_COLOR_OR_DEPTH_BUFFER_BIT);
+		GL11.glClear(GLC.GL_COLOR_OR_DEPTH_BUFFER_BIT);
 		matrices.push();
-		RenderSystem.enableCull();
+		GlStateManager._enableCull();
 		if (mapRotation) {
 			float shiftX = scaledW / 2.0F;
 			float shiftY = scaledH / 2.0F;
@@ -135,14 +136,14 @@ public class BufferedMiniMapRenderer extends AbstractMiniMapRenderer {
 		minecraftFramebuffer.beginWrite(false);
 		RenderSystem.viewport(0, 0, fbuffW, fbuffH);
 		if (Minimap.isRound()) {
-			RenderSystem.enableBlend();
-			RenderSystem.colorMask(false, false, false, true);
-			RenderSystem.clearColor(0.0F, 0.0F, 0.0F, 0.0F);
-			RenderSystem.clear(GLC.GL_COLOR_BUFFER_BIT);
-			RenderSystem.colorMask(true, true, true, true);
+			GlStateManager._enableBlend();
+			GlStateManager._colorMask(false, false, false, true);
+			GL11.glClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+			GL11.glClear(GLC.GL_COLOR_BUFFER_BIT);
+			GlStateManager._colorMask(true, true, true, true);
 			RenderUtil.bindTexture(roundMask);
 			RenderUtil.drawQuad(mapX, mapY, mapWidth, mapHeight);
-			RenderSystem.blendFunc(GLC.GL_DST_ALPHA, GLC.GL_ONE_MINUS_DST_ALPHA);
+			GL11.glBlendFunc(GLC.GL_DST_ALPHA, GLC.GL_ONE_MINUS_DST_ALPHA);
 		}
 		matrices.push();
 		matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180.0F));
