@@ -5,12 +5,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ProgressScreen;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.ProgressScreen;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.client.screen.WorldnameScreen;
@@ -23,11 +21,11 @@ public final class MultiworldManager {
 
 	// used only in mixed mode to associate world names with worlds
 	private final Map<MultiworldIdentifier, String> multiworldNames = new HashMap<>();
-	private final MinecraftClient minecraft = MinecraftClient.getInstance();
+	private final Minecraft minecraft = Minecraft.getInstance();
 
 	private final Map<WorldKey, WorldMapper> worldMappers = new HashMap<>();
 
-	private World currentWorld;
+	private Level currentWorld;
 	private WorldKey currentWorldKey;
 	private BlockPos currentWorldPos;
 	private String currentWorldName;
@@ -91,13 +89,13 @@ public final class MultiworldManager {
 				currentWorldName = null;
 				closeAllWorldMappers();
 			}
-			assert minecraft.world != null;
-			onWorldSpawnPosChanged(minecraft.world.getSpawnPos());
+			assert minecraft.level != null;
+			onWorldSpawnPosChanged(minecraft.level.getLevelData().getRespawnData().globalPos().pos());
 			return;
 		} else if (MultiworldDetection.isMixed()) {
 			if (currentWorldPos == null) {
-				assert minecraft.world != null;
-				onWorldSpawnPosChanged(minecraft.world.getSpawnPos());
+				assert minecraft.level != null;
+				onWorldSpawnPosChanged(minecraft.level.getLevelData().getRespawnData().globalPos().pos());
 			} else if (currentWorldName == null) {
 				requestWorldName = true;
 			} else {
@@ -109,7 +107,7 @@ public final class MultiworldManager {
 		startMapping();
 	}
 
-	public void onWorldChanged(World world) {
+	public void onWorldChanged(Level world) {
 		currentWorld = world;
 		if (ClientSettings.detectMultiworlds) {
 			JustMap.LOGGER.debug("World changed, stop mapping!");
@@ -182,12 +180,12 @@ public final class MultiworldManager {
 		return currentWorldKey;
 	}
 
-	public World getCurrentWorld() {
+	public Level getCurrentWorld() {
 		return currentWorld;
 	}
 
-	public WorldKey createWorldKey(World world, BlockPos blockPos, String worldName) {
-		WorldKey newKey = new WorldKey(world.getRegistryKey());
+	public WorldKey createWorldKey(Level world, BlockPos blockPos, String worldName) {
+		WorldKey newKey = new WorldKey(world.dimension());
 		if (ClientSettings.detectMultiworlds) {
 			if (blockPos != null) {
 				newKey.setWorldPos(blockPos);
@@ -244,8 +242,8 @@ public final class MultiworldManager {
 	}
 
 	private void checkForNewWorld() {
-		if (requestWorldName && !(minecraft.currentScreen instanceof ProgressScreen)) {
-			minecraft.setScreen(new WorldnameScreen(minecraft.currentScreen));
+		if (requestWorldName && !(minecraft.gui.screen() instanceof ProgressScreen)) {
+			minecraft.setScreenAndShow(new WorldnameScreen(minecraft.gui.screen()));
 			requestWorldName = false;
 		}
 	}

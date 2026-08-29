@@ -7,35 +7,34 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.minecraft.block.BlockState;
-import net.minecraft.registry.Registries;
-import net.minecraft.state.property.Property;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.biome.Biome;
 import org.jetbrains.annotations.Nullable;
 import ru.bulldog.justmap.util.JsonFactory;
 
 public class ColorPalette {
 
-	private static final Function<Entry<Property<?>, Comparable<?>>, String> PROPERTY_PRINTER = new Function<>() {
-		public String apply(@Nullable Entry<Property<?>, Comparable<?>> entry) {
+	private static final Function<Property.Value<?>, String> PROPERTY_PRINTER = new Function<>() {
+		public String apply(@Nullable Property.Value<?> entry) {
 			if (entry == null) {
 				return "";
 			} else {
-				Property<?> property = entry.getKey();
-				return property.getName() + "=" + this.nameValue(property, entry.getValue());
+				Property<?> property = entry.property();
+				return property.getName() + "=" + this.nameValue(property, entry.value());
 			}
 		}
 
 		@SuppressWarnings("unchecked")
 		private <T extends Comparable<T>> String nameValue(Property<T> property, Comparable<?> value) {
-			return property.name((T) value);
+			return property.getName((T) value);
 		}
 	};
 
@@ -178,7 +177,7 @@ public class ColorPalette {
 						String key = entry.getKey();
 						String hexColor = entry.getValue().getAsString();
 						int color = ColorUtil.parseHex(hexColor);
-						this.textureColors.put(Identifier.of(key), color);
+						this.textureColors.put(Identifier.parse(key), color);
 					});
 					continue;
 				}
@@ -187,8 +186,8 @@ public class ColorPalette {
 					biomes.entrySet().forEach(entry -> {
 						String key = entry.getKey();
 						JsonObject biomeJson = entry.getValue().getAsJsonObject();
-						Identifier biomeId = Identifier.of(key);
-						Biome biome = BiomeColors.getBiomeRegistry().getEntry(biomeId).get().value();
+						Identifier biomeId = Identifier.parse(key);
+						Biome biome = BiomeColors.getBiomeRegistry().get(biomeId).get().value();
 						this.biomeColors.put(biomeId, BiomeColors.fromJson(biome, biomeJson));
 					});
 				}
@@ -238,14 +237,14 @@ public class ColorPalette {
 
 	private static String makeKey(BlockState block) {
 		StringBuilder stringBuilder = new StringBuilder();
-		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
+		Identifier stateId = BuiltInRegistries.BLOCK.getKey(block.getBlock());
 		stringBuilder.append(stateId);
 
-		Map<Property<?>, Comparable<?>> properties = block.getEntries();
+		String properties = block.getValues().map(PROPERTY_PRINTER)
+									 .collect(Collectors.joining(","));
 		if (!properties.isEmpty()) {
 			stringBuilder.append('[')
-						 .append(properties.entrySet().stream().map(PROPERTY_PRINTER)
-								 		   .collect(Collectors.joining(",")))
+						 .append(properties)
 						 .append(']');
 		}
 		return stringBuilder.toString();

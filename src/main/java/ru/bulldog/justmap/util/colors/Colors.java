@@ -2,14 +2,12 @@ package ru.bulldog.justmap.util.colors;
 
 import java.io.File;
 import java.util.Map;
-
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.state.BlockState;
 import com.google.common.collect.Maps;
-import net.minecraft.block.BlockState;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.util.storage.StorageUtil;
 
@@ -62,46 +60,46 @@ public final class Colors {
 	}
 
 	public int getBlockColor(BlockState block) {
-		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
+		Identifier stateId = BuiltInRegistries.BLOCK.getKey(block.getBlock());
 		return this.getPalette(stateId.getNamespace()).getBlockColor(block);
 	}
 
 	public void addBlockColor(BlockState block, int color) {
-		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
+		Identifier stateId = BuiltInRegistries.BLOCK.getKey(block.getBlock());
 		this.getPalette(stateId.getNamespace()).addBlockColor(block, color);
 	}
 
 	public int getFluidColor(BlockState block) {
-		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
+		Identifier stateId = BuiltInRegistries.BLOCK.getKey(block.getBlock());
 		return this.getPalette(stateId.getNamespace()).getFluidColor(block);
 	}
 
 	public void addFluidColor(BlockState block, int color) {
-		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
+		Identifier stateId = BuiltInRegistries.BLOCK.getKey(block.getBlock());
 		this.getPalette(stateId.getNamespace()).addFluidColor(block, color);
 	}
 
 	public int getTextureColor(BlockState block, Identifier texture) {
-		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
+		Identifier stateId = BuiltInRegistries.BLOCK.getKey(block.getBlock());
 		return this.getPalette(stateId.getNamespace()).getTextureColor(texture);
 	}
 
 	public void addTextureColor(BlockState block, Identifier texture, int color) {
-		Identifier stateId = Registries.BLOCK.getId(block.getBlock());
+		Identifier stateId = BuiltInRegistries.BLOCK.getKey(block.getBlock());
 		this.getPalette(stateId.getNamespace()).addTextureColor(texture, color);
 	}
 
-	public int getFoliageColor(World world, Biome biome) {
+	public int getFoliageColor(Level world, Biome biome) {
 		Identifier biomeId = BiomeColors.getBiomeId(world, biome);
 		return this.getPalette(biomeId.getNamespace()).getFoliageColor(biomeId, biome);
 	}
 
-	public int getGrassColor(World world, Biome biome, int x, int z) {
+	public int getGrassColor(Level world, Biome biome, int x, int z) {
 		Identifier biomeId = BiomeColors.getBiomeId(world, biome);
 		return this.getPalette(biomeId.getNamespace()).getGrassColor(biomeId, biome, x, z);
 	}
 
-	public int getWaterColor(World world, Biome biome) {
+	public int getWaterColor(Level world, Biome biome) {
 		Identifier biomeId = BiomeColors.getBiomeId(world, biome);
 		return this.getPalette(biomeId.getNamespace()).getWaterColor(biomeId, biome);
 	}

@@ -1,7 +1,6 @@
 package ru.bulldog.justmap.map.icon;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import ru.bulldog.justmap.map.minimap.Minimap;
 import ru.bulldog.justmap.util.math.Line;
 import ru.bulldog.justmap.util.math.MathUtil;
@@ -58,5 +57,5 @@ public abstract class MapIcon<T extends MapIcon<T>> {
 		}
 	}
 
-	public abstract void draw(DrawContext context, VertexConsumerProvider consumerProvider, int mapX, int mapY, int mapW, int mapH, float rotation);
+	public abstract void draw(GuiGraphicsExtractor context, int mapX, int mapY, int mapW, int mapH, float rotation);
 }

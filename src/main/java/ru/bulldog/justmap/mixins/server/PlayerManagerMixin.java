@@ -1,13 +1,13 @@
 package ru.bulldog.justmap.mixins.server;
 
-import net.minecraft.network.ClientConnection;
-import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
+import net.minecraft.network.Connection;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ConnectedClientData;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.world.GameRules;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -19,45 +19,45 @@ import ru.bulldog.justmap.network.ServerNetworkHandler;
 import ru.bulldog.justmap.server.JustMapServer;
 import ru.bulldog.justmap.server.config.ServerSettings;
 
-@Mixin(PlayerManager.class)
+@Mixin(PlayerList.class)
 public abstract class PlayerManagerMixin {
 
 	@Final
 	@Shadow
 	private MinecraftServer server;
 
-	@Inject(method = "onPlayerConnect", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/packet/s2c/play/DifficultyS2CPacket;<init>(Lnet/minecraft/world/Difficulty;Z)V"))
-	public void onPlayerConnectPre(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
+	@Inject(method = "placeNewPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/game/ClientboundChangeDifficultyPacket;<init>(Lnet/minecraft/world/Difficulty;Z)V"))
+	public void onPlayerConnectPre(Connection connection, ServerPlayer player, CommonListenerCookie clientData, CallbackInfo ci) {
 		ServerNetworkHandler networkHandler = JustMapServer.getNetworkHandler();
 		if (networkHandler != null) {
 			networkHandler.onPlayerConnect(player);
 		}
 	}
 
-	@Inject(method = "onPlayerConnect", at = @At("TAIL"))
-	public void onPlayerConnectPost(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
+	@Inject(method = "placeNewPlayer", at = @At("TAIL"))
+	public void onPlayerConnectPost(Connection connection, ServerPlayer player, CommonListenerCookie clientData, CallbackInfo ci) {
 		StringBuilder command = new StringBuilder("§0§0");
 		if (ServerSettings.useGameRules) {
 			GameRules gameRules = server.getGameRules();
-			if (gameRules.getBoolean(MapGameRules.ALLOW_CAVES_MAP)) {
+			if (gameRules.get(MapGameRules.ALLOW_CAVES_MAP)) {
 				command.append("§a§1");
 			}
-			if (gameRules.getBoolean(MapGameRules.ALLOW_ENTITY_RADAR)) {
+			if (gameRules.get(MapGameRules.ALLOW_ENTITY_RADAR)) {
 				command.append("§b§1");
 			}
-			if (gameRules.getBoolean(MapGameRules.ALLOW_PLAYER_RADAR)) {
+			if (gameRules.get(MapGameRules.ALLOW_PLAYER_RADAR)) {
 				command.append("§c§1");
 			}
-			if (gameRules.getBoolean(MapGameRules.ALLOW_CREATURE_RADAR)) {
+			if (gameRules.get(MapGameRules.ALLOW_CREATURE_RADAR)) {
 				command.append("§d§1");
 			}
-			if (gameRules.getBoolean(MapGameRules.ALLOW_HOSTILE_RADAR)) {
+			if (gameRules.get(MapGameRules.ALLOW_HOSTILE_RADAR)) {
 				command.append("§e§1");
 			}
-			if (gameRules.getBoolean(MapGameRules.ALLOW_SLIME_CHUNKS)) {
+			if (gameRules.get(MapGameRules.ALLOW_SLIME_CHUNKS)) {
 				command.append("§s§1");
 			}
-			if (gameRules.getBoolean(MapGameRules.ALLOW_TELEPORTATION)) {
+			if (gameRules.get(MapGameRules.ALLOW_TELEPORTATION)) {
 				command.append("§t§1");
 			}
 		} else {
@@ -86,11 +86,11 @@ public abstract class PlayerManagerMixin {
 		command.append("§f§f");
 
 		if (command.length() > 8) {
-			this.sendCommand(player, Text.of(command.toString()));
+			this.sendCommand(player, Component.nullToEmpty(command.toString()));
 		}
 	}
 
-	private void sendCommand(ServerPlayerEntity serverPlayerEntity, Text command) {
-		serverPlayerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(command, true));
+	private void sendCommand(ServerPlayer serverPlayerEntity, Component command) {
+		serverPlayerEntity.connection.send(new ClientboundSystemChatPacket(command, true));
 	}
 }

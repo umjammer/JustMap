@@ -1,16 +1,16 @@
 package ru.bulldog.justmap.advancedinfo;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.network.chat.Component;
 import ru.bulldog.justmap.enums.TextAlignment;
 import ru.bulldog.justmap.util.colors.Colors;
 import ru.bulldog.justmap.util.render.RenderUtil;
 
 public abstract class InfoText {
 	TextAlignment alignment;
-	Text text;
+	Component text;
 	boolean fixed = false;
 	boolean visible = true;
 	int color;
@@ -35,21 +35,21 @@ public abstract class InfoText {
 
 	public InfoText(TextAlignment alignment, String text, int color) {
 		this.alignment = alignment;
-		this.text = Text.literal(text);
+		this.text = Component.literal(text);
 		this.color = color;
 	}
 
-	public void draw(DrawContext context) {
+	public void draw(GuiGraphicsExtractor context) {
 		this.draw(context, x, y);
 	}
 
-	public void draw(DrawContext context, int x, int y) {
-		MinecraftClient minecraft = MinecraftClient.getInstance();
-		TextRenderer textRenderer = minecraft.textRenderer;
-		int width = minecraft.getWindow().getScaledWidth();
+	public void draw(GuiGraphicsExtractor context, int x, int y) {
+		Minecraft minecraft = Minecraft.getInstance();
+		Font textRenderer = minecraft.font;
+		int width = minecraft.getWindow().getGuiScaledWidth();
 		switch (alignment) {
 			 case LEFT:
-				 context.drawTextWithShadow(textRenderer, text.getString(), x, y, color);
+				 context.text(textRenderer, text.getString(), x, y, color);
 			 break;
 			 case CENTER:
 				RenderUtil.drawBoundedString(context, text.getString(), x, y, 0, width - 2, color);
@@ -72,7 +72,7 @@ public abstract class InfoText {
 	}
 
 	public void setText(String text) {
-		this.text = Text.literal(text);
+		this.text = Component.literal(text);
 	}
 
 	public InfoText setColor(int color) {

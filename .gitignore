@@ -28,3 +28,4 @@ run/
 *.launch
 remappedSrc/
 libs/*.jar
+AGENTS.md

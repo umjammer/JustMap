@@ -7,13 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-
+import net.minecraft.server.packs.resources.Resource;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.resource.Resource;
-
 import ru.bulldog.justmap.JustMap;
 
 public class JsonFactory {
@@ -33,7 +31,7 @@ public class JsonFactory {
 
 	public static JsonObject getJsonObject(Resource jsonSource) {
 		if (jsonSource != null) {
-			try (InputStream is = jsonSource.getInputStream()) {
+			try (InputStream is = jsonSource.open()) {
 				Reader reader = new InputStreamReader(is);
 				JsonObject jsonObject = loadJson(reader).getAsJsonObject();
 				if (jsonObject == null) {

@@ -1,14 +1,14 @@
 package ru.bulldog.justmap.client.widget;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.Screen;
-
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
 import ru.bulldog.justmap.map.minimap.Minimap;
 import ru.bulldog.justmap.util.render.RenderUtil;
 
-public class MinimapWidget implements Element, Drawable {
+public class MinimapWidget implements GuiEventListener, Renderable {
 
 	final Minimap map;
 	final int left;
@@ -55,14 +55,14 @@ public class MinimapWidget implements Element, Drawable {
 	}
 
 	@Override
-	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
 		int color = 0xDD00AA00;
 		if (Minimap.isRound()) {
 			double centerX = x + border + bgW / 2;
 			double centerY = y + border + bgH / 2;
-			RenderUtil.drawCircle(centerX, centerY, bgW / 2, color);
+			RenderUtil.drawCircle(context, centerX, centerY, bgW / 2.0, color);
 		} else {
-			RenderUtil.fill(context.getMatrices(), x + border, y + border, bgW, bgH, color);
+			RenderUtil.fill(context, x + border, y + border, bgW, bgH, color);
 		}
 		if (map.getSkin() != null) {
 			map.getSkin().draw(context, x, y, width, height);
@@ -85,12 +85,12 @@ public class MinimapWidget implements Element, Drawable {
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		return this.isMouseOver(mouseX, mouseY);
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+		return this.isMouseOver(event.x(), event.y());
 	}
 
 	@Override
-	public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+	public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
 		this.x += deltaX;
 		this.y += deltaY;
 

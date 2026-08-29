@@ -1,19 +1,21 @@
 package ru.bulldog.justmap.client.screen;
 
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.KeyEvent;
+import com.mojang.blaze3d.opengl.GlStateManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.entity.player.Player;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import org.lwjgl.glfw.GLFW;
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.client.config.ClientSettings;
@@ -39,10 +41,12 @@ import ru.bulldog.justmap.util.LangUtil;
 import ru.bulldog.justmap.util.PosUtil;
 import ru.bulldog.justmap.util.colors.Colors;
 import ru.bulldog.justmap.util.math.MathUtil;
+import ru.bulldog.justmap.util.render.RenderUtil;
+
 
 public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 
-	private final static Text TITLE = Text.literal("Worldmap");
+	private final static Component TITLE = Component.literal("Worldmap");
 
 	private static WorldmapScreen worldmap;
 
@@ -116,9 +120,9 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 		}
 		this.players.clear();
 		if (GameRulesUtil.allowPlayerRadar()) {
-			List<AbstractClientPlayerEntity> players = this.client.world.getPlayers();
-			for (PlayerEntity player : players) {
-				if (player == client.player) continue;
+			List<AbstractClientPlayer> players = this.minecraft.level.players();
+			for (Player player : players) {
+				if (player == minecraft.player) continue;
 				this.players.add(new PlayerIcon(player));
 			}
 		}
@@ -129,44 +133,44 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 
 	private void addMapMenu() {
 		LangUtil langUtil = new LangUtil("gui.worldmap");
-		this.mapMenu = this.addDrawableChild(new DropDownListWidget(25, paddingTop + 2, 100, 22));
-		this.mapMenu.addElement(new ListElementWidget(MutableText.of(langUtil.getText("add_waypoint")), () -> {
+		this.mapMenu = this.addRenderableWidget(new DropDownListWidget(25, paddingTop + 2, 100, 22));
+		this.mapMenu.addElement(new ListElementWidget(MutableComponent.create(langUtil.getText("add_waypoint")), () -> {
 			JustMapClient.getMiniMap().createWaypoint(world, centerPos);
 			return true;
 		}));
-		this.mapMenu.addElement(new ListElementWidget(MutableText.of(langUtil.getText("set_map_pos")), () -> {
-			client.setScreen(new MapPositionScreen(this));
+		this.mapMenu.addElement(new ListElementWidget(MutableComponent.create(langUtil.getText("set_map_pos")), () -> {
+			minecraft.setScreenAndShow(new MapPositionScreen(this));
 			return true;
 		}));
-		this.mapMenu.addElement(new ListElementWidget(MutableText.of(langUtil.getText("open_map_config")), () -> {
-			client.setScreen(ConfigFactory.getConfigScreen(this));
+		this.mapMenu.addElement(new ListElementWidget(MutableComponent.create(langUtil.getText("open_map_config")), () -> {
+			minecraft.setScreenAndShow(ConfigFactory.getConfigScreen(this));
 			return true;
 		}));
 	}
 
 	private void addMapButtons() {
-		this.addDrawableChild(ButtonWidget.builder(Text.literal("x"), b -> close()).dimensions(width - 24, 10, 20, 20).build());
-		this.addDrawableChild(ButtonWidget.builder(Text.literal("↑"), b -> moveMap(Direction.NORTH)).dimensions(width / 2 - 10, height - paddingBottom - 44, 20, 20).build());
-		this.addDrawableChild(ButtonWidget.builder(Text.literal("↓"), b -> moveMap(Direction.SOUTH)).dimensions(width / 2 - 10, height - paddingBottom - 22, 20, 20).build());
-		this.addDrawableChild(ButtonWidget.builder(Text.literal("←"), b -> moveMap(Direction.WEST)).dimensions(width / 2 - 32, height - paddingBottom - 32, 20, 20).build());
-		this.addDrawableChild(ButtonWidget.builder(Text.literal("→"), b -> moveMap(Direction.EAST)).dimensions(width / 2 + 12, height - paddingBottom - 32, 20, 20).build());
-		this.addDrawableChild(ButtonWidget.builder(Text.literal("+"), b -> changeScale(-0.25F)).dimensions(width - 24, height / 2 - 21, 20, 20).build());
-		this.addDrawableChild(ButtonWidget.builder(Text.literal("-"), b -> changeScale(+0.25F)).dimensions(width - 24, height / 2 + 1, 20, 20).build());
-		this.addDrawableChild(ButtonWidget.builder(Text.literal("✜"), b -> setCenterByPlayer()).dimensions(width - 24, height - paddingBottom - 22, 20, 20).build());
-		this.addDrawableChild(ButtonWidget.builder(Text.literal("☰"), b -> mapMenu.toggleVisible()).dimensions(4, paddingTop + 2, 20, 20).build());
-		this.addDrawableChild(ButtonWidget.builder(Text.literal("✦"), b -> client.setScreen(new WaypointsListScreen(this))).dimensions(4, height - paddingBottom - 22, 20, 20).build());
+		this.addRenderableWidget(Button.builder(Component.literal("x"), b -> onClose()).bounds(width - 24, 10, 20, 20).build());
+		this.addRenderableWidget(Button.builder(Component.literal("↑"), b -> moveMap(Direction.NORTH)).bounds(width / 2 - 10, height - paddingBottom - 44, 20, 20).build());
+		this.addRenderableWidget(Button.builder(Component.literal("↓"), b -> moveMap(Direction.SOUTH)).bounds(width / 2 - 10, height - paddingBottom - 22, 20, 20).build());
+		this.addRenderableWidget(Button.builder(Component.literal("←"), b -> moveMap(Direction.WEST)).bounds(width / 2 - 32, height - paddingBottom - 32, 20, 20).build());
+		this.addRenderableWidget(Button.builder(Component.literal("→"), b -> moveMap(Direction.EAST)).bounds(width / 2 + 12, height - paddingBottom - 32, 20, 20).build());
+		this.addRenderableWidget(Button.builder(Component.literal("+"), b -> changeScale(-0.25F)).bounds(width - 24, height / 2 - 21, 20, 20).build());
+		this.addRenderableWidget(Button.builder(Component.literal("-"), b -> changeScale(+0.25F)).bounds(width - 24, height / 2 + 1, 20, 20).build());
+		this.addRenderableWidget(Button.builder(Component.literal("✜"), b -> setCenterByPlayer()).bounds(width - 24, height - paddingBottom - 22, 20, 20).build());
+		this.addRenderableWidget(Button.builder(Component.literal("☰"), b -> mapMenu.toggleVisible()).bounds(4, paddingTop + 2, 20, 20).build());
+		this.addRenderableWidget(Button.builder(Component.literal("✦"), b -> minecraft.setScreenAndShow(new WaypointsListScreen(this))).bounds(4, height - paddingBottom - 22, 20, 20).build());
 	}
 
 	@Override
-	public void renderBackground(DrawContext context) {
+	public void renderBackground(GuiGraphicsExtractor context) {
 //		context.fill(x, 0, x + width, height, 0xFF444444);
 		this.drawMap(context);
 	}
 
 	@Override
-	public void renderForeground(DrawContext context) {
+	public void renderForeground(GuiGraphicsExtractor context) {
 		if (ClientSettings.showWorldmapGrid) {
-			this.chunkGrid.draw();
+			this.chunkGrid.draw(context);
 		}
 		int iconSize = (int) (ClientSettings.worldmapIconSize / imageScale);
 		iconSize = iconSize % 2 != 0 ? iconSize + 1 : iconSize;
@@ -188,7 +192,7 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 			icon.draw(context, iconSize);
 		}
 
-		ClientPlayerEntity player = client.player;
+		LocalPlayer player = minecraft.player;
 
 		double playerX = player.getX();
 		double playerZ = player.getZ();
@@ -197,11 +201,11 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 
 		MapPlayerManager.getPlayer(player).getIcon().draw(context, arrowX, arrowY, iconSize, true);
 
-		this.drawBorders(paddingTop, paddingBottom);
-		context.drawCenteredTextWithShadow(client.textRenderer, cursorCoords, width / 2, paddingTop + 4, Colors.WHITE);
+		this.drawBorders(context, paddingTop, paddingBottom);
+		context.centeredText(minecraft.font, cursorCoords, width / 2, paddingTop + 4, Colors.WHITE);
 	}
 
-	private void drawMap(DrawContext context) {
+	private void drawMap(GuiGraphicsExtractor context) {
 		int cornerX = centerPos.getX() - scaledWidth / 2;
 		int cornerZ = centerPos.getZ() - scaledHeight / 2;
 
@@ -230,8 +234,6 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 				double scW = imgW / imageScale;
 				double scH = imgH / imageScale;
 
-				RenderSystem.enableBlend();
-				RenderSystem.defaultBlendFunc();
 				region.drawLayer(context, mapLayer, mapLevel, scX, scY, scW, scH, imgX, imgY, imgW, imgH);
 
 				picY += imgH > 0 ? imgH : 512;
@@ -269,16 +271,16 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 	private void moveMap(Direction direction) {
 		switch (direction) {
 			case NORTH:
-				this.centerPos = centerPos.add(0, 0, -16);
+				this.centerPos = centerPos.offset(0, 0, -16);
 				break;
 			case SOUTH:
-				this.centerPos = centerPos.add(0, 0, 16);
+				this.centerPos = centerPos.offset(0, 0, 16);
 				break;
 			case EAST:
-				this.centerPos = centerPos.add(16, 0, 0);
+				this.centerPos = centerPos.offset(16, 0, 0);
 				break;
 			case WEST:
-				this.centerPos = centerPos.add(-16, 0, 0);
+				this.centerPos = centerPos.offset(-16, 0, 0);
 				break;
 			default: break;
 		}
@@ -288,8 +290,8 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 	}
 
 	@Override
-	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-		switch(keyCode) {
+	public boolean keyPressed(KeyEvent event) {
+		switch(event.key()) {
 			case GLFW.GLFW_KEY_W:
 			case GLFW.GLFW_KEY_UP:
 				this.moveMap(Direction.NORTH);
@@ -318,18 +320,18 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 		  		this.setCenterByPlayer();
 		  		return true;
 		  	case GLFW.GLFW_KEY_M:
-		  		this.close();
+		  		this.onClose();
 		  		return true;
 		  	default:
-		  		return super.keyPressed(keyCode, scanCode, modifiers);
+		  		return super.keyPressed(event);
 		}
 	}
 
 	@Override
-	public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-		if (super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)) return true;
+	public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
+		if (super.mouseDragged(event, deltaX, deltaY)) return true;
 
-		if (button == 0) {
+		if (event.button() == 0) {
 
 			int x = centerPos.getX();
 			int y = centerPos.getY();
@@ -371,10 +373,12 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 	private long clicked = 0;
 
 	@Override
-	public boolean mouseReleased(double d, double e, int i) {
-		if (super.mouseReleased(d, e, i)) return true;
+	public boolean mouseReleased(MouseButtonEvent event) {
+		if (super.mouseReleased(event)) return true;
 
-		if (i == 0) {
+		double d = event.x();
+		double e = event.y();
+		if (event.button() == 0) {
 			long time = System.currentTimeMillis();
 			if (time - clicked > 300) clicks = 0;
 

@@ -3,10 +3,9 @@ package ru.bulldog.justmap.map.data.classic;
 import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.world.level.ChunkPos;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.client.screen.WorldmapScreen;
@@ -61,11 +60,11 @@ public class RegionData implements MapRegion {
 
 		this.layer = map.getLayer();
 		this.level = map.getLevel();
-		this.center = new ChunkPos(map.getCenter());
+		this.center = ChunkPos.containing(map.getCenter());
 		this.isWorldmap = map instanceof WorldmapScreen;
-		int radius = MinecraftClient.getInstance().options.getViewDistance().getValue() - 1;
-		this.updateArea = new Plane(center.x - radius, center.z - radius,
-									center.x + radius, center.z + radius);
+		int radius = Minecraft.getInstance().options.renderDistance().get() - 1;
+		this.updateArea = new Plane(center.x() - radius, center.z() - radius,
+									center.x() + radius, center.z() + radius);
 		this.loadImage(layer, level);
 	}
 
@@ -120,10 +119,10 @@ public class RegionData implements MapRegion {
 	}
 
 	public void setCenter(ChunkPos centerPos) {
-		int radius = MinecraftClient.getInstance().options.getViewDistance().getValue() - 1;
+		int radius = Minecraft.getInstance().options.renderDistance().get() - 1;
 		this.center = centerPos;
-		this.updateArea = new Plane(center.x - radius, center.z - radius,
-									center.x + radius, center.z + radius);
+		this.updateArea = new Plane(center.x() - radius, center.z() - radius,
+									center.x() + radius, center.z() + radius);
 	}
 
 	public ChunkPos getCenter() {
@@ -294,7 +293,7 @@ public class RegionData implements MapRegion {
 		return new File(dir, String.format("r%d.%d.png", regPos.x, regPos.z));
 	}
 
-	public void draw(DrawContext context, double x, double y, double width, double height, int imgX, int imgY, int imgW, int imgH) {
+	public void draw(GuiGraphicsExtractor context, double x, double y, double width, double height, int imgX, int imgY, int imgW, int imgH) {
 		if (width <= 0 || height <= 0) return;
 
 		float u1 = imgX / 512F;
@@ -306,23 +305,19 @@ public class RegionData implements MapRegion {
 	}
 
 	@Override
-	public void drawLayer(DrawContext context, Layer layer, int level, double x, double y, double width, double height, int imgX, int imgY, int imgW, int imgH) {
+	public void drawLayer(GuiGraphicsExtractor context, Layer layer, int level, double x, double y, double width, double height, int imgX, int imgY, int imgW, int imgH) {
 		swapLayer(layer, level);
 		draw(context, x, y, width, height, imgX, imgY, imgW, imgH);
 	}
 
-	private void drawTexture(DrawContext context, double x, double y, double w, double h, float u1, float v1, float u2, float v2) {
-		if (texture != null && texture.changed) {
-			this.texture.upload();
-		} else if (texture == null && image.changed) {
-			this.image.upload();
+	private void drawTexture(GuiGraphicsExtractor context, double x, double y, double w, double h, float u1, float v1, float u2, float v2) {
+		MapTexture drawn = texture != null ? texture : image;
+		if (drawn.changed || drawn.getTextureView() == null) {
+			drawn.upload();
 		}
-		int id = texture != null ? texture.getId() : image.getId();
-		RenderUtil.bindTexture(id);
-		RenderUtil.applyFilter(false);
-		RenderUtil.startDraw();
-		RenderUtil.addQuad(context.getMatrices(), x, y, w, h, u1, v1, u2, v2);
-		RenderUtil.endDraw();
+		if (drawn.getTextureView() == null) return;
+
+		RenderUtil.texturedQuad(context, drawn.getTextureView(), drawn.getSampler(), x, y, w, h, u1, v1, u2, v2);
 	}
 
 	public void close() {

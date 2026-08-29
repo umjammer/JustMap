@@ -10,21 +10,24 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import com.mojang.blaze3d.platform.TextureUtil;
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.GpuSampler;
+import com.mojang.blaze3d.textures.GpuTextureView;
 import javax.imageio.ImageIO;
-import org.lwjgl.opengl.GL11;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+
+import net.minecraft.client.Minecraft;
 
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.util.colors.ColorUtil;
-import ru.bulldog.justmap.util.render.GLC;
 
 public class MapTexture {
 
 	private File imageFile;
 	private final ByteBuffer buffer;
 	private byte[] bytes;
-	private int glId = -1;
+	private DynamicTexture texture;
 	private final int width;
 	private final int height;
 
@@ -55,30 +58,40 @@ public class MapTexture {
 		this(source.imageFile, source);
 	}
 
-	public int getId() {
-		return this.glId;
+	public GpuTextureView getTextureView() {
+		return this.texture != null ? this.texture.getTextureView() : null;
 	}
 
-	public void upload() {
-		if (bytes == null) return;
+	public GpuSampler getSampler() {
+		return this.texture != null ? this.texture.getSampler() : null;
+	}
 
-		if (this.glId == -1) {
-			this.glId = TextureUtil.generateTextureId();
+	/**
+	 * Pushes the pixels collected off-thread to the GPU. Must run on the render thread:
+	 * since 26.2 uploads go through the {@code GpuDevice} command encoder rather than
+	 * direct GL calls.
+	 */
+	public void upload() {
+		if (bytes == null || !RenderSystem.isOnRenderThread()) return;
+
+		if (this.texture == null) {
+			this.texture = new DynamicTexture(() -> "justmap-region", this.width, this.height, true);
 		}
 
-		this.refillBuffer();
-
-		RenderSystem.bindTexture(this.glId);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MIN_FILTER, GLC.GL_NEAREST);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MAG_FILTER, GLC.GL_NEAREST);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_S, GLC.GL_CLAMP_TO_EDGE);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_WRAP_T, GLC.GL_CLAMP_TO_EDGE);
-		RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_GENERATE_MIPMAP, GLC.GL_TRUE);
-		RenderSystem.pixelStore(GLC.GL_UNPACK_ROW_LENGTH, 0);
-		RenderSystem.pixelStore(GLC.GL_UNPACK_SKIP_PIXELS, 0);
-		RenderSystem.pixelStore(GLC.GL_UNPACK_SKIP_ROWS, 0);
-
-		GL11.glTexImage2D(GLC.GL_TEXTURE_2D, 0, GLC.GL_RGBA, this.getWidth(), this.getHeight(), 0, GLC.GL_RGBA, GLC.GL_UNSIGNED_INT_8_8_8_8, this.buffer);
+		NativeImage pixels = this.texture.getPixels();
+		synchronized(bufferLock) {
+			for (int y = 0; y < this.height; y++) {
+				for (int x = 0; x < this.width; x++) {
+					int index = (x + y * this.width) * 4;
+					int a = this.bytes[index] & 255;
+					int b = this.bytes[index + 1] & 255;
+					int g = this.bytes[index + 2] & 255;
+					int r = this.bytes[index + 3] & 255;
+					pixels.setPixel(x, y, (a << 24) | (r << 16) | (g << 8) | b);
+				}
+			}
+		}
+		this.texture.upload();
 
 		this.changed = false;
 	}
@@ -289,16 +302,14 @@ public class MapTexture {
 	}
 
 	private void clearId() {
-		if (!RenderSystem.isOnRenderThread()) {
-			RenderSystem.recordRenderCall(() -> {
-				if (this.glId != -1) {
-					TextureUtil.releaseTextureId(this.glId);
-					this.glId = -1;
-				}
-			});
-		} else if (this.glId != -1) {
-			TextureUtil.releaseTextureId(this.glId);
-			this.glId = -1;
+		DynamicTexture texture = this.texture;
+		if (texture == null) return;
+
+		this.texture = null;
+		if (RenderSystem.isOnRenderThread()) {
+			texture.close();
+		} else {
+			Minecraft.getInstance().execute(texture::close);
 		}
 	}
 

@@ -1,67 +1,32 @@
 package ru.bulldog.justmap.map;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gl.ShaderProgramKeys;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormatElement;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.texture.SpriteContents;
-import net.minecraft.client.texture.SpriteDimensions;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.resource.metadata.ResourceMetadata;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.RotationAxis;
-import org.joml.Matrix4f;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.resources.Identifier;
+import org.joml.Matrix3x2fStack;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
-import ru.bulldog.justmap.util.ImageUtil;
-import ru.bulldog.justmap.util.SpriteAtlas;
 import ru.bulldog.justmap.util.colors.Colors;
 import ru.bulldog.justmap.util.render.RenderUtil;
 
-public class DirectionArrow extends Sprite {
-	private final static VertexFormat vertexFormat = VertexFormat.builder().add("Position", VertexFormatElement.POSITION).add("UV0", VertexFormatElement.UV_0).add("Normal", VertexFormatElement.NORMAL).build();
-	private static DirectionArrow ARROW;
+public class DirectionArrow {
 
-	private DirectionArrow(Identifier texture, int w, int h) {
-		super(SpriteAtlas.MAP_ICONS.getId(), new SpriteContents(texture, new SpriteDimensions(w, h), ImageUtil.loadImage(texture, w, h), ResourceMetadata.NONE), 0, w, h, 0);
-	}
+	private static final Identifier ARROW =
+			Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/icon/player_arrow.png");
 
-	public static void draw(double x, double y, int size, float rotation) {
+	private DirectionArrow() {}
+
+	public static void draw(GuiGraphicsExtractor context, double x, double y, int size, float rotation) {
 		if (!ClientSettings.simpleArrow) {
-			if (ARROW == null) {
-				ARROW = new DirectionArrow(Identifier.of(JustMap.MODID, "textures/icon/player_arrow.png"), 20, 20);
-			}
+			float half = size / 2f;
 
-			MatrixStack matrix = new MatrixStack();
-			Tessellator tessellator = Tessellator.getInstance();
-			BufferBuilder builder = tessellator.begin(VertexFormat.DrawMode.QUADS, vertexFormat);
+			Matrix3x2fStack matrices = context.pose();
+			matrices.pushMatrix();
+			matrices.translate((float) x, (float) y);
+			matrices.rotate((float) Math.toRadians(rotation + 180));
 
-			VertexConsumer vertexConsumer = ARROW.getTextureSpecificVertexConsumer(builder);
+			RenderUtil.drawTexture(context, ARROW, -half, -half, size, size);
 
-			RenderUtil.bindTexture(ARROW.getContents().getId());
-
-			RenderSystem.enableCull();
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-
-			matrix.push();
-			matrix.translate(x, y, 0);
-			matrix.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(rotation + 180));
-
-			Matrix4f m4f = matrix.peek().getPositionMatrix();
-			MatrixStack.Entry mse = matrix.peek();
-
-			addVertices(m4f, mse, vertexConsumer, size);
-			var builtBuffer = builder.endNullable();
-			if (builtBuffer != null) {
-				BufferRenderer.drawWithGlobalProgram(builtBuffer);
-			}
-
-			matrix.pop();
+			matrices.popMatrix();
 		} else {
 			int l = 6;
 			double a1 = Math.toRadians((rotation + 90) % 360);
@@ -75,17 +40,7 @@ public class DirectionArrow extends Sprite {
 			double x3 = x + Math.cos(a3) * l;
 			double y3 = y + Math.sin(a3) * l;
 
-			RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
-			RenderUtil.drawTriangle(x1, y1, x2, y2, x3, y3, Colors.RED);
+			RenderUtil.drawTriangle(context, x1, y1, x2, y2, x3, y3, Colors.RED);
 		}
-	}
-
-	private static void addVertices(Matrix4f m4f, MatrixStack.Entry mse, VertexConsumer vertexConsumer, int size) {
-		float half = size / 2f;
-
-		vertexConsumer.vertex(m4f, -half, -half, 0.0F).texture(0.0F, 0.0F).normal(mse, 0.0F, 1.0F, 0.0F);
-		vertexConsumer.vertex(m4f, -half, half, 0.0F).texture(0.0F, 1.0F).normal(mse, 0.0F, 1.0F, 0.0F);
-		vertexConsumer.vertex(m4f, half, half, 0.0F).texture(1.0F, 1.0F).normal(mse, 0.0F, 1.0F, 0.0F);
-		vertexConsumer.vertex(m4f, half, -half, 0.0F).texture(1.0F, 0.0F).normal(mse, 0.0F, 1.0F, 0.0F);
 	}
 }

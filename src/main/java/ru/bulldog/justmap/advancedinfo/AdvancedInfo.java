@@ -2,13 +2,11 @@ package ru.bulldog.justmap.advancedinfo;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.world.entity.EquipmentSlot;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ChatScreen;
-import net.minecraft.entity.EquipmentSlot;
-
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.enums.ScreenPosition;
 
@@ -29,7 +27,7 @@ public class AdvancedInfo {
 		return mapTextManager;
 	}
 
-	private final MinecraftClient minecraft = MinecraftClient.getInstance();
+	private final Minecraft minecraft = Minecraft.getInstance();
 	private final Map<ScreenPosition, TextManager> managers;
 	private ScreenPosition infoPos;
 	private ScreenPosition itemsPos;
@@ -77,8 +75,8 @@ public class AdvancedInfo {
 
 	public void updateOnTick() {
 		if (minecraft == null || !ClientSettings.advancedInfo) return;
-		if (minecraft.currentScreen != null &&
-		  !(minecraft.currentScreen instanceof ChatScreen)) return;
+		if (minecraft.gui.screen() != null &&
+		  !(minecraft.gui.screen() instanceof ChatScreen)) return;
 
 		if (ClientSettings.infoPosition != infoPos || ClientSettings.itemsPosition != itemsPos) {
 			this.initInfo();
@@ -89,11 +87,10 @@ public class AdvancedInfo {
 		});
 	}
 
-	public void draw(DrawContext context) {
+	public void draw(GuiGraphicsExtractor context) {
 		if (!ClientSettings.advancedInfo) return;
-		if (minecraft.currentScreen != null &&
-		  !(minecraft.currentScreen instanceof ChatScreen)) return;
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		if (minecraft.gui.screen() != null &&
+		  !(minecraft.gui.screen() instanceof ChatScreen)) return;
 		this.managers.forEach((position, manager) -> manager.draw(context));
 	}
 }

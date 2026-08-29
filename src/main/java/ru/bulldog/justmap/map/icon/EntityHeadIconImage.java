@@ -1,18 +1,16 @@
 package ru.bulldog.justmap.map.icon;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.monster.Monster;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.util.ImageUtil;
 import ru.bulldog.justmap.util.colors.Colors;
@@ -40,7 +38,7 @@ public class EntityHeadIconImage extends Image {
 	}
 
 	public static EntityHeadIconImage getIcon(Entity entity) {
-		Identifier id = EntityType.getId(entity.getType());
+		Identifier id = EntityType.getKey(entity.getType());
 		if (ICONS.containsKey(id)) {
 			return ICONS.get(id);
 		} else {
@@ -60,27 +58,32 @@ public class EntityHeadIconImage extends Image {
 	}
 
 	@Override
-	public void draw(DrawContext context, double x, double y, int w, int h) {
+	public void draw(GuiGraphicsExtractor context, double x, double y, int w, int h) {
+		this.draw(context, x, y, w, h, -1);
+	}
+
+	@Override
+	public void draw(GuiGraphicsExtractor context, double x, double y, int w, int h, int tint) {
 		if (ClientSettings.showIconsOutline) {
 			double thickness = ClientSettings.entityOutlineSize;
 			if (solid) {
-				RenderUtil.fill(context.getMatrices(), x - thickness / 2, y - thickness / 2, w + thickness, h + thickness, this.color);
+				RenderUtil.fill(context, x - thickness / 2, y - thickness / 2, w + thickness, h + thickness, this.color);
 			} else {
-				this.bindOutline();
-				RenderUtil.draw(context, x - thickness / 2, y - thickness / 2, (float) (w + thickness), (float) (h + thickness));
+				RenderUtil.drawTexture(context, this.outlineId(),
+						x - thickness / 2, y - thickness / 2, w + thickness, h + thickness, tint);
 			}
 		}
-		this.draw(context, x, y, (float) w, (float) h);
+		RenderUtil.drawTexture(context, this.getId(), x, y, w, h, tint);
 	}
 
-	private void bindOutline() {
+	private Identifier outlineId() {
 		if (outlineId == null) {
 			NativeImage outline = ImageUtil.generateOutline(image, width, height, color);
-			NativeImageBackedTexture outTexture = new NativeImageBackedTexture(outline);
-			this.outlineId = Identifier.of(this.id.getNamespace(), "%s_outline".formatted(this.id.getPath()));
-			textureManager.registerTexture(outlineId, outTexture);
+			DynamicTexture outTexture = new DynamicTexture(null, outline);
+			this.outlineId = Identifier.fromNamespaceAndPath(this.id.getNamespace(), "%s_outline".formatted(this.id.getPath()));
+			textureManager.register(outlineId, outTexture);
 		}
-		RenderUtil.bindTexture(outlineId);
+		return this.outlineId;
 	}
 
 	private boolean isSolid() {
@@ -92,7 +95,7 @@ public class EntityHeadIconImage extends Image {
 		boolean solid = true;
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
-				int alpha = (icon.getColorArgb(i, j) >> 24) & 255;
+				int alpha = (icon.getPixel(i, j) >> 24) & 255;
 				solid = alpha > 0;
 				if (!solid) break;
 			}
@@ -103,7 +106,7 @@ public class EntityHeadIconImage extends Image {
 
 	private static Identifier iconId(Identifier id) {
 		String path = String.format("textures/minimap/entities/%s.png", id.getPath());
-		return Identifier.of(id.getNamespace(), path);
+		return Identifier.fromNamespaceAndPath(id.getNamespace(), path);
 	}
 
 	private static EntityHeadIconImage registerIcon(Entity entity, Identifier entityId, Identifier texture) {
@@ -113,18 +116,18 @@ public class EntityHeadIconImage extends Image {
 
 	private static EntityHeadIconImage registerIcon(Entity entity, Identifier entityId, File image) {
 		NativeImage iconImage = ImageUtil.loadImage(image, 32, 32);
-		Identifier textureId = Identifier.of("icon_%s".formatted(entityId.getNamespace()), entityId.getPath());
-		textureManager.registerTexture(textureId, new NativeImageBackedTexture(iconImage));
+		Identifier textureId = Identifier.fromNamespaceAndPath("icon_%s".formatted(entityId.getNamespace()), entityId.getPath());
+		textureManager.register(textureId, new DynamicTexture(null, iconImage));
 		EntityHeadIconImage icon = new EntityHeadIconImage(entityId, textureId, iconImage);
 		return registerIcon(entity, entityId, icon);
 	}
 
 	private static EntityHeadIconImage registerIcon(Entity entity, Identifier entityId, EntityHeadIconImage icon) {
-		if (entity instanceof HostileEntity) {
+		if (entity instanceof Monster) {
 			icon.color = Colors.DARK_RED;
-		} else if (entity instanceof TameableEntity) {
-			TameableEntity tameable = (TameableEntity) entity;
-			icon.color = tameable.isTamed() ? Colors.GREEN : Colors.YELLOW;
+		} else if (entity instanceof TamableAnimal) {
+			TamableAnimal tameable = (TamableAnimal) entity;
+			icon.color = tameable.isTame() ? Colors.GREEN : Colors.YELLOW;
 		} else {
 			icon.color = Colors.YELLOW;
 		}

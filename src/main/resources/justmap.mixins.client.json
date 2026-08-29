@@ -1,11 +1,9 @@
 {
     "required": true,
     "package": "ru.bulldog.justmap.mixins.client",
-    "compatibilityLevel": "JAVA_8",
+    "compatibilityLevel": "JAVA_21",
     "client": [
 	    "HudMixin",
-	    "GameRenderMixin",
-		"BakedSpriteAccessor",
 		"ClientWorldMixin",
 		"MinecraftClientMixin",
 		"ClientPlayNetworkHandlerMixin"

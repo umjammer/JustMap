@@ -1,4 +1,4 @@
-accessWidener    v1    named
+accessWidener	v1	official
 
-accessible    method    net/minecraft/client/gui/widget/ClickableWidget    renderWidget    (Lnet/minecraft/client/gui/DrawContext;IIF)V
-accessible    method    net/minecraft/block/AbstractBlock    getFluidState    (Lnet/minecraft/block/BlockState;)Lnet/minecraft/fluid/FluidState;
+accessible	method	net/minecraft/client/gui/components/AbstractWidget	extractWidgetRenderState	(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIF)V
+accessible	method	net/minecraft/world/level/block/state/BlockBehaviour	getFluidState	(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/material/FluidState;

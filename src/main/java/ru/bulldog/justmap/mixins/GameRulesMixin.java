@@ -1,6 +1,6 @@
 package ru.bulldog.justmap.mixins;
 
-import net.minecraft.world.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
 
 import ru.bulldog.justmap.map.MapGameRules;

@@ -1,11 +1,10 @@
 package ru.bulldog.justmap.map.multiworld;
 
 import com.google.gson.JsonObject;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.world.level.Level;
 import ru.bulldog.justmap.util.PosUtil;
 
 public class MultiworldIdentifier {
@@ -17,8 +16,8 @@ public class MultiworldIdentifier {
 		this.dimensionType = dimensionType;
 	}
 
-	public MultiworldIdentifier(BlockPos spawnPosition, World world) {
-		this(spawnPosition, world.getRegistryKey().getValue());
+	public MultiworldIdentifier(BlockPos spawnPosition, Level world) {
+		this(spawnPosition, world.dimension().identifier());
 	}
 
 	@Override
@@ -47,8 +46,8 @@ public class MultiworldIdentifier {
 	}
 
 	public static MultiworldIdentifier fromJson(JsonObject object) {
-		Identifier dimensionType = Identifier.of(JsonHelper.getString(object, "dimension"));
-		BlockPos spawnPosition = PosUtil.fromJson(JsonHelper.getObject(object, "position"));
+		Identifier dimensionType = Identifier.parse(GsonHelper.getAsString(object, "dimension"));
+		BlockPos spawnPosition = PosUtil.fromJson(GsonHelper.getAsJsonObject(object, "position"));
 		return new MultiworldIdentifier(spawnPosition, dimensionType);
 	}
 }

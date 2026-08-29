@@ -3,27 +3,34 @@ package ru.bulldog.justmap.map;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.serialization.Codec;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.GameRules;
-import net.minecraft.world.GameRules.Key;
-
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.level.gamerules.GameRule;
+import net.minecraft.world.level.gamerules.GameRuleCategory;
+import net.minecraft.world.level.gamerules.GameRuleType;
+import net.minecraft.world.level.gamerules.GameRuleTypeVisitor;
+import net.minecraft.world.level.gamerules.GameRules;
 import ru.bulldog.justmap.JustMap;
-import ru.bulldog.justmap.mixins.BooleanRuleAccessor;
-import ru.bulldog.justmap.mixins.GameRulesAccessor;
 import ru.bulldog.justmap.server.JustMapServer;
 
 public class MapGameRules {
 
-	public final static GameRules.Key<GameRules.BooleanRule> ALLOW_CAVES_MAP = register("allowCavesMap", false);
-	public final static GameRules.Key<GameRules.BooleanRule> ALLOW_ENTITY_RADAR = register("allowEntityRadar", false);
-	public final static GameRules.Key<GameRules.BooleanRule> ALLOW_PLAYER_RADAR = register("allowPlayerRadar", false);
-	public final static GameRules.Key<GameRules.BooleanRule> ALLOW_CREATURE_RADAR = register("allowCreatureRadar", false);
-	public final static GameRules.Key<GameRules.BooleanRule> ALLOW_HOSTILE_RADAR = register("allowHostileRadar", false);
-	public final static GameRules.Key<GameRules.BooleanRule> ALLOW_SLIME_CHUNKS = register("allowSlimeChunks", false);
-	public final static GameRules.Key<GameRules.BooleanRule> ALLOW_TELEPORTATION = register("allowWaypointsJump", false);
+	public final static GameRule<Boolean> ALLOW_CAVES_MAP = register("allow_caves_map", false);
+	public final static GameRule<Boolean> ALLOW_ENTITY_RADAR = register("allow_entity_radar", false);
+	public final static GameRule<Boolean> ALLOW_PLAYER_RADAR = register("allow_player_radar", false);
+	public final static GameRule<Boolean> ALLOW_CREATURE_RADAR = register("allow_creature_radar", false);
+	public final static GameRule<Boolean> ALLOW_HOSTILE_RADAR = register("allow_hostile_radar", false);
+	public final static GameRule<Boolean> ALLOW_SLIME_CHUNKS = register("allow_slime_chunks", false);
+	public final static GameRule<Boolean> ALLOW_TELEPORTATION = register("allow_waypoints_jump", false);
 
 	private MapGameRules() {}
 
@@ -31,11 +38,24 @@ public class MapGameRules {
 		JustMap.LOGGER.info("Map gamerules loaded.");
 	}
 
-	private static GameRules.Key<GameRules.BooleanRule> register(String name, boolean defaultValue) {
-		return GameRulesAccessor.callRegister(name, GameRules.Category.MISC, BooleanRuleAccessor.callCreate(defaultValue));
+	private static GameRule<Boolean> register(String name, boolean defaultValue) {
+		return Registry.register(
+			BuiltInRegistries.GAME_RULE,
+			Identifier.fromNamespaceAndPath(JustMap.MODID, name),
+			new GameRule<>(
+				GameRuleCategory.MISC,
+				GameRuleType.BOOL,
+				BoolArgumentType.bool(),
+				GameRuleTypeVisitor::visitBoolean,
+				Codec.BOOL,
+				value -> value ? 1 : 0,
+				defaultValue,
+				FeatureFlagSet.of()
+			)
+		);
 	}
 
-	private static final Map<String, Key<GameRules.BooleanRule>> codes;
+	private static final Map<String, GameRule<Boolean>> codes;
 
 	static {
 		codes = new HashMap<>();
@@ -49,17 +69,29 @@ public class MapGameRules {
 		codes.put("§t", ALLOW_TELEPORTATION);
 	}
 
-	public static boolean isAllowed(GameRules.Key<GameRules.BooleanRule> rule) {
+	/**
+	 * The chat code a rule is broadcast with, or null if the rule is not one of ours.
+	 */
+	public static String getCode(GameRule<?> rule) {
+		for (Map.Entry<String, GameRule<Boolean>> entry : codes.entrySet()) {
+			if (entry.getValue() == rule) {
+				return entry.getKey();
+			}
+		}
+		return null;
+	}
+
+	public static boolean isAllowed(GameRule<Boolean> rule) {
 		boolean allow = true;
 		if (JustMap.getSide() == EnvType.SERVER) {
-			allow = JustMapServer.getServer().getGameRules().getBoolean(rule);
+			allow = JustMapServer.getServer().getGameRules().get(rule);
 		} else {
-			MinecraftClient minecraft = MinecraftClient.getInstance();
-			if (minecraft.isIntegratedServerRunning()) {
-				allow = minecraft.getServer().getGameRules().getBoolean(rule);
-			} else if (!minecraft.isInSingleplayer()) {
-				if (minecraft.world == null) return false;
-//				allow = minecraft.world.getGameRules().getBoolean(rule);
+			Minecraft minecraft = Minecraft.getInstance();
+			if (minecraft.hasSingleplayerServer()) {
+				allow = minecraft.getSingleplayerServer().getGameRules().get(rule);
+			} else if (!minecraft.isLocalServer()) {
+				if (minecraft.level == null) return false;
+//				allow = minecraft.level.getGameRules().get(rule);
 				return false; // TODO 1.21.3
 			}
 		}
@@ -83,15 +115,15 @@ public class MapGameRules {
 	 */
 	@Environment(EnvType.CLIENT)
 	public static void parseCommand(String command) {
-		MinecraftClient minecraft = MinecraftClient.getInstance();
-		MinecraftServer server = minecraft.getServer();
-//		GameRules gameRules = minecraft.world.getGameRules();
+		Minecraft minecraft = Minecraft.getInstance();
+		MinecraftServer server = minecraft.getSingleplayerServer();
+//		GameRules gameRules = minecraft.level.getGameRules();
 		GameRules gameRules = server.getGameRules(); // TODO 1.21.3
 		codes.forEach((key, rule) -> {
 			if (command.contains(key)) {
 				int valPos = command.indexOf(key) + 2;
 				boolean value = command.startsWith("§1", valPos);
-				gameRules.get(rule).set(value, server);
+				gameRules.set(rule, value, server);
 				JustMap.LOGGER.info("Map rule {} switched to: {}", rule, value);
 			}
 		});

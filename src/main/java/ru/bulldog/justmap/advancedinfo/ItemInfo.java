@@ -1,9 +1,9 @@
 package ru.bulldog.justmap.advancedinfo;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.util.render.RenderUtil;
 
@@ -19,7 +19,7 @@ public class ItemInfo extends InfoText {
 	}
 
 	@Override
-	public void draw(DrawContext context) {
+	public void draw(GuiGraphicsExtractor context) {
 		super.draw(context);
 		int posX;
 		switch (alignment) {
@@ -33,23 +33,23 @@ public class ItemInfo extends InfoText {
 			default:
 				posX = x - offsetX;
 		}
-		context.drawItem(itemStack, posX, y - 5);
+		context.item(itemStack, posX, y - 5);
 	}
 
 	@Override
 	public void updateOnTick() {
-		MinecraftClient minecraft = MinecraftClient.getInstance();
+		Minecraft minecraft = Minecraft.getInstance();
 		if (minecraft.player == null) {
 			this.setVisible(false);
 			return;
 		}
-		this.itemStack = minecraft.player.getEquippedStack(slot);
+		this.itemStack = minecraft.player.getItemBySlot(slot);
 		this.setVisible(this.isVisible() && !this.itemStack.isEmpty());
 		if (visible) {
 			String itemString;
-			if (this.itemStack.isDamageable()) {
+			if (this.itemStack.isDamageableItem()) {
 				int maxDamage = this.itemStack.getMaxDamage();
-				int damage = maxDamage - this.itemStack.getDamage();
+				int damage = maxDamage - this.itemStack.getDamageValue();
 				itemString = String.format("%d/%d", damage, maxDamage);
 			} else if (this.itemStack.isStackable()) {
 				itemString = String.format("%d", this.itemStack.getCount());

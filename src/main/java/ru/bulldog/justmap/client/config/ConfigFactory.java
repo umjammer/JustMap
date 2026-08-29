@@ -6,11 +6,10 @@ import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import me.shedaniel.clothconfig2.impl.builders.EnumSelectorBuilder;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.config.ConfigKeeper.EnumEntry;
 import ru.bulldog.justmap.enums.ArrowType;
@@ -25,8 +24,8 @@ public final class ConfigFactory {
 
 	private final static ClientConfig modConfig = JustMapClient.getConfig();
 
-	private static Text lang(String key) {
-		return MutableText.of(LangUtil.getText("configuration", key));
+	private static Component lang(String key) {
+		return MutableComponent.create(LangUtil.getText("configuration", key));
 	}
 
 	public static Screen getConfigScreen(Screen parent) {
@@ -37,7 +36,7 @@ public final class ConfigFactory {
 	}
 
 	private static ConfigBuilder getConfigBuilder() {
-		ConfigBuilder configBuilder = ConfigBuilder.create().setTitle(Text.literal("Just Map Configuration"));
+		ConfigBuilder configBuilder = ConfigBuilder.create().setTitle(Component.literal("Just Map Configuration"));
 		ConfigEntryBuilder entryBuilder = ConfigEntryBuilder.create();
 
 		ConfigCategory general = configBuilder.getOrCreateCategory(lang("category.general"));
@@ -51,10 +50,10 @@ public final class ConfigFactory {
 		mwDetectEntry.setSaveConsumer(mwDetectConfig::setValue)
 					 .setDefaultValue(mwDetectConfig.getDefault());
 
-		MinecraftClient minecraft = MinecraftClient.getInstance();
+		Minecraft minecraft = Minecraft.getInstance();
 		int offset = modConfig.getInt("map_offset");
-		int maxX = minecraft.getWindow().getScaledWidth();
-		int maxY = minecraft.getWindow().getScaledHeight();
+		int maxX = minecraft.getWindow().getGuiScaledWidth();
+		int maxY = minecraft.getWindow().getGuiScaledHeight();
 
 		general.addEntry(drawPosEntry.build());
 		general.addEntry(entryBuilder.startIntField(lang("map_offset"), offset)
@@ -407,10 +406,6 @@ public final class ConfigFactory {
 		optimization.addEntry(entryBuilder.startBooleanToggle(lang("uninterrupted_map_update"), modConfig.getBoolean("force_map_update"))
 				.setSaveConsumer(val -> modConfig.setBoolean("force_map_update", val))
 				.setDefaultValue((boolean) modConfig.getDefault("force_map_update"))
-				.build());
-		optimization.addEntry(entryBuilder.startBooleanToggle(lang("use_fast_render"), modConfig.getBoolean("use_fast_render"))
-				.setSaveConsumer(val -> modConfig.setBoolean("use_fast_render", val))
-				.setDefaultValue((boolean) modConfig.getDefault("use_fast_render"))
 				.build());
 
 		configBuilder.setDoesConfirmSave(false);

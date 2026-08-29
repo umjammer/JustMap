@@ -1,10 +1,10 @@
 package ru.bulldog.justmap.mixins;
 
-import net.minecraft.block.RedstoneWireBlock;
+import net.minecraft.world.level.block.RedStoneWireBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(RedstoneWireBlock.class)
+@Mixin(RedStoneWireBlock.class)
 public interface RedstoneLevelAccessor {
 
 	@Accessor(value = "COLORS")

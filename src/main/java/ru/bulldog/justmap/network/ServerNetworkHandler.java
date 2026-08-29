@@ -3,13 +3,13 @@ package ru.bulldog.justmap.network;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.random.ChunkRandom;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.WorldgenRandom;
 import ru.bulldog.justmap.util.Dimension;
 import ru.bulldog.justmap.util.GameRulesUtil;
 
@@ -24,18 +24,18 @@ public class ServerNetworkHandler extends NetworkHandler {
 		this.server = server;
 	}
 
-	public void onPlayerConnect(ServerPlayerEntity player) {
-		PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
-		ServerWorld world = server.getWorld(World.OVERWORLD);
+	public void onPlayerConnect(ServerPlayer player) {
+		FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
+		ServerLevel world = server.getLevel(Level.OVERWORLD);
 		data.writeLong(world.getSeed());
 		PacketByteBufPayload payload = initPacketCodec.decode(data);
-		CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(payload);
+		ClientboundCustomPayloadPacket packet = new ClientboundCustomPayloadPacket(payload);
 		this.sendToPlayer(player, packet);
 	}
 
 	public void registerPacketsListeners() {
 		ServerPlayNetworking.registerGlobalReceiver(CHANNEL_ID, (payload, context) -> {
-			PacketByteBuf packetData = new PacketByteBuf(Unpooled.buffer());
+			FriendlyByteBuf packetData = new FriendlyByteBuf(Unpooled.buffer());
 			channelPacketCodec.encode(packetData, payload);
 			PacketType packetType = PacketType.get(packetData.readByte());
 			switch (packetType) {
@@ -45,27 +45,27 @@ public class ServerNetworkHandler extends NetworkHandler {
 		});
 	}
 
-	private void onRegionImageRequest(ServerPlayerEntity player, ByteBuf data) {
+	private void onRegionImageRequest(ServerPlayer player, ByteBuf data) {
 
 	}
 
-	private void onChunkHasSlimeRequest(ServerPlayerEntity player, ByteBuf data) {
+	private void onChunkHasSlimeRequest(ServerPlayer player, ByteBuf data) {
 		if (!canPlayerReceive(player)) return;
 		int packet_id = data.readInt();
 		int x = data.readInt();
 		int z = data.readInt();
 
 		boolean slime = false;
-		if (GameRulesUtil.allowSlimeChunks() && Dimension.isOverworld(player.getWorld())) {
-			ServerWorld world = player.getServerWorld();
-			slime = ChunkRandom.getSlimeRandom(x, z, world.getSeed(), 987234911L).nextInt(10) == 0;
+		if (GameRulesUtil.allowSlimeChunks() && Dimension.isOverworld(player.level())) {
+			ServerLevel world = player.level();
+			slime = WorldgenRandom.seedSlimeChunk(x, z, world.getSeed(), 987234911L).nextInt(10) == 0;
 		}
-		PacketByteBuf response = new PacketByteBuf(Unpooled.buffer());
+		FriendlyByteBuf response = new FriendlyByteBuf(Unpooled.buffer());
 		response.writeByte(PacketType.SLIME_CHUNK_PACKET.ordinal());
 		response.writeInt(packet_id);
 		response.writeBoolean(slime);
 		PacketByteBufPayload payload = channelPacketCodec.decode(response);
-		CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(payload);
+		ClientboundCustomPayloadPacket packet = new ClientboundCustomPayloadPacket(payload);
 		this.sendToPlayer(player, packet);
 	}
 }

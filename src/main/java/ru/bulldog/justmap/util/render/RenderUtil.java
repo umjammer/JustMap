@@ -1,56 +1,58 @@
 package ru.bulldog.justmap.util.render;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gl.ShaderProgramKeys;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormatElement;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.AffineTransformation;
-import org.joml.Matrix4f;
-import org.lwjgl.opengl.GL11;
+import com.mojang.blaze3d.textures.GpuSampler;
+import com.mojang.blaze3d.textures.GpuTextureView;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import org.joml.Matrix3x2f;
 import ru.bulldog.justmap.map.minimap.skin.MapSkin;
 import ru.bulldog.justmap.map.minimap.skin.MapSkin.RenderData;
 import ru.bulldog.justmap.util.colors.ColorUtil;
 
+/**
+ * Drawing primitives for the map, on top of the 26.2 GUI render-state pipeline.
+ *
+ * <p>Everything is submitted through {@link GuiGraphicsExtractor}: the GUI is collected into
+ * render states and drawn later, so nothing here may touch GL state directly. Shapes vanilla
+ * has no state for (triangles, circles, sub-pixel textured quads) go through {@link GuiQuad}
+ * and {@link GuiTexturedQuad}.
+ */
 public class RenderUtil {
 
 	private RenderUtil() {}
 
-	private final static VertexFormat VF_POS_TEX_NORMAL = VertexFormat.builder().add("Position", VertexFormatElement.POSITION).add("UV0", VertexFormatElement.UV_0).add("Normal", VertexFormatElement.NORMAL).build();
-	private final static Tessellator tessellator = Tessellator.getInstance();
-	private static BufferBuilder vertexBuffer;
-	private final static TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+	/** Segments used to approximate a circle. */
+	private static final int CIRCLE_SIDES = 50;
 
-	public static int getWidth(Text text) {
-		return textRenderer.getWidth(text);
+	private final static Font textRenderer = Minecraft.getInstance().font;
+
+	public static int getWidth(Component text) {
+		return textRenderer.width(text);
 	}
 
 	public static int getWidth(String string) {
-		return textRenderer.getWidth(string);
+		return textRenderer.width(string);
 	}
 
-	public void drawCenteredString(DrawContext context, String string, double x, double y, int color) {
-		context.drawTextWithShadow(textRenderer, string, (int) (x - textRenderer.getWidth(string) / 2), (int) y, color);
+	public static void drawCenteredString(GuiGraphicsExtractor context, String string, double x, double y, int color) {
+		context.text(textRenderer, string, (int) (x - textRenderer.width(string) / 2), (int) y, color);
 	}
 
-	public static void drawCenteredText(DrawContext context, Text text, double x, double y, int color) {
-		context.drawTextWithShadow(textRenderer, text, (int) (x - textRenderer.getWidth(text) / 2), (int) y, color);
+	public static void drawCenteredText(GuiGraphicsExtractor context, Component text, double x, double y, int color) {
+		context.text(textRenderer, text, (int) (x - textRenderer.width(text) / 2), (int) y, color);
 	}
 
-	public static void drawBoundedString(DrawContext context, String string, int x, int y, int leftBound, int rightBound, int color) {
+	public static void drawBoundedString(GuiGraphicsExtractor context, String string, int x, int y, int leftBound, int rightBound, int color) {
 		if (string == null) return;
 
-		int stringWidth = textRenderer.getWidth(string);
+		int stringWidth = textRenderer.width(string);
 		int drawX = x - stringWidth / 2;
 		if (drawX < leftBound) {
 			drawX = leftBound;
@@ -58,225 +60,159 @@ public class RenderUtil {
 			drawX = rightBound - stringWidth;
 		}
 
-		context.drawTextWithShadow(textRenderer, string, drawX, y, color);
+		context.text(textRenderer, string, drawX, y, color);
 	}
 
-	public static void drawRightAlignedString(DrawContext context, String string, int x, int y, int color) {
-		context.drawTextWithShadow(textRenderer, string, x - textRenderer.getWidth(string), y, color);
+	public static void drawRightAlignedString(GuiGraphicsExtractor context, String string, int x, int y, int color) {
+		context.text(textRenderer, string, x - textRenderer.width(string), y, color);
 	}
 
-	public static void drawDiamond(double x, double y, int width, int height, int color) {
-		drawTriangle(x, y + height / 2,
-				 x + width, y + height / 2,
-				 x + width / 2, y,
-				 color);
-		drawTriangle(x, y + height / 2,
-				 x + width / 2, y + height,
-				 x + width, y + height / 2,
-				 color);
+	// -- solid shapes ------------------------------------------------------------------
+
+	public static void fill(GuiGraphicsExtractor context, double x, double y, double w, double h, int color) {
+		quad(context,
+			 (float) x, (float) y,
+			 (float) x, (float) (y + h),
+			 (float) (x + w), (float) (y + h),
+			 (float) (x + w), (float) y,
+			 color);
 	}
 
-	public static void bindTexture(Identifier id) {
-		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
-		RenderSystem.setShaderTexture(0, id);
+	public static void drawTriangle(GuiGraphicsExtractor context, double x1, double y1, double x2, double y2, double x3, double y3, int color) {
+		// The GUI batches quads, so a triangle repeats its last corner.
+		quad(context, (float) x1, (float) y1, (float) x2, (float) y2, (float) x3, (float) y3, (float) x3, (float) y3, color);
 	}
 
-	public static void bindTexture(int id) {
-		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
-		RenderSystem.setShaderTexture(0, id);
+	public static void drawDiamond(GuiGraphicsExtractor context, double x, double y, int width, int height, int color) {
+		quad(context,
+			 (float) x, (float) (y + height / 2.0),
+			 (float) (x + width / 2.0), (float) (y + height),
+			 (float) (x + width), (float) (y + height / 2.0),
+			 (float) (x + width / 2.0), (float) y,
+			 color);
 	}
 
-	public static void applyFilter(boolean force) {
-		// This is not working properly. Is it even needed?
-//		if (force || ClientSettings.textureFilter) {
-//			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MIN_FILTER, GLC.GL_LINEAR_MIPMAP_LINEAR);
-//			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MAG_FILTER, GLC.GL_LINEAR);
-//		} else {
-//			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MIN_FILTER, GLC.GL_LINEAR_MIPMAP_NEAREST);
-//			RenderSystem.texParameter(GLC.GL_TEXTURE_2D, GLC.GL_TEXTURE_MAG_FILTER, GLC.GL_NEAREST);
-//		}
+	public static void drawLine(GuiGraphicsExtractor context, double x1, double y1, double x2, double y2, int color) {
+		double dx = x2 - x1;
+		double dy = y2 - y1;
+		double length = Math.sqrt(dx * dx + dy * dy);
+		if (length == 0.0) return;
+
+		// half a pixel either side of the ideal line
+		double nx = -dy / length * 0.5;
+		double ny = dx / length * 0.5;
+
+		quad(context,
+			 (float) (x1 + nx), (float) (y1 + ny),
+			 (float) (x2 + nx), (float) (y2 + ny),
+			 (float) (x2 - nx), (float) (y2 - ny),
+			 (float) (x1 - nx), (float) (y1 - ny),
+			 color);
 	}
 
-	public static void enable(int target) {
-		GL11.glEnable(target);
-	}
-
-	public static void disable(int target) {
-		GL11.glDisable(target);
-	}
-
-	public static void enableScissor() {
-		RenderSystem.assertOnRenderThread();
-		enable(GLC.GL_SCISSOR_TEST);
-	}
-
-	public static void disableScissor() {
-		RenderSystem.assertOnRenderThread();
-		disable(GLC.GL_SCISSOR_TEST);
-	}
-
-	public static void applyScissor(int x, int y, int width, int height) {
-		RenderSystem.assertOnRenderThread();
-		GL11.glScissor(x, y, width, height);
-	}
-
-	public static void texEnvMode(int mode) {
-		// Crashes, and does not seem to be needed?
-		// GL11.glTexEnvi(GLC.GL_TEXTURE_ENV, GLC.GL_TEXTURE_ENV_MODE, mode);
-	}
-
-	public static void startDraw() {
-		startDraw(VertexFormats.POSITION_TEXTURE);
-	}
-
-	public static void startDrawNormal() {
-		startDraw(VF_POS_TEX_NORMAL);
-	}
-
-	public static void startDraw(VertexFormat vertexFormat) {
-		startDraw(VertexFormat.DrawMode.QUADS, vertexFormat);
-	}
-
-	public static void startDraw(VertexFormat.DrawMode mode, VertexFormat vertexFormat) {
-		vertexBuffer = tessellator.begin(mode, vertexFormat);
-	}
-
-	public static void endDraw() {
-		var builtBuffer = vertexBuffer.endNullable();
-		if (builtBuffer != null) {
-			BufferRenderer.drawWithGlobalProgram(builtBuffer);
-		}
-	}
-
-	public static void drawQuad(double x, double y, double w, double h) {
-		startDraw();
-		addQuad(x, y, w, h);
-		endDraw();
-	}
-
-	public static BufferBuilder getBuffer() {
-		return vertexBuffer;
-	}
-
-	public static void drawTriangle(double x1, double y1, double x2, double y2, double x3, double y3, int color) {
-		float a = (float)(color >> 24 & 255) / 255.0F;
-		float r = (float)(color >> 16 & 255) / 255.0F;
-		float g = (float)(color >> 8 & 255) / 255.0F;
-		float b = (float)(color & 255) / 255.0F;
-
-		RenderSystem.setShaderColor(r, g, b, a);
-		RenderSystem.setShader(ShaderProgramKeys.POSITION);
-		startDraw(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION);
-		vertexBuffer.vertex((float) x1, (float) y1, 0);
-		vertexBuffer.vertex((float) x2, (float) y2, 0);
-		vertexBuffer.vertex((float) x3, (float) y3, 0);
-		endDraw();
-	}
-
-	public static void drawLine(double x1, double y1, double x2, double y2, int color) {
-		float a = (float)(color >> 24 & 255) / 255.0F;
-		float r = (float)(color >> 16 & 255) / 255.0F;
-		float g = (float)(color >> 8 & 255) / 255.0F;
-		float b = (float)(color & 255) / 255.0F;
-
-		RenderSystem.setShaderColor(r, g, b, a);
-		RenderSystem.setShader(ShaderProgramKeys.POSITION);
-		startDraw(VertexFormat.DrawMode.LINES, VertexFormats.POSITION);
-		vertexBuffer.vertex((float) x1, (float) y1, 0);
-		vertexBuffer.vertex((float) x2, (float) y2, 0);
-		endDraw();
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-	}
-
-	public static void drawOutlineCircle(double x, double y, double radius, double outline, int color) {
+	public static void drawOutlineCircle(GuiGraphicsExtractor context, double x, double y, double radius, double outline, int color) {
 		int darken = ColorUtil.colorBrigtness(color, -3);
-		RenderUtil.drawCircle(x, y, radius + outline, darken);
-		RenderUtil.drawCircle(x, y, radius, color);
+		drawCircle(context, x, y, radius + outline, darken);
+		drawCircle(context, x, y, radius, color);
 	}
 
-	public static void drawCircle(double x, double y, double radius, int color) {
-		float a = (float)(color >> 24 & 255) / 255.0F;
-		float r = (float)(color >> 16 & 255) / 255.0F;
-		float g = (float)(color >> 8 & 255) / 255.0F;
-		float b = (float)(color & 255) / 255.0F;
+	public static void drawCircle(GuiGraphicsExtractor context, double x, double y, double radius, int color) {
+		double step = Math.PI * 2 / CIRCLE_SIDES;
+		double angle = Math.toRadians(180);
+		double px = x + Math.sin(angle) * radius;
+		double py = y + Math.cos(angle) * radius;
 
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShaderColor(r, g, b, a);
-		RenderSystem.setShader(ShaderProgramKeys.POSITION);
-		drawCircleVertices(x, y, radius);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.disableBlend();
-	}
+		for (int i = 1; i <= CIRCLE_SIDES; i++) {
+			double next = angle + step * i;
+			double nx = x + Math.sin(next) * radius;
+			double ny = y + Math.cos(next) * radius;
 
-	public static void drawCircleVertices(double x, double y, double radius) {
-		double pi2 = Math.PI * 2;
-		startDraw(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION);
-		vertexBuffer.vertex((float) x, (float) y, 0);
-		int sides = 50;
-		for (int i = 0; i <= sides; i++) {
-			double angle = (pi2 * i / sides) + Math.toRadians(180);
-			double vx = x + Math.sin(angle) * radius;
-			double vy = y + Math.cos(angle) * radius;
-			vertexBuffer.vertex((float) vx, (float) vy, 0);
+			// fan segment as a degenerate quad
+			quad(context, (float) x, (float) y, (float) px, (float) py, (float) nx, (float) ny, (float) nx, (float) ny, color);
+
+			px = nx;
+			py = ny;
 		}
-		endDraw();
 	}
 
-	public static void fill(double x, double y, double w, double h, int color) {
-		fill(AffineTransformation.identity().getMatrix(), x, y, w, h, color);
+	/** Submits one solid quad in the current pose. Corners must wind consistently. */
+	public static void quad(GuiGraphicsExtractor context,
+							float x0, float y0, float x1, float y1,
+							float x2, float y2, float x3, float y3, int color) {
+
+		context.guiRenderState.addGuiElement(new GuiQuad(
+				RenderPipelines.GUI, TextureSetup.noTexture(), new Matrix3x2f(context.pose()),
+				x0, y0, x1, y1, x2, y2, x3, y3, color, context.scissorStack.peek()));
 	}
 
-	public static void fill(MatrixStack matrices, double x, double y, double w, double h, int color) {
-		fill(matrices.peek().getPositionMatrix(), x, y, w, h, color);
+	// -- textures ----------------------------------------------------------------------
+
+	private static AbstractTexture texture(Identifier id) {
+		return Minecraft.getInstance().getTextureManager().getTexture(id);
 	}
 
-	public static void fill(Matrix4f matrix4f, double x, double y, double w, double h, int color) {
-		float a = (float)(color >> 24 & 255) / 255.0F;
-		float r = (float)(color >> 16 & 255) / 255.0F;
-		float g = (float)(color >> 8 & 255) / 255.0F;
-		float b = (float)(color & 255) / 255.0F;
+	/** Submits one textured quad in the current pose, with sub-pixel accurate corners. */
+	public static void texturedQuad(GuiGraphicsExtractor context, GpuTextureView view, GpuSampler sampler,
+									double x, double y, double w, double h,
+									float minU, float minV, float maxU, float maxV) {
 
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
-		startDraw(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-		vertexBuffer.vertex(matrix4f, (float) x, (float) (y + h), 0.0F).color(r, g, b, a);
-		vertexBuffer.vertex(matrix4f, (float) (x + w), (float) (y + h), 0.0F).color(r, g, b, a);
-		vertexBuffer.vertex(matrix4f, (float) (x + w), (float) y, 0.0F).color(r, g, b, a);
-		vertexBuffer.vertex(matrix4f, (float) x, (float) y, 0.0F).color(r, g, b, a);
-		endDraw();
-		RenderSystem.disableBlend();
+		texturedQuad(context, view, sampler, x, y, w, h, minU, minV, maxU, maxV, -1);
 	}
 
-	public static void draw(DrawContext context, double x, double y, float w, float h) {
-		startDrawNormal();
-		draw(context, vertexBuffer, x, y, w, h, 0.0F, 0.0F, 1.0F, 1.0F);
-		endDraw();
+	/** As above, multiplying the sampled texture by {@code tint} (an ARGB colour). */
+	public static void texturedQuad(GuiGraphicsExtractor context, GpuTextureView view, GpuSampler sampler,
+									double x, double y, double w, double h,
+									float minU, float minV, float maxU, float maxV, int tint) {
+
+		float x0 = (float) x;
+		float y0 = (float) y;
+		float x1 = (float) (x + w);
+		float y1 = (float) (y + h);
+
+		context.guiRenderState.addGuiElement(new GuiTexturedQuad(
+				RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(view, sampler), new Matrix3x2f(context.pose()),
+				x0, y0, minU, minV,
+				x0, y1, minU, maxV,
+				x1, y1, maxU, maxV,
+				x1, y0, maxU, minV,
+				tint, context.scissorStack.peek()));
 	}
 
-	public static void drawPlayerHead(DrawContext context, double x, double y, int w, int h) {
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		startDrawNormal();
-		draw(context, x, y, w, h, 0.125F, 0.125F, 0.25F, 0.25F);
-		draw(context, x, y, w, h, 0.625F, 0.125F, 0.75F, 0.25F);
-		endDraw();
+	public static void drawTexture(GuiGraphicsExtractor context, Identifier id,
+								   double x, double y, double w, double h,
+								   float minU, float minV, float maxU, float maxV) {
+
+		drawTexture(context, id, x, y, w, h, minU, minV, maxU, maxV, -1);
 	}
 
-	public static void draw(DrawContext context, double x, double y, int w, int h, int ix, int iy, int iw, int ih, int tw, int th) {
-		float minU = (float) ix / tw;
-		float minV = (float) iy / th;
-		float maxU = (float) (ix + iw) / tw;
-		float maxV = (float) (iy + ih) / th;
+	public static void drawTexture(GuiGraphicsExtractor context, Identifier id,
+								   double x, double y, double w, double h,
+								   float minU, float minV, float maxU, float maxV, int tint) {
 
-		startDrawNormal();
-		draw(context, vertexBuffer, x, y, w, h, minU, minV, maxU, maxV);
-		endDraw();
+		AbstractTexture texture = texture(id);
+		if (texture == null) return;
+		texturedQuad(context, texture.getTextureView(), texture.getSampler(), x, y, w, h, minU, minV, maxU, maxV, tint);
 	}
 
-	public static void drawSkin(DrawContext context, MapSkin skin, double x, double y, float w, float h) {
+	public static void drawTexture(GuiGraphicsExtractor context, Identifier id, double x, double y, double w, double h) {
+		drawTexture(context, id, x, y, w, h, 0.0F, 0.0F, 1.0F, 1.0F);
+	}
+
+	public static void drawTexture(GuiGraphicsExtractor context, Identifier id, double x, double y, double w, double h, int tint) {
+		drawTexture(context, id, x, y, w, h, 0.0F, 0.0F, 1.0F, 1.0F, tint);
+	}
+
+	public static void drawImage(GuiGraphicsExtractor context, Image image, double x, double y, float w, float h) {
+		drawTexture(context, image.getId(), x, y, w, h);
+	}
+
+	/** Draws the head and hat layers of a player skin as a square icon. */
+	public static void drawPlayerHead(GuiGraphicsExtractor context, Identifier skin, double x, double y, int w, int h, int tint) {
+		drawTexture(context, skin, x, y, w, h, 0.125F, 0.125F, 0.25F, 0.25F, tint);
+		drawTexture(context, skin, x, y, w, h, 0.625F, 0.125F, 0.75F, 0.25F, tint);
+	}
+
+	public static void drawSkin(GuiGraphicsExtractor context, MapSkin skin, double x, double y, float w, float h) {
 		RenderData renderData = skin.getRenderData();
 
 		if (renderData.scaleChanged || renderData.x != x || renderData.y != y ||
@@ -284,6 +220,12 @@ public class RenderUtil {
 
 			renderData.calculate(x, y, w, h);
 		}
+
+		AbstractTexture texture = texture(skin.getId());
+		if (texture == null) return;
+
+		GpuTextureView view = texture.getTextureView();
+		GpuSampler sampler = texture.getSampler();
 
 		float sMinU = 0.0F;
 		float sMaxU = 1.0F;
@@ -301,46 +243,39 @@ public class RenderUtil {
 		float topV = renderData.topV;
 		float bottomV = renderData.bottomV;
 
-		RenderSystem.enableBlend();
-		RenderSystem.enableCull();
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
-		skin.bindTexture();
-		startDrawNormal();
-
-		draw(context, vertexBuffer, x, y, scaledBrd, scaledBrd, sMinU, sMinV, leftU, topV);
-		draw(context, vertexBuffer, rightC, y, scaledBrd, scaledBrd, rightU, sMinV, sMaxU, topV);
-		draw(context, vertexBuffer, x, bottomC, scaledBrd, scaledBrd, sMinU, bottomV, leftU, sMaxV);
-		draw(context, vertexBuffer, rightC, bottomC, scaledBrd, scaledBrd, rightU, bottomV, sMaxU, sMaxV);
+		texturedQuad(context, view, sampler, x, y, scaledBrd, scaledBrd, sMinU, sMinV, leftU, topV);
+		texturedQuad(context, view, sampler, rightC, y, scaledBrd, scaledBrd, rightU, sMinV, sMaxU, topV);
+		texturedQuad(context, view, sampler, x, bottomC, scaledBrd, scaledBrd, sMinU, bottomV, leftU, sMaxV);
+		texturedQuad(context, view, sampler, rightC, bottomC, scaledBrd, scaledBrd, rightU, bottomV, sMaxU, sMaxV);
 
 		if (skin.resizable) {
-			draw(context, vertexBuffer, rightC, topC, scaledBrd, vSide, rightU, topV, sMaxU, bottomV);
-			draw(context, vertexBuffer, x, topC, scaledBrd, vSide, sMinU, topV, leftU, bottomV);
-			draw(context, vertexBuffer, leftC, topC, hSide, vSide, leftU, topV, rightU, bottomV);
+			texturedQuad(context, view, sampler, rightC, topC, scaledBrd, vSide, rightU, topV, sMaxU, bottomV);
+			texturedQuad(context, view, sampler, x, topC, scaledBrd, vSide, sMinU, topV, leftU, bottomV);
+			texturedQuad(context, view, sampler, leftC, topC, hSide, vSide, leftU, topV, rightU, bottomV);
 			if (skin.repeating) {
 				float tail = renderData.tail;
 				float tailU = renderData.tailU;
 				hSide = vSide;
 
-				draw(context, vertexBuffer, leftC + hSide, y, tail, scaledBrd, leftU, sMinV, tailU, topV);
-				draw(context, vertexBuffer, leftC + hSide, bottomC, tail, scaledBrd, leftU, bottomV, tailU, sMaxV);
+				texturedQuad(context, view, sampler, leftC + hSide, y, tail, scaledBrd, leftU, sMinV, tailU, topV);
+				texturedQuad(context, view, sampler, leftC + hSide, bottomC, tail, scaledBrd, leftU, bottomV, tailU, sMaxV);
 			}
 
-			draw(context, vertexBuffer, leftC, y, hSide, scaledBrd, leftU, sMinV, rightU, topV);
-			draw(context, vertexBuffer, leftC, bottomC, hSide, scaledBrd, leftU, bottomV, rightU, sMaxV);
+			texturedQuad(context, view, sampler, leftC, y, hSide, scaledBrd, leftU, sMinV, rightU, topV);
+			texturedQuad(context, view, sampler, leftC, bottomC, hSide, scaledBrd, leftU, bottomV, rightU, sMaxV);
 		} else {
 			double left = leftC;
 			int segments = renderData.hSegments;
 			for (int i = 0; i < segments; i++) {
-				draw(context, vertexBuffer, left, y, hSide, scaledBrd, leftU, sMinV, rightU, topV);
-				draw(context, vertexBuffer, left, bottomC, hSide, scaledBrd, leftU, bottomV, rightU, sMaxV);
+				texturedQuad(context, view, sampler, left, y, hSide, scaledBrd, leftU, sMinV, rightU, topV);
+				texturedQuad(context, view, sampler, left, bottomC, hSide, scaledBrd, leftU, bottomV, rightU, sMaxV);
 				left += hSide;
 			}
 			double top = topC;
 			segments = renderData.vSegments;
 			for (int i = 0; i < segments; i++) {
-				draw(context, vertexBuffer, x, top, scaledBrd, vSide, sMinU, topV, leftU, bottomV);
-				draw(context, vertexBuffer, rightC, top, scaledBrd, vSide, rightU, topV, sMaxU, bottomV);
+				texturedQuad(context, view, sampler, x, top, scaledBrd, vSide, sMinU, topV, leftU, bottomV);
+				texturedQuad(context, view, sampler, rightC, top, scaledBrd, vSide, rightU, topV, sMaxU, bottomV);
 				top += vSide;
 			}
 
@@ -349,80 +284,10 @@ public class RenderUtil {
 			float hTailU = renderData.hTailU;
 			float vTailV = renderData.vTailV;
 
-			draw(context, vertexBuffer, left, y, hTail, scaledBrd, leftU, sMinV, hTailU, topV);
-			draw(context, vertexBuffer, left, bottomC, hTail, scaledBrd, leftU, bottomV, hTailU, sMaxV);
-			draw(context, vertexBuffer, x, top, scaledBrd, vTail, sMinU, topV, leftU, vTailV);
-			draw(context, vertexBuffer, rightC, top, scaledBrd, vTail, rightU, topV, sMaxU, vTailV);
+			texturedQuad(context, view, sampler, left, y, hTail, scaledBrd, leftU, sMinV, hTailU, topV);
+			texturedQuad(context, view, sampler, left, bottomC, hTail, scaledBrd, leftU, bottomV, hTailU, sMaxV);
+			texturedQuad(context, view, sampler, x, top, scaledBrd, vTail, sMinU, topV, leftU, vTailV);
+			texturedQuad(context, view, sampler, rightC, top, scaledBrd, vTail, rightU, topV, sMaxU, vTailV);
 		}
-
-		endDraw();
-	}
-
-	public static void drawImage(DrawContext context, Image image, double x, double y, float w, float h) {
-		RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
-		image.bindTexture();
-		startDrawNormal();
-		draw(context, vertexBuffer, x, y, w, h, 0.0F, 0.0F, 1.0F, 1.0F);
-		endDraw();
-	}
-
-	private static void draw(DrawContext context, VertexConsumer vertexConsumer, double x, double y, float w, float h, float minU, float minV, float maxU, float maxV) {
-		RenderSystem.enableBlend();
-		RenderSystem.enableCull();
-
-		MatrixStack matrixStack = context.getMatrices();
-		matrixStack.push();
-		matrixStack.translate(x, y, 0);
-
-		Matrix4f m4f = matrixStack.peek().getPositionMatrix();
-		MatrixStack.Entry mse = matrixStack.peek();
-
-		addVertices(m4f, mse, vertexConsumer, w, h, minU, minV, maxU, maxV);
-
-		matrixStack.pop();
-	}
-
-	private static void draw(DrawContext context, double x, double y, float w, float h, float minU, float minV, float maxU, float maxV) {
-		draw(context, vertexBuffer, x, y, w, h, minU, minV, maxU, maxV);
-	}
-
-	private static void addVertices(Matrix4f m4f, MatrixStack.Entry mse, VertexConsumer vertexConsumer, float w, float h, float minU, float minV, float maxU, float maxV) {
-		addVertices(m4f, mse, vertexConsumer, 0, w, 0, h, minU, minV, maxU, maxV);
-	}
-
-	private static void addVertices(Matrix4f m4f, MatrixStack.Entry mse, VertexConsumer vertexConsumer, float minX, float maxX, float minY, float maxY, float minU, float minV, float maxU, float maxV) {
-		vertex(m4f, mse, vertexConsumer, minX, minY, 1.0F, minU, minV);
-		vertex(m4f, mse, vertexConsumer, minX, maxY, 1.0F, minU, maxV);
-		vertex(m4f, mse, vertexConsumer, maxX, maxY, 1.0F, maxU, maxV);
-		vertex(m4f, mse, vertexConsumer, maxX, minY, 1.0F, maxU, minV);
-	}
-
-	public static void addQuad(double x, double y, double w, double h) {
-		addQuad(x, y, w, h, 0.0F, 0.0F, 1.0F, 1.0F);
-	}
-
-	public static void addQuad(double x, double y, double w, double h, float minU, float minV, float maxU, float maxV) {
-		vertex((float) x, (float) (y + h), 0.0f, minU, maxV);
-		vertex((float) (x + w), (float) (y + h), 0.0f, maxU, maxV);
-		vertex((float) (x + w), (float) y, 0.0f, maxU, minV);
-		vertex((float) x, (float) y, 0.0f, minU, minV);
-	}
-
-	public static void addQuad(MatrixStack matrices, double x, double y, double w, double h, float minU, float minV, float maxU, float maxV) {
-		Matrix4f m4f = matrices.peek().getPositionMatrix();
-		MatrixStack.Entry mse = matrices.peek();
-
-		vertex(m4f, mse, vertexBuffer, (float) x, (float) (y + h), 1.0F, minU, maxV);
-		vertex(m4f, mse, vertexBuffer, (float) (x + w), (float) (y + h), 1.0F, maxU, maxV);
-		vertex(m4f, mse, vertexBuffer, (float) (x + w), (float) y, 1.0F, maxU, minV);
-		vertex(m4f, mse, vertexBuffer, (float) x, (float) y, 1.0F, minU, minV);
-	}
-
-	private static void vertex(Matrix4f m4f, MatrixStack.Entry mse, VertexConsumer vertexConsumer, float x, float y, float z, float u, float v) {
-		vertexConsumer.vertex(m4f, x, y, z).texture(u, v).normal(mse, 0.0F, 1.0F, 0.0F);
-	}
-
-	private static void vertex(double x, double y, double z, float u, float v) {
-		vertexBuffer.vertex((float) x, (float) y, (float) z).texture(u, v);
 	}
 }

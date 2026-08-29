@@ -3,8 +3,9 @@ package ru.bulldog.justmap.client.control;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.option.KeyBinding;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 import ru.bulldog.justmap.JustMap;
@@ -30,7 +31,7 @@ public final class KeyHandler {
 
 			@Override
 			public boolean isListening() {
-				return MC.player != null && MC.currentScreen == null;
+				return MC.player != null && MC.gui.screen() == null;
 			}
 		});
 
@@ -87,36 +88,36 @@ public final class KeyHandler {
 		registerKey(new KeyParser(createKeyBinding("waypoints_list", GLFW.GLFW_KEY_U)) {
 			@Override
 			public void onKeyUp() {
-				MC.setScreen(new WaypointsListScreen(null));
+				MC.setScreenAndShow(new WaypointsListScreen(null));
 			}
 
 			@Override
 			public boolean isListening() {
-				return MC.player != null && MC.currentScreen == null;
+				return MC.player != null && MC.gui.screen() == null;
 			}
 		});
 
 		registerKey(new KeyParser(createKeyBinding("show_config", GLFW.GLFW_KEY_J)) {
 			@Override
 			public void onKeyUp() {
-				MC.setScreen(ConfigFactory.getConfigScreen(null));
+				MC.setScreenAndShow(ConfigFactory.getConfigScreen(null));
 			}
 
 			@Override
 			public boolean isListening() {
-				return MC.currentScreen == null;
+				return MC.gui.screen() == null;
 			}
 		});
 
 		registerKey(new KeyParser(createKeyBinding("show_worldmap", GLFW.GLFW_KEY_M)) {
 			@Override
 			public void onKeyUp() {
-				MC.setScreen(WorldmapScreen.getScreen());
+				MC.setScreenAndShow(WorldmapScreen.getScreen());
 			}
 
 			@Override
 			public boolean isListening() {
-				return MC.player != null && MC.currentScreen == null;
+				return MC.player != null && MC.gui.screen() == null;
 			}
 		});
 
@@ -148,9 +149,9 @@ public final class KeyHandler {
 	public static void updateOnTick() {
 		for (KeyParser kp : parsers) {
 			if (kp.isListening()) {
-				if (kp.keyBinding.wasPressed()) {
+				if (kp.keyBinding.consumeClick()) {
 					kp.onKeyUp();
-				} else if (kp.keyBinding.isPressed()) {
+				} else if (kp.keyBinding.isDown()) {
 					kp.onKeyDown();
 				}
 			}
@@ -158,11 +159,14 @@ public final class KeyHandler {
 	}
 
 	private static void registerKey(KeyParser parser) {
-		KeyBindingHelper.registerKeyBinding(parser.keyBinding);
+		KeyMappingHelper.registerKeyMapping(parser.keyBinding);
 		parsers.add(parser);
 	}
 
-	private static KeyBinding createKeyBinding(String name, int key) {
-		return new KeyBinding(String.format("key.%s.%s", JustMap.MODID, name), key, JustMap.MODID);
+	private static final KeyMapping.Category CATEGORY =
+			KeyMapping.Category.register(Identifier.fromNamespaceAndPath(JustMap.MODID, JustMap.MODID));
+
+	private static KeyMapping createKeyBinding(String name, int key) {
+		return new KeyMapping(String.format("key.%s.%s", JustMap.MODID, name), key, CATEGORY);
 	}
 }

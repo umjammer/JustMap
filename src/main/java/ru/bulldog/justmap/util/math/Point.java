@@ -1,10 +1,8 @@
 package ru.bulldog.justmap.util.math;
 
 import java.util.Arrays;
-
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
 import ru.bulldog.justmap.map.data.RegionPos;
 
 public class Point {
@@ -17,7 +15,7 @@ public class Point {
 	}
 
 	public static Point fromPos(ChunkPos pos) {
-		return new Point(pos.x, pos.z);
+		return new Point(pos.x(), pos.z());
 	}
 
 	public static Point fromPos(RegionPos pos) {

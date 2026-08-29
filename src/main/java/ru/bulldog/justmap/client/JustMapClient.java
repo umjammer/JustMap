@@ -1,23 +1,25 @@
 package ru.bulldog.justmap.client;
 
+import com.mojang.realmsclient.RealmsMainScreen;
+import com.mojang.realmsclient.gui.screens.RealmsGenericErrorScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
-import net.minecraft.client.gui.screen.world.BackupPromptScreen;
-import net.minecraft.client.gui.screen.world.CreateWorldScreen;
-import net.minecraft.client.gui.screen.world.EditGameRulesScreen;
-import net.minecraft.client.gui.screen.world.EditWorldScreen;
-import net.minecraft.client.gui.screen.world.SelectWorldScreen;
-import net.minecraft.client.realms.gui.screen.RealmsGenericErrorScreen;
-import net.minecraft.client.realms.gui.screen.RealmsMainScreen;
-import net.minecraft.text.TranslatableTextContent;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.BackupConfirmScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
+import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
+import net.minecraft.client.gui.screens.worldselection.AbstractGameRulesScreen;
+import net.minecraft.client.gui.screens.worldselection.EditWorldScreen;
+import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.Identifier;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.advancedinfo.AdvancedInfo;
 import ru.bulldog.justmap.client.config.ClientConfig;
@@ -33,7 +35,7 @@ import ru.bulldog.justmap.util.tasks.TaskManager;
 public class JustMapClient implements ClientModInitializer {
 	private static ClientConfig config = ClientConfig.get();
 	private static Minimap minimap = new Minimap();
-	private static MinecraftClient minecraft;
+	private static Minecraft minecraft;
 	private static ClientNetworkHandler networkHandler;
 	private static boolean isOnTitleScreen = true;
 
@@ -51,15 +53,22 @@ public class JustMapClient implements ClientModInitializer {
 			WaypointRenderer.startWaypointRender();
 		});
 		ClientChunkEvents.CHUNK_LOAD.register(MapDataProvider.getManager()::onChunkLoad);
-		HudRenderCallback.EVENT.register((context, delta) -> {
-			if (!minecraft.options.getReducedDebugInfo().getValue()) {
+		HudElementRegistry.attachElementAfter(VanillaHudElements.MISC_OVERLAYS,
+				Identifier.fromNamespaceAndPath(JustMap.MODID, "minimap"), (context, delta) -> {
+			if (!minecraft.options.reducedDebugInfo().get()) {
 				JustMapClient.minimap.getRenderer().renderMap(context);
 				AdvancedInfo.getInstance().draw(context);
 			}
 		});
+		HudElementRegistry.attachElementAfter(VanillaHudElements.MISC_OVERLAYS,
+				Identifier.fromNamespaceAndPath(JustMap.MODID, "waypoints"), (context, delta) ->
+			WaypointRenderer.renderHUD(context,
+					delta.getGameTimeDeltaPartialTick(false),
+					minecraft.options.fov().get())
+		);
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (minecraft == null) return;
-			boolean isTitle = this.isOnTitleScreen(client.currentScreen);
+			boolean isTitle = this.isOnTitleScreen(client.gui.screen());
 			if (isTitle && !isOnTitleScreen) {
 				JustMapClient.stop();
 			}
@@ -88,7 +97,7 @@ public class JustMapClient implements ClientModInitializer {
 	}
 
 	public static boolean canMapping() {
-		return !isOnTitleScreen && MapDataProvider.getMultiworldManager().isMappingEnabled() && minecraft.world != null &&
+		return !isOnTitleScreen && MapDataProvider.getMultiworldManager().isMappingEnabled() && minecraft.level != null &&
 				(minecraft.getCameraEntity() != null || minecraft.player != null);
 	}
 
@@ -108,17 +117,17 @@ public class JustMapClient implements ClientModInitializer {
 		if (currentScreen == null) return false;
 
 		boolean isTitleScreen = false;
-		if (currentScreen.getTitle() instanceof TranslatableTextContent) {
-			TranslatableTextContent title = (TranslatableTextContent) currentScreen.getTitle();
+		if (currentScreen.getTitle() instanceof TranslatableContents) {
+			TranslatableContents title = (TranslatableContents) currentScreen.getTitle();
 			isTitleScreen = title.getKey().equals("dataPack.title");
 		}
 
 		return currentScreen instanceof TitleScreen ||
 			currentScreen instanceof SelectWorldScreen ||
-			currentScreen instanceof MultiplayerScreen ||
-			currentScreen instanceof BackupPromptScreen ||
+			currentScreen instanceof JoinMultiplayerScreen ||
+			currentScreen instanceof BackupConfirmScreen ||
 			currentScreen instanceof CreateWorldScreen ||
-			currentScreen instanceof EditGameRulesScreen ||
+			currentScreen instanceof AbstractGameRulesScreen ||
 			currentScreen instanceof EditWorldScreen ||
 			currentScreen instanceof RealmsMainScreen ||
 			currentScreen instanceof RealmsGenericErrorScreen ||

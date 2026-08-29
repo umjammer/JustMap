@@ -1,41 +1,43 @@
 package ru.bulldog.justmap.util.colors;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import java.util.ArrayList;
 import java.util.List;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.impl.client.indigo.renderer.helper.ColorHelper;
-import net.fabricmc.fabric.impl.client.rendering.fluid.FluidRenderHandlerRegistryImpl;
-import net.minecraft.block.AttachedStemBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.FlowerBlock;
-import net.minecraft.block.FluidBlock;
-import net.minecraft.block.GrassBlock;
-import net.minecraft.block.LeavesBlock;
-import net.minecraft.block.LilyPadBlock;
-import net.minecraft.block.ShortPlantBlock;
-import net.minecraft.block.StemBlock;
-import net.minecraft.block.SugarCaneBlock;
-import net.minecraft.block.TallPlantBlock;
-import net.minecraft.block.VineBlock;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.color.world.BiomeColors;
-import net.minecraft.client.render.block.BlockModels;
-import net.minecraft.client.render.model.BakedQuad;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.color.block.BlockTintSource;
+import net.minecraft.client.renderer.BiomeColors;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.FluidModel;
+import net.minecraft.client.renderer.block.BlockStateModelSet;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.AttachedStemBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DoublePlantBlock;
+import net.minecraft.world.level.block.FlowerBlock;
+import net.minecraft.world.level.block.GrassBlock;
+import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.StemBlock;
+import net.minecraft.world.level.block.SugarCaneBlock;
+import net.minecraft.world.level.block.TallGrassBlock;
+import net.minecraft.world.level.block.VineBlock;
+import net.minecraft.world.level.block.LilyPadBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.material.FluidState;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
-import ru.bulldog.justmap.mixins.client.BakedSpriteAccessor;
 import ru.bulldog.justmap.util.BlockStateUtil;
 import ru.bulldog.justmap.util.ImageUtil;
 import ru.bulldog.justmap.util.math.MathUtil;
@@ -43,12 +45,28 @@ import ru.bulldog.justmap.util.math.MathUtil;
 @Environment(EnvType.CLIENT)
 public class ColorUtil {
 
-	private static final MinecraftClient minecraft = MinecraftClient.getInstance();
-	private static final BlockModels blockModels = minecraft.getBlockRenderManager().getModels();
-	private static final FluidRenderHandlerRegistryImpl fluidRenderHandlerRegistry = (FluidRenderHandlerRegistryImpl) FluidRenderHandlerRegistryImpl.INSTANCE;
+	private static final Minecraft minecraft = Minecraft.getInstance();
 	private static final float[] floatBuffer = new float[3];
 	private static final ColorProviders colorProvider = ColorProviders.INSTANCE;
 	private static final Colors colorPalette = Colors.INSTANCE;
+
+	/**
+	 * The baked block models, looked up on demand: since 26.2 asking for them before the
+	 * first resource reload throws, and colours are first needed while the map loads.
+	 */
+	private static BlockStateModelSet blockModels() {
+		return minecraft.getModelManager().getBlockStateModelSet();
+	}
+
+	private static BlockAndTintGetter tintGetter(Level world) {
+		return world instanceof BlockAndTintGetter tintGetter ? tintGetter : null;
+	}
+
+	private static int averageWaterColor(Level world, BlockPos pos) {
+		BlockAndTintGetter tintGetter = tintGetter(world);
+		return tintGetter != null ? BiomeColors.getAverageWaterColor(tintGetter, pos)
+								  : colorProvider.getWaterColor(world, pos);
+	}
 
 	public static int[] toIntArray(int color) {
 		return new int[] {
@@ -200,23 +218,27 @@ public class ColorUtil {
 	}
 
 	public static int applyTint(int color, int tint) {
-		return colorBrigtness(ColorHelper.multiplyColor(color, tint), 1.5F);
+		return colorBrigtness(multiplyColor(color, tint), 1.5F);
 	}
 
 	private static int extractColor(BlockState state) {
-		List<BakedQuad> quads = blockModels.getModel(state).getQuads(state, Direction.UP, Random.create());
+		BlockStateModelSet blockModels = blockModels();
+		BlockStateModel model = blockModels.get(state);
+		List<BlockStateModelPart> parts = new ArrayList<>();
+		model.collectParts(RandomSource.create(), parts);
+		List<BakedQuad> quads = parts.isEmpty() ? List.of() : parts.getFirst().getQuads(Direction.UP);
 
 		Identifier blockSprite;
-		if (quads.size() > 0) {
-			blockSprite = ((BakedSpriteAccessor) quads.get(0)).getSprite().getContents().getId();
+		if (!quads.isEmpty()) {
+			blockSprite = quads.getFirst().materialInfo().sprite().contents().name();
 		} else {
-			blockSprite = blockModels.getModelParticleSprite(state).getContents().getId();
+			blockSprite = blockModels.getParticleMaterial(state).sprite().contents().name();
 		}
 
 		int color = colorPalette.getTextureColor(state, blockSprite);
 		if (color != 0x0) return color;
 
-		Identifier texture = Identifier.of(blockSprite.getNamespace(), String.format("textures/%s.png", blockSprite.getPath()));
+		Identifier texture = Identifier.fromNamespaceAndPath(blockSprite.getNamespace(), String.format("textures/%s.png", blockSprite.getPath()));
 		NativeImage image = ImageUtil.loadImage(texture, 16, 16);
 
 		int height = state.getBlock() instanceof FlowerBlock ? image.getHeight() / 2 : image.getHeight();
@@ -224,7 +246,7 @@ public class ColorUtil {
 		List<Integer> colors = new ArrayList<>();
 		for (int i = 0; i < image.getWidth(); i++) {
 			for (int j = 0; j < height; j++) {
-				int col = image.getColorArgb(i, j);
+				int col = image.getPixel(i, j);
 				if (((col >> 24) & 255) > 0) {
 					colors.add(ABGRtoARGB(col));
 				}
@@ -232,7 +254,7 @@ public class ColorUtil {
 		}
 		image.close();
 
-		if (colors.size() == 0) return -1;
+		if (colors.isEmpty()) return -1;
 
 		ColorExtractor extractor = new ColorExtractor(colors);
 		color = extractor.analyze();
@@ -261,14 +283,14 @@ public class ColorUtil {
 	private static int processAlternateColor(int blockColor, int textureColor, int defaultColor) {
 		blockColor = blockColor == -1 ? defaultColor : blockColor;
 		if (blockColor != -1) {
-			return ColorHelper.multiplyColor(textureColor, blockColor);
+			return multiplyColor(textureColor, blockColor);
 		}
 
 		return textureColor;
 	}
 
-	public static int getBlockColor(WorldChunk worldChunk, BlockPos pos) {
-		World world = worldChunk.getWorld();
+	public static int getBlockColor(LevelChunk worldChunk, BlockPos pos) {
+		Level world = worldChunk.getLevel();
 		BlockPos overPos = new BlockPos(pos.getX(), pos.getY() + 1, pos.getZ());
 		BlockState overState = worldChunk.getBlockState(overPos);
 		BlockState blockState = worldChunk.getBlockState(pos);
@@ -276,20 +298,20 @@ public class ColorUtil {
 		return getTintedBlockColor(world, pos, blockState, overState);
 	}
 
-	private static int getTintedBlockColor(World world, BlockPos pos, BlockState blockState, BlockState overState) {
+	private static int getTintedBlockColor(Level world, BlockPos pos, BlockState blockState, BlockState overState) {
 		boolean waterTint = ClientSettings.alternateColorRender && ClientSettings.waterTint;
 		boolean skipWater = !(ClientSettings.hideWater || waterTint);
 		if (!ClientSettings.hideWater && ClientSettings.hidePlants && BlockStateUtil.isSeaweed(overState)) {
 			if (waterTint) {
 				int color = getBlockColorInner(world, blockState, pos);
-				return applyTint(color, BiomeColors.getWaterColor(world, pos));
+				return applyTint(color, averageWaterColor(world, pos));
 			}
-			return getBlockColorInner(world, Blocks.WATER.getDefaultState(), pos);
+			return getBlockColorInner(world, Blocks.WATER.defaultBlockState(), pos);
 		} else if (!BlockStateUtil.isAir(blockState) && BlockStateUtil.checkState(overState, skipWater, !ClientSettings.hidePlants)) {
 			int color = getBlockColorInner(world, blockState, pos);
 			if (ClientSettings.hideWater) return color;
 			if (waterTint && (BlockStateUtil.isWater(overState) || BlockStateUtil.isWaterlogged(blockState))) {
-				return applyTint(color, BiomeColors.getWaterColor(world, pos));
+				return applyTint(color, averageWaterColor(world, pos));
 			}
 			return color;
 		}
@@ -297,15 +319,15 @@ public class ColorUtil {
 		return -1;
 	}
 
-	private static int getBlockColorInner(World world, BlockState blockState, BlockPos pos) {
+	private static int getBlockColorInner(Level world, BlockState blockState, BlockPos pos) {
 		if (ClientSettings.alternateColorRender) {
 			return getAlternateBlockColor(world, blockState, pos);
 		} else {
-			return blockState.getMapColor(world, pos).color;
+			return blockState.getMapColor(world, pos).col;
 		}
 	}
 
-	private static int getAlternateBlockColor(World world, BlockState blockState, BlockPos pos) {
+	private static int getAlternateBlockColor(Level world, BlockState blockState, BlockPos pos) {
 		int blockColor = colorPalette.getBlockColor(blockState);
 		if (blockColor != 0x0) {
 			return blockColor;
@@ -313,19 +335,24 @@ public class ColorUtil {
 
 		blockColor = colorProvider.getColor(blockState, world, pos);
 		if (blockColor == -1) {
-			blockColor = minecraft.getBlockColors().getColor(blockState, world, pos, Colors.LIGHT);
+			BlockTintSource tintSource = minecraft.getBlockColors().getTintSource(blockState, 0);
+			if (tintSource != null) {
+				BlockAndTintGetter tintGetter = tintGetter(world);
+				blockColor = tintGetter != null ? tintSource.colorInWorld(blockState, tintGetter, pos)
+												: tintSource.color(blockState);
+			}
 		}
 		int textureColor = extractColor(blockState);
 
 		Block block = blockState.getBlock();
 		if (block instanceof VineBlock) {
 			blockColor = processAlternateColor(blockColor, textureColor, colorProvider.getFoliageColor(world, pos));
-		} else if (block instanceof ShortPlantBlock || block instanceof TallPlantBlock || block instanceof SugarCaneBlock) {
+		} else if (block instanceof TallGrassBlock || block instanceof DoublePlantBlock || block instanceof SugarCaneBlock) {
 			blockColor = processAlternateColor(blockColor, textureColor, colorProvider.getGrassColor(world, pos));
 		} else if (block instanceof LilyPadBlock || block instanceof StemBlock || block instanceof AttachedStemBlock) {
-			blockColor = processAlternateColor(blockColor, textureColor, blockState.getMapColor(world, pos).color);
+			blockColor = processAlternateColor(blockColor, textureColor, blockState.getMapColor(world, pos).col);
 			colorPalette.addBlockColor(blockState, blockColor);
-		} else if (block instanceof FluidBlock) {
+		} else if (block instanceof LiquidBlock) {
 			if (BlockStateUtil.isWater(blockState)) {
 				blockColor = processAlternateColor(blockColor, textureColor, colorProvider.getWaterColor(world, pos));
 			} else {
@@ -333,26 +360,45 @@ public class ColorUtil {
 				colorPalette.addFluidColor(blockState, blockColor);
 			}
 		} else if (blockColor != -1) {
-			blockColor = ColorHelper.multiplyColor(textureColor, blockColor);
+			blockColor = multiplyColor(textureColor, blockColor);
 			if (block.equals(Blocks.BIRCH_LEAVES) || block.equals(Blocks.SPRUCE_LEAVES)) {
 				colorPalette.addBlockColor(blockState, blockColor);
 			} else if (!(block instanceof LeavesBlock) && !(block instanceof GrassBlock)) {
 				colorPalette.addBlockColor(blockState, blockColor);
 			}
 		} else {
-			blockColor = textureColor != -1 ? textureColor : blockState.getMapColor(world, pos).color;
+			blockColor = textureColor != -1 ? textureColor : blockState.getMapColor(world, pos).col;
 			colorPalette.addBlockColor(blockState, blockColor);
 		}
 
 		return blockColor;
 	}
 
-	private static int fluidColor(World world, BlockState state, BlockPos pos, int defColor) {
+	private static int fluidColor(Level world, BlockState state, BlockPos pos, int defColor) {
 		int color = colorPalette.getFluidColor(state);
 		if (color == 0x0) {
 			FluidState fluidState = state.getBlock().getFluidState(state);
-			color = fluidRenderHandlerRegistry.get(fluidState.getFluid()).getFluidColor(world, pos, fluidState);
+			FluidModel fluidModel = minecraft.getModelManager().getFluidStateModelSet().get(fluidState);
+			BlockTintSource tintSource = fluidModel.tintSource();
+			if (tintSource == null) return defColor;
+			BlockAndTintGetter tintGetter = tintGetter(world);
+			color = tintGetter != null ? tintSource.colorInWorld(state, tintGetter, pos)
+									   : tintSource.color(state);
 		}
 		return color == -1 ? defColor : color;
+	}
+
+	public static int multiplyColor(int color1, int color2) {
+		if (color1 == -1) {
+			return color2;
+		} else if (color2 == -1) {
+			return color1;
+		} else {
+			int alpha = (color1 >>> 24 & 255) * (color2 >>> 24 & 255) / 255;
+			int red = (color1 >>> 16 & 255) * (color2 >>> 16 & 255) / 255;
+			int green = (color1 >>> 8 & 255) * (color2 >>> 8 & 255) / 255;
+			int blue = (color1 & 255) * (color2 & 255) / 255;
+			return alpha << 24 | red << 16 | green << 8 | blue;
+		}
 	}
 }

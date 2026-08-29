@@ -95,7 +95,6 @@ public class ClientConfig extends Config {
 		KEEPER.registerEntry("show_icons_outline", new BooleanEntry(ClientSettings.showIconsOutline, (b) -> ClientSettings.showIconsOutline = b, () -> ClientSettings.showIconsOutline));
 		KEEPER.registerEntry("show_big_map", new BooleanEntry(ClientSettings.showBigMap, (b) -> ClientSettings.showBigMap = b, () -> ClientSettings.showBigMap));
 		KEEPER.registerEntry("force_map_update", new BooleanEntry(ClientSettings.forceUpdate, (b) -> ClientSettings.forceUpdate = b, () -> ClientSettings.forceUpdate));
-		KEEPER.registerEntry("use_fast_render", new BooleanEntry(ClientSettings.fastRender, (b) -> ClientSettings.fastRender = b, () -> ClientSettings.fastRender));
 		KEEPER.registerEntry("show_slime", new BooleanEntry(ClientSettings.showSlime, (b) -> ClientSettings.showSlime = b, () -> ClientSettings.showSlime));
 		KEEPER.registerEntry("show_loaded_chunks", new BooleanEntry(ClientSettings.showLoadedChunks, (b) -> ClientSettings.showLoadedChunks = b, () -> ClientSettings.showLoadedChunks));
 		KEEPER.registerEntry("detect_multiworlds", new BooleanEntry(ClientSettings.detectMultiworlds, (b) -> ClientSettings.detectMultiworlds = b, () -> ClientSettings.detectMultiworlds));

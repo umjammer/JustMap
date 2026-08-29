@@ -1,20 +1,18 @@
 package ru.bulldog.justmap.util.colors;
 
 import java.util.Map;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.ARGB;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.StemBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import com.google.common.collect.Maps;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.RedstoneWireBlock;
-import net.minecraft.block.StemBlock;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ColorHelper;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.ChunkStatus;
-
 import ru.bulldog.justmap.mixins.RedstoneLevelAccessor;
 import ru.bulldog.justmap.util.math.MathUtil;
 
@@ -36,13 +34,13 @@ public class ColorProviders implements ColorProvider {
 		blockColors.registerColorProvider((state, world, pos) -> blockColors.getFoliageColor(world, pos), Blocks.OAK_LEAVES, Blocks.JUNGLE_LEAVES, Blocks.ACACIA_LEAVES, Blocks.DARK_OAK_LEAVES, Blocks.VINE);
 		blockColors.registerColorProvider((state, world, pos) -> blockColors.getWaterColor(world, pos), Blocks.WATER, Blocks.BUBBLE_COLUMN, Blocks.CAULDRON);
 		blockColors.registerColorProvider((state, world, pos) -> {
-			int power = state.get(RedstoneWireBlock.POWER);
+			int power = state.getValue(RedStoneWireBlock.POWER);
 			int powerColor = RedstoneLevelAccessor.getPowerColors()[power];
-			return MathUtil.packRgb((float) ColorHelper.getRed(powerColor), (float) ColorHelper.getGreen(powerColor), (float) ColorHelper.getBlue(powerColor));
+			return MathUtil.packRgb((float) ARGB.red(powerColor), (float) ARGB.green(powerColor), (float) ARGB.blue(powerColor));
 		}, Blocks.REDSTONE_WIRE);
 		blockColors.registerColorProvider((state, world, pos) -> Colors.ATTACHED_STEM, Blocks.ATTACHED_MELON_STEM, Blocks.ATTACHED_PUMPKIN_STEM);
 		blockColors.registerColorProvider((state, world, pos) -> {
-			int age = state.get(StemBlock.AGE);
+			int age = state.getValue(StemBlock.AGE);
 			int i = age * 32;
 			int j = 255 - age * 8;
 			int k = age * 4;
@@ -59,43 +57,43 @@ public class ColorProviders implements ColorProvider {
 		}
 	}
 
-	public int getGrassColor(World world, BlockPos pos) {
+	public int getGrassColor(Level world, BlockPos pos) {
 		if (world != null && pos != null) {
-			Chunk chunk = world.getChunk(pos.getX() >> 4, pos.getZ() >> 4, ChunkStatus.BIOMES, false);
+			ChunkAccess chunk = world.getChunk(pos.getX() >> 4, pos.getZ() >> 4, ChunkStatus.BIOMES, false);
 
 			if (chunk != null) {
 				int bx = pos.getX() >> 2;
 				int by = pos.getY() >> 2;
 				int bz = pos.getZ() >> 2;
-				Biome biome = chunk.getBiomeForNoiseGen(bx, by, bz).value();
+				Biome biome = chunk.getNoiseBiome(bx, by, bz).value();
 				return this.colorPalette.getGrassColor(world, biome, pos.getX(), pos.getZ());
 			}
 		}
 		return Colors.GRASS;
 	}
 
-	public int getFoliageColor(World world, BlockPos pos) {
+	public int getFoliageColor(Level world, BlockPos pos) {
 		if (world != null && pos != null) {
-			Chunk chunk = world.getChunk(pos.getX() >> 4, pos.getZ() >> 4, ChunkStatus.BIOMES, false);
+			ChunkAccess chunk = world.getChunk(pos.getX() >> 4, pos.getZ() >> 4, ChunkStatus.BIOMES, false);
 			if (chunk != null ) {
 				int bx = pos.getX() >> 2;
 				int by = pos.getY() >> 2;
 				int bz = pos.getZ() >> 2;
-				Biome biome = chunk.getBiomeForNoiseGen(bx, by, bz).value();
+				Biome biome = chunk.getNoiseBiome(bx, by, bz).value();
 				return this.colorPalette.getFoliageColor(world, biome);
 			}
 		}
 		return Colors.FOLIAGE;
 	}
 
-	public int getWaterColor(World world, BlockPos pos) {
+	public int getWaterColor(Level world, BlockPos pos) {
 		if (world != null && pos != null) {
-			Chunk chunk = world.getChunk(pos.getX() >> 4, pos.getZ() >> 4, ChunkStatus.BIOMES, false);
+			ChunkAccess chunk = world.getChunk(pos.getX() >> 4, pos.getZ() >> 4, ChunkStatus.BIOMES, false);
 			if (chunk != null ) {
 				int bx = pos.getX() >> 2;
 				int by = pos.getY() >> 2;
 				int bz = pos.getZ() >> 2;
-				Biome biome = chunk.getBiomeForNoiseGen(bx, by, bz).value();
+				Biome biome = chunk.getNoiseBiome(bx, by, bz).value();
 				return this.colorPalette.getWaterColor(world, biome);
 			}
 		}
@@ -103,7 +101,7 @@ public class ColorProviders implements ColorProvider {
 	}
 
 	@Override
-	public int getColor(BlockState state, World world, BlockPos pos) {
+	public int getColor(BlockState state, Level world, BlockPos pos) {
 		ColorProvider provider = this.providers.get(state.getBlock());
 		if (provider != null) {
 			return provider.getColor(state, world, pos);

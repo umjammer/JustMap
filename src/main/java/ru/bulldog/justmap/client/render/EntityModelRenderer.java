@@ -1,63 +1,65 @@
 package ru.bulldog.justmap.client.render;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.boss.dragon.EnderDragonEntity;
-import net.minecraft.entity.mob.GhastEntity;
-import net.minecraft.entity.mob.WaterCreatureEntity;
-import net.minecraft.util.math.RotationAxis;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.fish.WaterAnimal;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import net.minecraft.world.entity.monster.Ghast;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.util.math.MathUtil;
 
+/**
+ * Draws a live entity model as a map icon.
+ *
+ * <p>Since 26.2 GUI code cannot drive the entity renderer itself; it hands the GUI an
+ * {@link EntityRenderState} and the picture-in-picture pass renders it. The facing that used
+ * to be forced onto the entity is now written into the render state instead, so the entity
+ * itself is left untouched.
+ */
 public class EntityModelRenderer {
 
-	private static final MinecraftClient minecraft = MinecraftClient.getInstance();
-	private static final EntityRenderDispatcher renderDispatcher = minecraft.getEntityRenderDispatcher();
+	private static final Minecraft minecraft = Minecraft.getInstance();
 
-	public static void renderModel(MatrixStack matrices, VertexConsumerProvider consumerProvider, Entity entity, double x, double y) {
+	public static void renderModel(GuiGraphicsExtractor context, Entity entity, double x, double y) {
+		if (!(entity instanceof LivingEntity livingEntity)) return;
 
-		LivingEntity livingEntity = (LivingEntity) entity;
+		EntityRenderDispatcher dispatcher = minecraft.getEntityRenderDispatcher();
+		EntityRenderer<? super LivingEntity, ?> renderer = dispatcher.getRenderer(livingEntity);
+		EntityRenderState renderState = renderer.createRenderState(livingEntity, 1.0F);
+		renderState.shadowPieces.clear();
 
-		float headYaw = livingEntity.headYaw;
-		float bodyYaw = livingEntity.bodyYaw;
-		float prevHeadYaw = livingEntity.prevHeadYaw;
-		float prevBodyYaw = livingEntity.prevBodyYaw;
-		float pitch = livingEntity.getPitch();
-		float prevPitch = livingEntity.prevPitch;
-
-		setPitchAndYaw(livingEntity);
-
-		float scale = (float) getScale(livingEntity);
-		int modelSize = ClientSettings.entityModelSize;
-
-		matrices.push();
-		matrices.translate(x, y, 0);
-		matrices.translate(modelSize / 4, modelSize / 2, 0);
-		if (ClientSettings.rotateMap) {
-			float rotation = (float) MathUtil.correctAngle(minecraft.player.headYaw);
-			matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(rotation));
-		} else {
-			matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180.0F));
+		if (renderState instanceof LivingEntityRenderState livingState) {
+			float yaw = facingYaw(livingEntity);
+			livingState.bodyRot = yaw;
+			livingState.yRot = 0.0F;
+			livingState.xRot = 0.0F;
+			livingState.boundingBoxWidth = livingState.boundingBoxWidth / livingState.scale;
+			livingState.boundingBoxHeight = livingState.boundingBoxHeight / livingState.scale;
+			livingState.scale = 1.0F;
 		}
-		matrices.push();
-		matrices.scale(scale, scale, scale);
-		renderDispatcher.setRenderShadows(false);
-		renderDispatcher.render(livingEntity, 0.0, 0.0, 0.0, 1.0F, matrices, consumerProvider, 240);
-		renderDispatcher.setRenderShadows(true);
-		matrices.pop();
-		matrices.pop();
 
-		livingEntity.setPitch(pitch);
-		livingEntity.headYaw = headYaw;
-		livingEntity.bodyYaw = bodyYaw;
-		livingEntity.prevPitch = prevPitch;
-		livingEntity.prevHeadYaw = prevHeadYaw;
-		livingEntity.prevBodyYaw = prevBodyYaw;
+		int modelSize = ClientSettings.entityModelSize;
+		float scale = (float) getScale(livingEntity);
+
+		Quaternionf rotation = new Quaternionf().rotateZ((float) Math.PI);
+		if (ClientSettings.rotateMap) {
+			rotation.rotateZ((float) Math.toRadians(MathUtil.correctAngle(minecraft.player.yHeadRot)));
+		}
+
+		Vector3f translation = new Vector3f(0.0F, renderState.boundingBoxHeight / 2.0F, 0.0F);
+
+		int x0 = (int) x;
+		int y0 = (int) y;
+		context.entity(renderState, scale, translation, rotation, null, x0, y0, x0 + modelSize, y0 + modelSize);
 	}
 
 	private static double getScale(LivingEntity livingEntity) {
@@ -66,15 +68,15 @@ public class EntityModelRenderer {
 
 		modelSize = (int) Math.min(modelSize, modelSize / mapScale);
 
-		double scaleX = modelSize / Math.max(livingEntity.getWidth(), 1.0F);
-		double scaleY = modelSize / Math.max(livingEntity.getHeight(), 1.0F);
+		double scaleX = modelSize / Math.max(livingEntity.getBbWidth(), 1.0F);
+		double scaleY = modelSize / Math.max(livingEntity.getBbHeight(), 1.0F);
 
 		double scale = Math.max(Math.min(scaleX, scaleY), modelSize);
 
-		if (livingEntity instanceof GhastEntity || livingEntity instanceof EnderDragonEntity) {
+		if (livingEntity instanceof Ghast || livingEntity instanceof EnderDragon) {
 			scale = modelSize / 3.0F;
 		}
-		if (livingEntity instanceof WaterCreatureEntity) {
+		if (livingEntity instanceof WaterAnimal) {
 			scale = modelSize / 1.35F;
 		}
 		if (livingEntity.isSleeping()) {
@@ -84,35 +86,13 @@ public class EntityModelRenderer {
 		return scale;
 	}
 
-	private static void setPitchAndYaw(LivingEntity livingEntity) {
-		livingEntity.setPitch(0.0F);
-		livingEntity.prevPitch = 0.0F;
-
-		switch(livingEntity.getMovementDirection()) {
-			case NORTH:
-				livingEntity.headYaw = 0.0F;
-				livingEntity.bodyYaw = 0.0F;
-				livingEntity.prevHeadYaw = 0.0F;
-				livingEntity.prevBodyYaw = 0.0F;
-				break;
-			case WEST:
-				livingEntity.headYaw = 135.0F;
-				livingEntity.bodyYaw = 135.0F;
-				livingEntity.prevHeadYaw = 135.0F;
-				livingEntity.prevBodyYaw = 135.0F;
-				break;
-			case EAST:
-				livingEntity.headYaw = 225.0F;
-				livingEntity.bodyYaw = 225.0F;
-				livingEntity.prevHeadYaw = 225.0F;
-				livingEntity.prevBodyYaw = 225.0F;
-				break;
-			default:
-				livingEntity.headYaw = 180.0F;
-				livingEntity.bodyYaw = 180.0F;
-				livingEntity.prevHeadYaw = 180.0F;
-				livingEntity.prevBodyYaw = 180.0F;
-			break;
-		}
+	/** The body rotation that shows the entity facing the way it is moving on the map. */
+	private static float facingYaw(LivingEntity livingEntity) {
+		return switch (livingEntity.getMotionDirection()) {
+			case NORTH -> 0.0F;
+			case WEST -> 135.0F;
+			case EAST -> 225.0F;
+			default -> 180.0F;
+		};
 	}
 }

@@ -1,18 +1,19 @@
 package ru.bulldog.justmap.map.minimap.skin;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.platform.NativeImage;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.client.texture.TextureManager;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.minimap.Minimap;
@@ -29,7 +30,7 @@ public class MapSkin extends Image {
 	}
 
 	private final static List<MapSkin> SKINS = new ArrayList<>();
-	private final static TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
+	private final static TextureManager textureManager = Minecraft.getInstance().getTextureManager();
 
 	private final RenderData renderData;
 
@@ -110,7 +111,7 @@ public class MapSkin extends Image {
 		int border = (int) (this.border * renderData.scaleFactor);
 		String pattern = "skin_%d_%dx%d_%d";
 		if (Minimap.isRound()) pattern += "_round";
-		this.textureId = Identifier.of(JustMap.MODID, String.format(pattern, this.id, w, h, border));
+		this.textureId = Identifier.fromNamespaceAndPath(JustMap.MODID, String.format(pattern, this.id, w, h, border));
 		if (textureManager.getTexture(textureId) == null) {
 			NativeImage pavedImage;
 			if (Minimap.isRound()) {
@@ -118,14 +119,12 @@ public class MapSkin extends Image {
 			} else {
 				pavedImage = ImageUtil.createSquareSkin(image, w, h, border);
 			}
-			textureManager.registerTexture(textureId, new NativeImageBackedTexture(pavedImage));
+			textureManager.register(textureId, new DynamicTexture(null, pavedImage));
 		}
 	}
 
 	@Override
-	public void draw(DrawContext context, double x, double y, int w, int h) {
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
+	public void draw(GuiGraphicsExtractor context, double x, double y, int w, int h) {
 		float hMult = (float) this.getWidth() / this.getHeight();
 		if (resizable || repeating) {
 			if (type != SkinType.ROUND && (w > this.getWidth() || h > this.getHeight())) {
@@ -148,8 +147,8 @@ public class MapSkin extends Image {
 		return this.type != SkinType.ROUND;
 	}
 
-	public Text getName() {
-		return Text.literal(this.name);
+	public Component getName() {
+		return Component.literal(this.name);
 	}
 
 	@Override
@@ -286,70 +285,70 @@ public class MapSkin extends Image {
 	}
 
 	static {
-		addSquareSkin("Minecraft Map", Identifier.of(JustMap.MODID, "textures/skin/skin_def_map.png"), 64, 64, 5, false, true);
-		addSquareSkin("Minecraft LaF", Identifier.of(JustMap.MODID, "textures/skin/skin_gui_laf.png"), 64, 64, 3, false, true);
-		addSquareSkin("Minecraft Gui", Identifier.of(JustMap.MODID, "textures/skin/skin_def_gui.png"), 64, 64, 5, true);
-		addSquareSkin("Minecraft Gui Fancy", Identifier.of(JustMap.MODID, "textures/skin/skin_def_gui_fancy.png"), 64, 64, 7, true);
-		addSquareSkin("Metal Frame", Identifier.of(JustMap.MODID, "textures/skin/skin_simple_metal.png"), 64, 64, 4, true);
-		addSquareSkin("Oak Frame", Identifier.of(JustMap.MODID, "textures/skin/skin_oak.png"), 64, 64, 10, false, true);
-		addSquareSkin("Bamboo Frame", Identifier.of(JustMap.MODID, "textures/skin/skin_bamboo.png"), 64, 64, 9, false, true);
-		addRoundSkin("Minecraft Gui", Identifier.of(JustMap.MODID, "textures/skin/skin_def_gui_round.png"), 256, 256, 10);
-		addRoundSkin("Frame Round", Identifier.of(JustMap.MODID, "textures/skin/skin_frame_round.png"), 256, 256, 12);
-		addRoundSkin("Frame Runed", Identifier.of(JustMap.MODID, "textures/skin/skin_runed_round.png"), 256, 256, 19);
-		addRoundSkin("Frame Frozen", Identifier.of(JustMap.MODID, "textures/skin/skin_frozen_round.png"), 256, 273, 17);
-		addUniversalSkin("Stone", Identifier.of("textures/block/stone.png"), 256, 256, 8);
-		addUniversalSkin("Cobblestone", Identifier.of("textures/block/cobblestone.png"), 256, 256, 8);
-		addUniversalSkin("Mossy Cobblestone", Identifier.of("textures/block/mossy_cobblestone.png"), 256, 256, 8);
-		addUniversalSkin("Andesite", Identifier.of("textures/block/andesite.png"), 256, 256, 8);
-		addUniversalSkin("Diorite", Identifier.of("textures/block/diorite.png"), 256, 256, 8);
-		addUniversalSkin("Granite", Identifier.of("textures/block/granite.png"), 256, 256, 8);
-		addUniversalSkin("Bedrock", Identifier.of("textures/block/bedrock.png"), 256, 256, 8);
-		addUniversalSkin("Bricks", Identifier.of("textures/block/bricks.png"), 256, 256, 8);
-		addUniversalSkin("Dark Prizmarine", Identifier.of("textures/block/dark_prismarine.png"), 256, 256, 8);
-		addUniversalSkin("End Stone", Identifier.of("textures/block/end_stone.png"), 256, 256, 8);
-		addUniversalSkin("Glowstone", Identifier.of("textures/block/glowstone.png"), 256, 256, 8);
-		addUniversalSkin("Netherrack", Identifier.of("textures/block/netherrack.png"), 256, 256, 8);
-		addUniversalSkin("Obsidian", Identifier.of("textures/block/obsidian.png"), 256, 256, 8);
-		addUniversalSkin("Purpur", Identifier.of("textures/block/purpur_block.png"), 256, 256, 8);
-		addUniversalSkin("Quartz", Identifier.of("textures/block/quartz_block_side.png"), 256, 256, 8);
-		addUniversalSkin("Sand", Identifier.of("textures/block/sand.png"), 256, 256, 8);
-		addUniversalSkin("Mushroom Inside", Identifier.of("textures/block/mushroom_block_inside.png"), 256, 256, 8);
-		addUniversalSkin("Brown Mushroom", Identifier.of("textures/block/brown_mushroom_block.png"), 256, 256, 8);
-		addUniversalSkin("Acacia Planks", Identifier.of("textures/block/acacia_planks.png"), 256, 256, 8);
-		addUniversalSkin("Birch Planks", Identifier.of("textures/block/birch_planks.png"), 256, 256, 8);
-		addUniversalSkin("Oak Planks", Identifier.of("textures/block/oak_planks.png"), 256, 256, 8);
-		addUniversalSkin("Dark Oak Planks", Identifier.of("textures/block/dark_oak_planks.png"), 256, 256, 8);
-		addUniversalSkin("Jungle Planks", Identifier.of("textures/block/jungle_planks.png"), 256, 256, 8);
-		addUniversalSkin("Spruce Planks", Identifier.of("textures/block/spruce_planks.png"), 256, 256, 8);
-		addUniversalSkin("Nether Bricks", Identifier.of("textures/block/nether_bricks.png"), 256, 256, 8);
-		addUniversalSkin("Lava", Identifier.of("textures/block/lava_still.png"), 256, 256, 8);
-		addUniversalSkin("Water", Identifier.of("textures/block/water_still.png"), 256, 256, 8);
-		addUniversalSkin("Nether Portal", Identifier.of("textures/block/nether_portal.png"), 256, 256, 8);
-		addUniversalSkin("Blue Ice", Identifier.of("textures/block/blue_ice.png"), 256, 256, 8);
-		addUniversalSkin("Bone Block", Identifier.of("textures/block/bone_block_side.png"), 256, 256, 8);
-		addUniversalSkin("Brain Coral", Identifier.of("textures/block/brain_coral_block.png"), 256, 256, 8);
-		addUniversalSkin("Bubble Coral", Identifier.of("textures/block/bubble_coral_block.png"), 256, 256, 8);
-		addUniversalSkin("Fire Coral", Identifier.of("textures/block/fire_coral_block.png"), 256, 256, 8);
-		addUniversalSkin("Horn Coral", Identifier.of("textures/block/horn_coral_block.png"), 256, 256, 8);
-		addUniversalSkin("Tube Coral", Identifier.of("textures/block/tube_coral_block.png"), 256, 256, 8);
-		addUniversalSkin("Blue Wool", Identifier.of("textures/block/blue_wool.png"), 256, 256, 8);
-		addUniversalSkin("Brown Wool", Identifier.of("textures/block/brown_wool.png"), 256, 256, 8);
-		addUniversalSkin("Cyan Wool", Identifier.of("textures/block/cyan_wool.png"), 256, 256, 8);
-		addUniversalSkin("Green Wool", Identifier.of("textures/block/green_wool.png"), 256, 256, 8);
-		addUniversalSkin("Light Blue Wool", Identifier.of("textures/block/light_blue_wool.png"), 256, 256, 8);
-		addUniversalSkin("Lime Wool", Identifier.of("textures/block/lime_wool.png"), 256, 256, 8);
-		addUniversalSkin("Magenta Wool", Identifier.of("textures/block/magenta_wool.png"), 256, 256, 8);
-		addUniversalSkin("Orange Wool", Identifier.of("textures/block/orange_wool.png"), 256, 256, 8);
-		addUniversalSkin("Pink Wool", Identifier.of("textures/block/pink_wool.png"), 256, 256, 8);
-		addUniversalSkin("Purple Wool", Identifier.of("textures/block/purple_wool.png"), 256, 256, 8);
-		addUniversalSkin("Red Wool", Identifier.of("textures/block/red_wool.png"), 256, 256, 8);
-		addUniversalSkin("White Wool", Identifier.of("textures/block/white_wool.png"), 256, 256, 8);
-		addUniversalSkin("Yellow Wool", Identifier.of("textures/block/yellow_wool.png"), 256, 256, 8);
-		addUniversalSkin("Magma", Identifier.of("textures/block/magma.png"), 256, 256, 8);
-		addUniversalSkin("Mycelium", Identifier.of("textures/block/mycelium_top.png"), 256, 256, 8);
-		addUniversalSkin("Podzol", Identifier.of("textures/block/podzol_top.png"), 256, 256, 8);
-		addUniversalSkin("Nether Wart", Identifier.of("textures/block/nether_wart_block.png"), 256, 256, 8);
-		addUniversalSkin("Sponge", Identifier.of("textures/block/sponge.png"), 256, 256, 8);
+		addSquareSkin("Minecraft Map", Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/skin/skin_def_map.png"), 64, 64, 5, false, true);
+		addSquareSkin("Minecraft LaF", Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/skin/skin_gui_laf.png"), 64, 64, 3, false, true);
+		addSquareSkin("Minecraft Gui", Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/skin/skin_def_gui.png"), 64, 64, 5, true);
+		addSquareSkin("Minecraft Gui Fancy", Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/skin/skin_def_gui_fancy.png"), 64, 64, 7, true);
+		addSquareSkin("Metal Frame", Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/skin/skin_simple_metal.png"), 64, 64, 4, true);
+		addSquareSkin("Oak Frame", Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/skin/skin_oak.png"), 64, 64, 10, false, true);
+		addSquareSkin("Bamboo Frame", Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/skin/skin_bamboo.png"), 64, 64, 9, false, true);
+		addRoundSkin("Minecraft Gui", Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/skin/skin_def_gui_round.png"), 256, 256, 10);
+		addRoundSkin("Frame Round", Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/skin/skin_frame_round.png"), 256, 256, 12);
+		addRoundSkin("Frame Runed", Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/skin/skin_runed_round.png"), 256, 256, 19);
+		addRoundSkin("Frame Frozen", Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/skin/skin_frozen_round.png"), 256, 273, 17);
+		addUniversalSkin("Stone", Identifier.parse("textures/block/stone.png"), 256, 256, 8);
+		addUniversalSkin("Cobblestone", Identifier.parse("textures/block/cobblestone.png"), 256, 256, 8);
+		addUniversalSkin("Mossy Cobblestone", Identifier.parse("textures/block/mossy_cobblestone.png"), 256, 256, 8);
+		addUniversalSkin("Andesite", Identifier.parse("textures/block/andesite.png"), 256, 256, 8);
+		addUniversalSkin("Diorite", Identifier.parse("textures/block/diorite.png"), 256, 256, 8);
+		addUniversalSkin("Granite", Identifier.parse("textures/block/granite.png"), 256, 256, 8);
+		addUniversalSkin("Bedrock", Identifier.parse("textures/block/bedrock.png"), 256, 256, 8);
+		addUniversalSkin("Bricks", Identifier.parse("textures/block/bricks.png"), 256, 256, 8);
+		addUniversalSkin("Dark Prizmarine", Identifier.parse("textures/block/dark_prismarine.png"), 256, 256, 8);
+		addUniversalSkin("End Stone", Identifier.parse("textures/block/end_stone.png"), 256, 256, 8);
+		addUniversalSkin("Glowstone", Identifier.parse("textures/block/glowstone.png"), 256, 256, 8);
+		addUniversalSkin("Netherrack", Identifier.parse("textures/block/netherrack.png"), 256, 256, 8);
+		addUniversalSkin("Obsidian", Identifier.parse("textures/block/obsidian.png"), 256, 256, 8);
+		addUniversalSkin("Purpur", Identifier.parse("textures/block/purpur_block.png"), 256, 256, 8);
+		addUniversalSkin("Quartz", Identifier.parse("textures/block/quartz_block_side.png"), 256, 256, 8);
+		addUniversalSkin("Sand", Identifier.parse("textures/block/sand.png"), 256, 256, 8);
+		addUniversalSkin("Mushroom Inside", Identifier.parse("textures/block/mushroom_block_inside.png"), 256, 256, 8);
+		addUniversalSkin("Brown Mushroom", Identifier.parse("textures/block/brown_mushroom_block.png"), 256, 256, 8);
+		addUniversalSkin("Acacia Planks", Identifier.parse("textures/block/acacia_planks.png"), 256, 256, 8);
+		addUniversalSkin("Birch Planks", Identifier.parse("textures/block/birch_planks.png"), 256, 256, 8);
+		addUniversalSkin("Oak Planks", Identifier.parse("textures/block/oak_planks.png"), 256, 256, 8);
+		addUniversalSkin("Dark Oak Planks", Identifier.parse("textures/block/dark_oak_planks.png"), 256, 256, 8);
+		addUniversalSkin("Jungle Planks", Identifier.parse("textures/block/jungle_planks.png"), 256, 256, 8);
+		addUniversalSkin("Spruce Planks", Identifier.parse("textures/block/spruce_planks.png"), 256, 256, 8);
+		addUniversalSkin("Nether Bricks", Identifier.parse("textures/block/nether_bricks.png"), 256, 256, 8);
+		addUniversalSkin("Lava", Identifier.parse("textures/block/lava_still.png"), 256, 256, 8);
+		addUniversalSkin("Water", Identifier.parse("textures/block/water_still.png"), 256, 256, 8);
+		addUniversalSkin("Nether Portal", Identifier.parse("textures/block/nether_portal.png"), 256, 256, 8);
+		addUniversalSkin("Blue Ice", Identifier.parse("textures/block/blue_ice.png"), 256, 256, 8);
+		addUniversalSkin("Bone Block", Identifier.parse("textures/block/bone_block_side.png"), 256, 256, 8);
+		addUniversalSkin("Brain Coral", Identifier.parse("textures/block/brain_coral_block.png"), 256, 256, 8);
+		addUniversalSkin("Bubble Coral", Identifier.parse("textures/block/bubble_coral_block.png"), 256, 256, 8);
+		addUniversalSkin("Fire Coral", Identifier.parse("textures/block/fire_coral_block.png"), 256, 256, 8);
+		addUniversalSkin("Horn Coral", Identifier.parse("textures/block/horn_coral_block.png"), 256, 256, 8);
+		addUniversalSkin("Tube Coral", Identifier.parse("textures/block/tube_coral_block.png"), 256, 256, 8);
+		addUniversalSkin("Blue Wool", Identifier.parse("textures/block/blue_wool.png"), 256, 256, 8);
+		addUniversalSkin("Brown Wool", Identifier.parse("textures/block/brown_wool.png"), 256, 256, 8);
+		addUniversalSkin("Cyan Wool", Identifier.parse("textures/block/cyan_wool.png"), 256, 256, 8);
+		addUniversalSkin("Green Wool", Identifier.parse("textures/block/green_wool.png"), 256, 256, 8);
+		addUniversalSkin("Light Blue Wool", Identifier.parse("textures/block/light_blue_wool.png"), 256, 256, 8);
+		addUniversalSkin("Lime Wool", Identifier.parse("textures/block/lime_wool.png"), 256, 256, 8);
+		addUniversalSkin("Magenta Wool", Identifier.parse("textures/block/magenta_wool.png"), 256, 256, 8);
+		addUniversalSkin("Orange Wool", Identifier.parse("textures/block/orange_wool.png"), 256, 256, 8);
+		addUniversalSkin("Pink Wool", Identifier.parse("textures/block/pink_wool.png"), 256, 256, 8);
+		addUniversalSkin("Purple Wool", Identifier.parse("textures/block/purple_wool.png"), 256, 256, 8);
+		addUniversalSkin("Red Wool", Identifier.parse("textures/block/red_wool.png"), 256, 256, 8);
+		addUniversalSkin("White Wool", Identifier.parse("textures/block/white_wool.png"), 256, 256, 8);
+		addUniversalSkin("Yellow Wool", Identifier.parse("textures/block/yellow_wool.png"), 256, 256, 8);
+		addUniversalSkin("Magma", Identifier.parse("textures/block/magma.png"), 256, 256, 8);
+		addUniversalSkin("Mycelium", Identifier.parse("textures/block/mycelium_top.png"), 256, 256, 8);
+		addUniversalSkin("Podzol", Identifier.parse("textures/block/podzol_top.png"), 256, 256, 8);
+		addUniversalSkin("Nether Wart", Identifier.parse("textures/block/nether_wart_block.png"), 256, 256, 8);
+		addUniversalSkin("Sponge", Identifier.parse("textures/block/sponge.png"), 256, 256, 8);
 
 		SkinLoader.loadSkins();
 	}

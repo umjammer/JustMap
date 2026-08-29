@@ -1,33 +1,36 @@
 package ru.bulldog.justmap.client.widget;
 
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.sound.SoundManager;
-import net.minecraft.text.PlainTextContent;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.PlainTextContents;
 
 
-public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidget implements Element {
+public class TitledButtonWidget<W extends AbstractWidget> extends AbstractWidget implements GuiEventListener {
 	public final W widget;
-	public final PlainTextContent.Literal title;
-	private final TextRenderer font;
+	public final PlainTextContents.LiteralContents title;
+	private final Font font;
 
 	private final static int SPACING = 3;
 
-	public TitledButtonWidget(TextRenderer font, W widget, int x, int y, int width, int height, String message, String title) {
-		super(x, y, width, height, Text.literal(message));
+	public TitledButtonWidget(Font font, W widget, int x, int y, int width, int height, String message, String title) {
+		super(x, y, width, height, Component.literal(message));
 		this.widget = widget;
-		this.title = new PlainTextContent.Literal(title);
+		this.title = new PlainTextContents.LiteralContents(title);
 		this.font = font;
 
 		update();
 	}
 
 	private void update() {
-		int titleWidth = font.getWidth(title.string());
+		int titleWidth = font.width(title.text());
 		int widgetWidth = widget.getWidth();
 		int wx = getX() + width - widgetWidth;
 		if (getX() + titleWidth + SPACING > wx) {
@@ -40,9 +43,9 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	}
 
 	@Override
-	public void renderWidget(DrawContext context, int int_1, int int_2, float float_1) {
-		context.drawTextWithShadow(font, title.string(), getX(), getY(), 0xFFFFFFFF);
-		widget.renderWidget(context, int_1, int_2, float_1);
+	public void extractWidgetRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+		context.text(font, title.text(), getX(), getY(), 0xFFFFFFFF);
+		widget.extractWidgetRenderState(context, mouseX, mouseY, delta);
 	}
 
 	@Override
@@ -56,18 +59,18 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	}
 
 	@Override
-	public boolean keyPressed(int int_1, int int_2, int int_3) {
-		return this.widget.keyPressed(int_1, int_2, int_3);
+	public boolean keyPressed(KeyEvent event) {
+		return this.widget.keyPressed(event);
 	}
 
 	@Override
-	public boolean keyReleased(int int_1, int int_2, int int_3) {
-		return this.widget.keyReleased(int_1, int_2, int_3);
+	public boolean keyReleased(KeyEvent event) {
+		return this.widget.keyReleased(event);
 	}
 
 	@Override
-	public boolean charTyped(char char_1, int int_1) {
-		return this.widget.charTyped(char_1, int_1);
+	public boolean charTyped(CharacterEvent event) {
+		return this.widget.charTyped(event);
 	}
 
 	@Override
@@ -76,33 +79,33 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	}
 
 	@Override
-	public void onClick(double double_1, double double_2) {
-		this.widget.onClick(double_1, double_2);
+	public void onClick(MouseButtonEvent event, boolean doubleClick) {
+		this.widget.onClick(event, doubleClick);
 	}
 
 	@Override
-	public void onRelease(double double_1, double double_2) {
-		this.widget.onRelease(double_1, double_2);
+	public void onRelease(MouseButtonEvent event) {
+		this.widget.onRelease(event);
 	}
 
 	@Override
-	public boolean mouseClicked(double double_1, double double_2, int int_1) {
-		return this.widget.mouseClicked(double_1, double_2, int_1);
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+		return this.widget.mouseClicked(event, doubleClick);
 	}
 
 	@Override
-	public boolean mouseReleased(double double_1, double double_2, int int_1) {
-		return this.widget.mouseReleased(double_1, double_2, int_1);
+	public boolean mouseReleased(MouseButtonEvent event) {
+		return this.widget.mouseReleased(event);
 	}
 
 	@Override
-	public boolean mouseDragged(double double_1, double double_2, int int_1, double double_3, double double_4) {
-		return this.widget.mouseDragged(double_1, double_2, int_1, double_3, double_4);
+	public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+		return this.widget.mouseDragged(event, dx, dy);
 	}
 
 	@Override
-	public boolean isSelected() {
-		return this.widget.isSelected();
+	public boolean isHoveredOrFocused() {
+		return this.widget.isHoveredOrFocused();
 	}
 
 	@Override
@@ -116,7 +119,7 @@ public class TitledButtonWidget<W extends ClickableWidget> extends ClickableWidg
 	}
 
 	@Override
-	public void appendClickableNarrations(NarrationMessageBuilder builder) {
+	public void updateWidgetNarration(NarrationElementOutput builder) {
 		// FIXME: implement?
 	}
 }

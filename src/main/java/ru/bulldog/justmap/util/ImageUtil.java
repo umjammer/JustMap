@@ -1,5 +1,6 @@
 package ru.bulldog.justmap.util;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -8,13 +9,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.fabricmc.fabric.impl.client.indigo.renderer.helper.ColorHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.util.colors.ColorUtil;
 import ru.bulldog.justmap.util.colors.Colors;
@@ -27,7 +25,7 @@ public class ImageUtil {
 	private static ResourceManager resourceManager;
 
 	private static void checkResourceManager() {
-		if (resourceManager == null) resourceManager = MinecraftClient.getInstance().getResourceManager();
+		if (resourceManager == null) resourceManager = Minecraft.getInstance().getResourceManager();
 	}
 
 	public static boolean imageExists(Identifier image) {
@@ -60,7 +58,7 @@ public class ImageUtil {
 		if (imageExists(image)) {
 			try {
 				Resource resource = resourceManager.getResource(image).get();
-				return NativeImage.read(resource.getInputStream());
+				return NativeImage.read(resource.open());
 			} catch (IOException e) {
 				JustMap.LOGGER.warning(String.format("Can't load texture image: %s. Will be created empty image.", image));
 				JustMap.LOGGER.warning(String.format("Cause: %s.", e.getMessage()));
@@ -72,9 +70,9 @@ public class ImageUtil {
 	public static void applyColor(NativeImage image, int color) {
 		for (int i = 0; i < image.getWidth(); i++) {
 			for (int j = 0; j < image.getHeight(); j++) {
-				if (image.getOpacity(i, j) == -1) {
-					int newColor = ColorHelper.multiplyColor(image.getColorArgb(i, j), color);
-					image.setColorArgb(i, j, ColorUtil.toABGR(newColor));
+				if (image.getLuminanceOrAlpha(i, j) == -1) {
+					int newColor = ColorUtil.multiplyColor(image.getPixel(i, j), color);
+					image.setPixel(i, j, ColorUtil.toABGR(newColor));
 				}
 			}
 		}
@@ -96,8 +94,8 @@ public class ImageUtil {
 				if (imgX >= imgW) imgX = 0;
 				if ((x >= width - border || x <= border) ||
 					(y >= height - border || y <= border)) {
-					int pixel = texture.getColorArgb(imgX, imgY);
-					squareSkin.setColorArgb(x, y, pixel);
+					int pixel = texture.getPixel(imgX, imgY);
+					squareSkin.setPixel(x, y, pixel);
 				}
 				imgX++;
 				if (imgX >= imgW) imgX = 0;
@@ -130,8 +128,8 @@ public class ImageUtil {
 					len = (int) Line.length(centerX, centerY, x, y);
 				}
 				if (len <= rOut && len >= rIn) {
-					int pixel = texture.getColorArgb(imgX, imgY);
-					roundSkin.setColorArgb(x, y, pixel);
+					int pixel = texture.getPixel(imgX, imgY);
+					roundSkin.setPixel(x, y, pixel);
 				}
 				imgX++;
 				if (imgX >= imgW) imgX = 0;
@@ -158,7 +156,7 @@ public class ImageUtil {
 			int left = x - 1;
 			int right = x + 1;
 			for (int y = 0; y < height; y++) {
-				int alpha = (image.getColorArgb(x, y) >> 24) & 255;
+				int alpha = (image.getPixel(x, y) >> 24) & 255;
 				if (alpha == 0) continue;
 
 				outlinePixels.add(new Point(x + 2, y + 2));
@@ -166,7 +164,7 @@ public class ImageUtil {
 				int top = y - 1;
 				int bottom = y + 1;
 				if (top >= 0) {
-					alpha = (image.getColorArgb(x, top) >> 24) & 255;
+					alpha = (image.getPixel(x, top) >> 24) & 255;
 					if (alpha == 0) {
 						Point pixel = new Point(x + 2, y);
 						if (!outlinePixels.contains(pixel)) {
@@ -175,7 +173,7 @@ public class ImageUtil {
 						}
 					}
 					if (left >= 0) {
-						alpha = (image.getColorArgb(left, top) >> 24) & 255;
+						alpha = (image.getPixel(left, top) >> 24) & 255;
 						if (alpha == 0) {
 							Point pixel = new Point(x, y);
 							if (!outlinePixels.contains(pixel)) {
@@ -187,7 +185,7 @@ public class ImageUtil {
 						}
 					}
 					if (right < width) {
-						alpha = (image.getColorArgb(right, top) >> 24) & 255;
+						alpha = (image.getPixel(right, top) >> 24) & 255;
 						if (alpha == 0) {
 							Point pixel = new Point(right + 2, y);
 							if (!outlinePixels.contains(pixel)) {
@@ -206,7 +204,7 @@ public class ImageUtil {
 					}
 				}
 				if (bottom < height) {
-					alpha = (image.getColorArgb(x, bottom) >> 24) & 255;
+					alpha = (image.getPixel(x, bottom) >> 24) & 255;
 					if (alpha == 0) {
 						Point pixel = new Point(x + 2, bottom + 1);
 						if (!outlinePixels.contains(pixel)) {
@@ -215,7 +213,7 @@ public class ImageUtil {
 						}
 					}
 					if (left >= 0) {
-						alpha = (image.getColorArgb(left, bottom) >> 24) & 255;
+						alpha = (image.getPixel(left, bottom) >> 24) & 255;
 						if (alpha == 0) {
 							Point pixel = new Point(x, bottom + 2);
 							if (!outlinePixels.contains(pixel)) {
@@ -227,7 +225,7 @@ public class ImageUtil {
 						}
 					}
 					if (right < width) {
-						alpha = (image.getColorArgb(right, bottom) >> 24) & 255;
+						alpha = (image.getPixel(right, bottom) >> 24) & 255;
 						if (alpha == 0) {
 							Point pixel = new Point(right + 2, bottom + 2);
 							if (!outlinePixels.contains(pixel)) {
@@ -246,7 +244,7 @@ public class ImageUtil {
 					}
 				}
 				if (left >= 0) {
-					alpha = (image.getColorArgb(left, y) >> 24) & 255;
+					alpha = (image.getPixel(left, y) >> 24) & 255;
 					if (alpha == 0) {
 						Point pixel = new Point(x, y + 2);
 						if (!outlinePixels.contains(pixel)) {
@@ -262,7 +260,7 @@ public class ImageUtil {
 					}
 				}
 				if (right < width) {
-					alpha = (image.getColorArgb(right, y) >> 24) & 255;
+					alpha = (image.getPixel(right, y) >> 24) & 255;
 					if (alpha == 0) {
 						Point pixel = new Point(right + 1, y + 2);
 						if (!outlinePixels.contains(pixel)) {
@@ -280,7 +278,7 @@ public class ImageUtil {
 			}
 		}
 		outlinePixels.forEach(pixel ->
-			outline.setColorArgb((int) pixel.x, (int) pixel.y, outlineColor));
+			outline.setPixel((int) pixel.x, (int) pixel.y, outlineColor));
 
 		return outline;
 	}

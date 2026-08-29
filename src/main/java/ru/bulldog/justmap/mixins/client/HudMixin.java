@@ -1,24 +1,19 @@
 package ru.bulldog.justmap.mixins.client;
 
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.hud.InGameHud;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.texture.StatusEffectSpriteManager;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.Hud;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,17 +26,31 @@ import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.enums.ScreenPosition;
 import ru.bulldog.justmap.util.colors.Colors;
 
-@Mixin(InGameHud.class)
+/**
+ * Moves the status effect icons out from under the minimap.
+ *
+ * <p>26.2 split the in-game overlay out of {@code Gui} into {@code Hud}, and the icons are
+ * drawn from named sprites through the GUI render states rather than by binding the
+ * inventory texture, so the copy of vanilla's layout below follows the new drawing calls.
+ */
+@Mixin(Hud.class)
 abstract class HudMixin {
+
+	@Unique
+	private static final Identifier EFFECT_BACKGROUND_AMBIENT_SPRITE =
+			Identifier.withDefaultNamespace("hud/effect_background_ambient");
+	@Unique
+	private static final Identifier EFFECT_BACKGROUND_SPRITE =
+			Identifier.withDefaultNamespace("hud/effect_background");
 
 	@Final
 	@Shadow
-	private MinecraftClient client;
+	private Minecraft minecraft;
 
-	@Inject(at = @At("HEAD"), method = "renderStatusEffectOverlay", cancellable = true)
-	protected void renderStatusEffects(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+	@Inject(at = @At("HEAD"), method = "extractEffects", cancellable = true)
+	protected void renderStatusEffects(GuiGraphicsExtractor context, DeltaTracker tickCounter, CallbackInfo ci) {
 		if (ClientSettings.moveEffects) {
-			int posX = context.getScaledWindowWidth();
+			int posX = context.guiWidth();
 			int posY = ClientSettings.positionOffset;
 			if (ClientSettings.mapPosition == ScreenPosition.TOP_RIGHT) {
 				posX = JustMapClient.getMiniMap().getSkinX();
@@ -53,11 +62,9 @@ abstract class HudMixin {
 	}
 
 	@Unique
-	private void drawMovedEffects(DrawContext context, int screenX, int screenY) {
-		Collection<StatusEffectInstance> statusEffects = this.client.player.getStatusEffects();
+	private void drawMovedEffects(GuiGraphicsExtractor context, int screenX, int screenY) {
+		Collection<MobEffectInstance> statusEffects = this.minecraft.player.getActiveEffects();
 		if (statusEffects.isEmpty()) return;
-
-		RenderSystem.enableBlend();
 
 		int size = 24;
 		int hOffset = 6;
@@ -68,62 +75,48 @@ abstract class HudMixin {
 			vOffset = 2;
 		}
 
-		StatusEffectSpriteManager statusEffectSpriteManager = this.client.getStatusEffectSpriteManager();
-		List<Runnable> icons = Lists.newArrayListWithExpectedSize(statusEffects.size());
-		List<Runnable> timers = Lists.newArrayListWithExpectedSize(statusEffects.size());
-		RenderSystem.setShaderTexture(0, HandledScreen.BACKGROUND_TEXTURE);
-		Iterator<StatusEffectInstance> effectsIterator = Ordering.natural().reverse().sortedCopy(statusEffects).iterator();
+		int beneficialCount = 0, harmfulCount = 0;
+		for (MobEffectInstance statusEffectInstance : Ordering.natural().reverse().sortedCopy(statusEffects)) {
+			Holder<MobEffect> statusEffect = statusEffectInstance.getEffect();
+			if (!statusEffectInstance.showIcon()) continue;
 
-	 	int i = 0, j = 0;
-		while (effectsIterator.hasNext()) {
-	 		StatusEffectInstance statusEffectInstance = effectsIterator.next();
-			RegistryEntry<StatusEffect> statusEffect = statusEffectInstance.getEffectType();
-			if (statusEffectInstance.shouldShowIcon()) {
-				int x = screenX;
-			   	int y = screenY;
-			   	if (this.client.isDemo()) {
-				   y += 15;
-			   	}
-
-			   	if (statusEffect.value().isBeneficial()) {
-			   		++i;
-				  	x -= (size + hOffset) * i;
-			   	} else {
-			   		++j;
-				  	x -= (size + hOffset) * j;
-				  	y += size + vOffset;
-			   	}
-
-		   		int effectDuration = statusEffectInstance.getDuration();
-		   		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		   		float alpha = 1.0F;
-		   		if (statusEffectInstance.isAmbient()) {
-		   			context.drawTexture(RenderLayer::getGuiTextured, HandledScreen.BACKGROUND_TEXTURE ,x, y, 165, 166, size, size, size, size);
-		   		} else {
-			   		context.drawTexture(RenderLayer::getGuiTextured, HandledScreen.BACKGROUND_TEXTURE ,x, y, 141, 166, size, size, size, size);
-			  		if (effectDuration <= 200) {
-				  		int m = 10 - effectDuration / 20;
-				 		alpha = MathHelper.clamp(effectDuration / 10F / 5F * 0.5F, 0F, 0.5F) + MathHelper.cos((float) (effectDuration * Math.PI) / 5F) * MathHelper.clamp(m / 10F * 0.25F, 0.0F, 0.25F);
-			  		}
-		   		}
-
-		   		Sprite sprite = statusEffectSpriteManager.getSprite(statusEffect);
-		   		final int fx = x, fy = y;
-		   		final float fa = alpha;
-		   		icons.add(() -> {
-					RenderSystem.setShaderTexture(0, sprite.getContents().getId());
-					RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, fa);
-					context.drawSpriteStretched(RenderLayer::getGuiTextured, sprite, fx + 3, fy + 3, 18, 18);
-		   		});
-		   		if (ClientSettings.showEffectTimers) {
-			   		timers.add(() ->
-							context.drawCenteredTextWithShadow(client.textRenderer, convertDuration(effectDuration), fx + size / 2, fy + (size + 1), Colors.WHITE));
-		   		}
+			int x = screenX;
+			int y = screenY;
+			if (this.minecraft.isDemo()) {
+				y += 15;
 			}
-	 	}
 
-	 	icons.forEach(Runnable::run);
-	 	timers.forEach(Runnable::run);
+			if (statusEffect.value().isBeneficial()) {
+				++beneficialCount;
+				x -= (size + hOffset) * beneficialCount;
+			} else {
+				++harmfulCount;
+				x -= (size + hOffset) * harmfulCount;
+				y += size + vOffset;
+			}
+
+			int effectDuration = statusEffectInstance.getDuration();
+			float alpha = 1.0F;
+			if (statusEffectInstance.isAmbient()) {
+				context.blitSprite(RenderPipelines.GUI_TEXTURED, EFFECT_BACKGROUND_AMBIENT_SPRITE, x, y, size, size);
+			} else {
+				context.blitSprite(RenderPipelines.GUI_TEXTURED, EFFECT_BACKGROUND_SPRITE, x, y, size, size);
+				if (effectDuration <= 200) {
+					int m = 10 - effectDuration / 20;
+					alpha = Mth.clamp(effectDuration / 10F / 5F * 0.5F, 0F, 0.5F)
+							+ Mth.cos((float) (effectDuration * Math.PI) / 5F) * Mth.clamp(m / 10F * 0.25F, 0.0F, 0.25F);
+					alpha = Mth.clamp(alpha, 0.0F, 1.0F);
+				}
+			}
+
+			context.blitSprite(RenderPipelines.GUI_TEXTURED, Hud.getMobEffectSprite(statusEffect),
+					x + 3, y + 3, 18, 18, ARGB.white(alpha));
+
+			if (ClientSettings.showEffectTimers) {
+				context.centeredText(this.minecraft.font, convertDuration(effectDuration),
+						x + size / 2, y + (size + 1), Colors.WHITE);
+			}
+		}
 	}
 
 	@Unique

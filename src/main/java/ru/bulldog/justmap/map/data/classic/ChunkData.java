@@ -4,14 +4,13 @@ import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.random.ChunkRandom;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.WorldgenRandom;
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.data.Layer;
@@ -33,8 +32,8 @@ public class ChunkData {
 	private final WorldData mapData;
 	private final Map<Layer, ChunkLevel[]> levels = new ConcurrentHashMap<>();
 	private final ChunkPos chunkPos;
-	private final World world;
-	private SoftReference<WorldChunk> worldChunk;
+	private final Level world;
+	private SoftReference<LevelChunk> worldChunk;
 	private boolean outdated = false;
 	private boolean slime = false;
 	private boolean saved = true;
@@ -50,12 +49,12 @@ public class ChunkData {
 		this.mapData = data;
 		this.world = data.getWorld();
 		this.chunkPos = pos;
-		this.worldChunk = new SoftReference<>(world.getChunk(pos.x, pos.z));
+		this.worldChunk = new SoftReference<>(world.getChunk(pos.x(), pos.z()));
 
 		if (Dimension.isOverworld(world)) {
-			ServerWorld serverWorld = CurrentWorldPos.getServerWorld();
+			ServerLevel serverWorld = CurrentWorldPos.getServerWorld();
 			if (serverWorld != null) {
-				this.slime = ChunkRandom.getSlimeRandom(chunkPos.x, chunkPos.z,
+				this.slime = WorldgenRandom.seedSlimeChunk(chunkPos.x(), chunkPos.z(),
 						serverWorld.getSeed(), 987234911L).nextInt(10) == 0;
 			} else if (networkHandler.canRequestData()) {
 				networkHandler.requestChunkHasSlime(chunkPos, result -> this.slime = result);
@@ -80,7 +79,7 @@ public class ChunkData {
 	}
 
 	private void initLayer(Layer layer) {
-		int levels = this.world.getDimension().height() / layer.getHeight();
+		int levels = this.world.dimensionType().height() / layer.getHeight();
 		this.levels.put(layer, new ChunkLevel[levels]);
 	}
 
@@ -116,14 +115,14 @@ public class ChunkData {
 	}
 
 	public int getX() {
-		return this.chunkPos.x;
+		return this.chunkPos.x();
 	}
 
 	public int getZ() {
-		return this.chunkPos.z;
+		return this.chunkPos.z();
 	}
 
-	public WorldChunk getWorldChunk() {
+	public LevelChunk getWorldChunk() {
 		return this.worldChunk.get();
 	}
 
@@ -139,16 +138,16 @@ public class ChunkData {
 		return this.getChunkLevel(layer, level).updating;
 	}
 
-	public void updateWorldChunk(WorldChunk lifeChunk) {
+	public void updateWorldChunk(LevelChunk lifeChunk) {
 		if (lifeChunk != null && !lifeChunk.isEmpty()) {
 			this.worldChunk = new SoftReference<>(lifeChunk);
 		}
 	}
 
-	public WorldChunk updateWorldChunk() {
-		WorldChunk currentChunk = this.worldChunk.get();
+	public LevelChunk updateWorldChunk() {
+		LevelChunk currentChunk = this.worldChunk.get();
 		if(currentChunk == null || currentChunk.isEmpty()) {
-			WorldChunk lifeChunk = this.world.getChunk(getX(), getZ());
+			LevelChunk lifeChunk = this.world.getChunk(getX(), getZ());
 			if (lifeChunk == null || lifeChunk.isEmpty()) {
 				return this.mapData.getEmptyChunk();
 			}
@@ -171,12 +170,12 @@ public class ChunkData {
 		long currentTime = System.currentTimeMillis();
 		if (!outdated && currentTime - updated < ClientSettings.chunkUpdateInterval) return false;
 
-		WorldChunk worldChunk = this.updateWorldChunk();
+		LevelChunk worldChunk = this.updateWorldChunk();
 		chunkUpdater.execute(() -> {
 			if (worldChunk.isEmpty() || !this.isChunkLoaded()) return;
 			this.updateArea(worldChunk, layer, level, x, z, width, height);
 			if (saveNeeded()) {
-				BlockPos.Mutable chunkBlockPos = this.chunkPos.getStartPos().mutableCopy();
+				BlockPos.MutableBlockPos chunkBlockPos = this.chunkPos.getWorldPosition().mutable();
 				chunkBlockPos.setY(level * layer.getHeight());
 				RegionData region = this.mapData.getRegion(chunkBlockPos);
 				if (region.getLayer().equals(layer) && region.getLevel() == level) {
@@ -188,7 +187,7 @@ public class ChunkData {
 		return true;
 	}
 
-	private void updateHeighmap(WorldChunk worldChunk, Layer layer, int level, boolean skipWater, int x, int z, int width, int height) {
+	private void updateHeighmap(LevelChunk worldChunk, Layer layer, int level, boolean skipWater, int x, int z, int width, int height) {
 		if (worldChunk.isEmpty()) return;
 		for (int sx = x; sx < width; sx++) {
 			for (int sz = z; sz < height; sz++) {
@@ -204,7 +203,7 @@ public class ChunkData {
 		}
 	}
 
-	private void updateArea(WorldChunk worldChunk, Layer layer, int level, int x, int z, int width, int height) {
+	private void updateArea(LevelChunk worldChunk, Layer layer, int level, int x, int z, int width, int height) {
 		ChunkLevel chunkLevel = this.getChunkLevel(layer, level);
 		chunkLevel.updating = true;
 
@@ -228,10 +227,10 @@ public class ChunkData {
 		chunkLevel.updating = false;
 	}
 
-	private void updateBlock(WorldChunk worldChunk, ChunkLevel chunkLevel, Layer layer, int level, int x, int z, boolean skipWater) {
+	private void updateBlock(LevelChunk worldChunk, ChunkLevel chunkLevel, Layer layer, int level, int x, int z, boolean skipWater) {
 		int index = x + (z << 4);
-		int posX = x + (chunkPos.x << 4);
-		int posZ = z + (chunkPos.z << 4);
+		int posX = x + (chunkPos.x() << 4);
+		int posZ = z + (chunkPos.z() << 4);
 		int posY = chunkLevel.sampleHeightmap(x, z);
 
 		if (posY < 0) return;
@@ -313,7 +312,7 @@ public class ChunkData {
 	}
 
 	public boolean isChunkLoaded() {
-		return this.world.isChunkLoaded(chunkPos.x, chunkPos.z);
+		return this.world.hasChunk(chunkPos.x(), chunkPos.z());
 	}
 
 	public boolean hasSlime() {

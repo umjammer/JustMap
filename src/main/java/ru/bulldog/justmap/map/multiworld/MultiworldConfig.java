@@ -2,13 +2,11 @@ package ru.bulldog.justmap.map.multiworld;
 
 import java.io.File;
 import java.util.Map;
-
+import net.minecraft.util.GsonHelper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import net.minecraft.util.JsonHelper;
-
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.client.config.ClientConfig;
 import ru.bulldog.justmap.config.ConfigKeeper;
@@ -43,8 +41,8 @@ public class MultiworldConfig {
 			JsonObject configObject = JsonFactory.getJsonObject(configFile);
 			ConfigKeeper.EnumEntry<MultiworldDetection> detectionType = modConfig.getEntry("multiworld_detection");
 			ConfigKeeper.BooleanEntry detectMultiworlds = modConfig.getEntry("detect_multiworlds");
-			detectMultiworlds.fromString(JsonHelper.getString(configObject, "detect_multiworlds"));
-			detectionType.fromString(JsonHelper.getString(configObject, "multiworld_detection_type"));
+			detectMultiworlds.fromString(GsonHelper.getAsString(configObject, "detect_multiworlds"));
+			detectionType.fromString(GsonHelper.getAsString(configObject, "multiworld_detection_type"));
 		} catch (JsonSyntaxException ex) {
 			return false;
 		}

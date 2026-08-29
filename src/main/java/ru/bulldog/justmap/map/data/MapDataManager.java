@@ -1,9 +1,9 @@
 package ru.bulldog.justmap.map.data;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 public interface MapDataManager {
 
@@ -13,9 +13,9 @@ public interface MapDataManager {
 
 	// Event callbacks
 
-	void onChunkLoad(World world, WorldChunk worldChunk);
+	void onChunkLoad(Level world, LevelChunk worldChunk);
 
-	void onSetBlockState(BlockPos pos, BlockState state, World world);
+	void onSetBlockState(BlockPos pos, BlockState state, Level world);
 
 	void onTick(boolean isServer);
 

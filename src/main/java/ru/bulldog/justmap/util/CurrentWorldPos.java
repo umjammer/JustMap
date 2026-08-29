@@ -1,40 +1,31 @@
 package ru.bulldog.justmap.util;
 
-import java.util.function.Supplier;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.PersistentStateManager;
-import net.minecraft.world.World;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import ru.bulldog.justmap.util.math.MathUtil;
 
 public class CurrentWorldPos {
-	private static final BlockPos.Mutable currentPos = new BlockPos.Mutable();
-	private static ClientWorld clientWorld = null;
-	private static ServerWorld serverWorld = null;
-	private static Supplier<PersistentStateManager> persistentSupplier = null;
+	private static final BlockPos.MutableBlockPos currentPos = new BlockPos.MutableBlockPos();
+	private static ClientLevel clientWorld = null;
+	private static ServerLevel serverWorld = null;
 	private static int coordX;
 	private static int coordY;
 	private static int coordZ;
 
 	@Environment(EnvType.CLIENT)
-	public static void updateWorld(ClientWorld world) {
+	public static void updateWorld(ClientLevel world) {
 		clientWorld = world;
-		MinecraftClient minecraft = MinecraftClient.getInstance();
-		if (minecraft.isIntegratedServerRunning()) {
-			MinecraftServer server = minecraft.getServer();
-			serverWorld = minecraft.getServer().getWorld(world.getRegistryKey());
-			persistentSupplier = () -> server.getOverworld().getPersistentStateManager();
+		Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft.hasSingleplayerServer()) {
+			serverWorld = minecraft.getSingleplayerServer().getLevel(world.dimension());
 		} else {
 			serverWorld = null;
-			persistentSupplier = null;
 		}
 	}
 
@@ -50,20 +41,16 @@ public class CurrentWorldPos {
 		}
 	}
 
-	public static World getWorld() {
+	public static Level getWorld() {
 		return serverWorld != null ? serverWorld : clientWorld;
 	}
 
-	public static ClientWorld getClientWorld() {
+	public static ClientLevel getClientWorld() {
 		return clientWorld;
 	}
 
-	public static ServerWorld getServerWorld() {
+	public static ServerLevel getServerWorld() {
 		return serverWorld;
-	}
-
-	public static Supplier<PersistentStateManager> getPersistentSupplier() {
-		return persistentSupplier;
 	}
 
 	public static int coordY() {
@@ -76,12 +63,12 @@ public class CurrentWorldPos {
 
 	public static double doubleX(Entity entity, float delta) {
 		if (entity == null) return 0.0;
-		return MathUtil.lerp(delta, entity.prevX, entity.getX());
+		return MathUtil.lerp(delta, entity.xo, entity.getX());
 	}
 
 	public static double doubleZ(Entity entity, float delta) {
 		if (entity == null) return 0.0;
-		return MathUtil.lerp(delta, entity.prevZ, entity.getZ());
+		return MathUtil.lerp(delta, entity.zo, entity.getZ());
 	}
 
 	public static double doubleX(float delta) {
@@ -93,7 +80,7 @@ public class CurrentWorldPos {
 	}
 
 	private static Entity getPosEntity() {
-		MinecraftClient minecraft = MinecraftClient.getInstance();
+		Minecraft minecraft = Minecraft.getInstance();
 		return minecraft.getCameraEntity() != null ? minecraft.getCameraEntity() : minecraft.player;
 	}
 }

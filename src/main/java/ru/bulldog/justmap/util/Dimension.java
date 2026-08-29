@@ -1,12 +1,12 @@
 package ru.bulldog.justmap.util;
 
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionTypes;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 
 
 public class Dimension {
-	public static int getId(World world) {
+	public static int getId(Level world) {
 		if (isNether(world)) return -1;
 		if (isOverworld(world)) return 0;
 		if (isEnd(world)) return 1;
@@ -16,35 +16,35 @@ public class Dimension {
 
 	public static Identifier fromId(int id) {
 		switch(id) {
-			case -1: return DimensionTypes.THE_NETHER.getValue();
-			case 0: return DimensionTypes.OVERWORLD.getValue();
-			case 1: return DimensionTypes.THE_END.getValue();
+			case -1: return BuiltinDimensionTypes.NETHER.identifier();
+			case 0: return BuiltinDimensionTypes.OVERWORLD.identifier();
+			case 1: return BuiltinDimensionTypes.END.identifier();
 		}
 
-		return Identifier.of("unknown");
+		return Identifier.parse("unknown");
 	}
 
-	public static boolean isEnd(World world) {
-		return isEnd(world.getRegistryKey().getValue());
+	public static boolean isEnd(Level world) {
+		return isEnd(world.dimension().identifier());
 	}
 
-	public static boolean isNether(World world) {
-		return isNether(world.getRegistryKey().getValue());
+	public static boolean isNether(Level world) {
+		return isNether(world.dimension().identifier());
 	}
 
-	public static boolean isOverworld(World world) {
-		return isOverworld(world.getRegistryKey().getValue());
+	public static boolean isOverworld(Level world) {
+		return isOverworld(world.dimension().identifier());
 	}
 
 	public static boolean isEnd(Identifier dimId) {
-		return dimId.equals(World.END.getValue());
+		return dimId.equals(Level.END.identifier());
 	}
 
 	public static boolean isNether(Identifier dimId) {
-		return dimId.equals(World.NETHER.getValue());
+		return dimId.equals(Level.NETHER.identifier());
 	}
 
 	public static boolean isOverworld(Identifier dimId) {
-		return dimId.equals(World.OVERWORLD.getValue());
+		return dimId.equals(Level.OVERWORLD.identifier());
 	}
 }

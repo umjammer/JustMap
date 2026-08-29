@@ -2,13 +2,11 @@ package ru.bulldog.justmap.map.data.classic.event;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.WorldChunk;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.map.IMap;
 import ru.bulldog.justmap.map.data.Layer;
@@ -63,8 +61,8 @@ public class ChunkUpdateListener {
 		updateQueue.clear();
 	}
 
-	public static void onSetBlockState(BlockPos pos, BlockState state, World world) {
-		WorldChunk worldChunk = world.getWorldChunk(pos);
+	public static void onSetBlockState(BlockPos pos, BlockState state, Level world) {
+		LevelChunk worldChunk = world.getChunkAt(pos);
 		if (!worldChunk.isEmpty()) {
 			IMap map = WorldManager.getCurrentlyShownMap();
 			Layer layer = Layer.getLayer(world, pos);
@@ -73,8 +71,8 @@ public class ChunkUpdateListener {
 				WorldData mapData = WorldManager.WORLD_MANAGER.getWorldData();
 				if (mapData == null) return;
 				ChunkPos chunkPos = worldChunk.getPos();
-				int chunkX = chunkPos.x;
-				int chunkZ = chunkPos.z;
+				int chunkX = chunkPos.x();
+				int chunkZ = chunkPos.z();
 				int x = (pos.getX() - chunkX) - 1;
 				int z = (pos.getZ() - chunkZ) - 1;
 				if (x < 0 && z < 0) {
@@ -116,7 +114,7 @@ public class ChunkUpdateListener {
 		}
 	}
 
-	private static void updateChunk(WorldData mapData, WorldChunk worldChunk, Layer layer, int level, int chx, int chz, int x, int z, int w, int h) {
+	private static void updateChunk(WorldData mapData, LevelChunk worldChunk, Layer layer, int level, int chx, int chz, int x, int z, int w, int h) {
 		if (worldChunk.isEmpty()) return;
 		ChunkData mapChunk = mapData.getChunk(worldChunk.getPos());
 		ChunkUpdateListener.accept(new ChunkUpdateEvent(worldChunk, mapChunk, layer, level, x, z, w, h, true));

@@ -1,16 +1,14 @@
 package ru.bulldog.justmap.map.minimap.skin;
 
 import java.io.File;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.GsonHelper;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.client.texture.TextureManager;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
-
+import com.mojang.blaze3d.platform.NativeImage;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.map.minimap.skin.MapSkin.SkinType;
 import ru.bulldog.justmap.util.ImageUtil;
@@ -20,7 +18,7 @@ import ru.bulldog.justmap.util.storage.StorageUtil;
 public final class SkinLoader extends JsonFactory {
 
 	private final static File SKINS_FOLDER = StorageUtil.skinsDir();
-	private final static TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
+	private final static TextureManager textureManager = Minecraft.getInstance().getTextureManager();
 
 	private SkinLoader() {}
 
@@ -41,23 +39,23 @@ public final class SkinLoader extends JsonFactory {
 
 	private static void loadSkin(File folder, File skinFile) {
 		JsonObject skinData = getJsonObject(skinFile);
-		String name = JsonHelper.getString(skinData, "name");
-		int width = JsonHelper.getInt(skinData, "width");
-		int height = JsonHelper.getInt(skinData, "height");
-		int border = JsonHelper.getInt(skinData, "border");
-		SkinType shape = getSkinType(JsonHelper.getString(skinData, "shape", "universal"));
-		boolean resizable = JsonHelper.getBoolean(skinData, "resizable", false);
-		boolean repeating = JsonHelper.getBoolean(skinData, "repeating", false);
-		String textureType = JsonHelper.getString(skinData, "texture_type");
+		String name = GsonHelper.getAsString(skinData, "name");
+		int width = GsonHelper.getAsInt(skinData, "width");
+		int height = GsonHelper.getAsInt(skinData, "height");
+		int border = GsonHelper.getAsInt(skinData, "border");
+		SkinType shape = getSkinType(GsonHelper.getAsString(skinData, "shape", "universal"));
+		boolean resizable = GsonHelper.getAsBoolean(skinData, "resizable", false);
+		boolean repeating = GsonHelper.getAsBoolean(skinData, "repeating", false);
+		String textureType = GsonHelper.getAsString(skinData, "texture_type");
 		if (textureType.equals("source")) {
-			Identifier texture = Identifier.of(JsonHelper.getString(skinData, "texture"));
+			Identifier texture = Identifier.parse(GsonHelper.getAsString(skinData, "texture"));
 			MapSkin.addUniversalSkin(name, texture, width, height, border);
 		} else if (textureType.equals("image")) {
-			String imageName = JsonHelper.getString(skinData, "image");
+			String imageName = GsonHelper.getAsString(skinData, "image");
 			File imageFile = new File(folder, imageName);
 			NativeImage skinImage = ImageUtil.loadImage(imageFile, width, height);
-			Identifier textureId = Identifier.of(JustMap.MODID, imageName);
-			textureManager.registerTexture(textureId, new NativeImageBackedTexture(skinImage));
+			Identifier textureId = Identifier.fromNamespaceAndPath(JustMap.MODID, imageName);
+			textureManager.register(textureId, new DynamicTexture(null, skinImage));
 			switch (shape) {
 				case ROUND:
 					MapSkin.addRoundSkin(name, textureId, skinImage, width, height, border);

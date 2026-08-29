@@ -1,19 +1,12 @@
 package ru.bulldog.justmap.map.icon;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.VertexConsumerProvider;
-
-import ru.bulldog.justmap.client.config.ClientSettings;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import ru.bulldog.justmap.map.IMap;
 import ru.bulldog.justmap.map.minimap.Minimap;
 import ru.bulldog.justmap.map.waypoint.Waypoint;
-import ru.bulldog.justmap.util.CurrentWorldPos;
 import ru.bulldog.justmap.util.math.Line;
 import ru.bulldog.justmap.util.math.MathUtil;
 import ru.bulldog.justmap.util.math.Point;
-import ru.bulldog.justmap.util.render.GLC;
-import ru.bulldog.justmap.util.render.RenderUtil;
 
 public class WaypointIcon extends MapIcon<WaypointIcon> {
 
@@ -30,7 +23,7 @@ public class WaypointIcon extends MapIcon<WaypointIcon> {
 		this.map = map;
 	}
 
-	public void draw(DrawContext context, int size) {
+	public void draw(GuiGraphicsExtractor context, int size) {
 		double x = this.x - size / 2;
 		double y = this.y - size / 2;
 
@@ -40,33 +33,18 @@ public class WaypointIcon extends MapIcon<WaypointIcon> {
 		}
 	}
 
-	public void draw(DrawContext context, VertexConsumerProvider consumerProvider, int mapX, int mapY, int mapW, int mapH, double offX, double offY, double rotation) {
+	public void draw(GuiGraphicsExtractor context, int mapX, int mapY, int mapW, int mapH, double offX, double offY, double rotation) {
 		rotation = MathUtil.correctAngle(rotation + 180);
 		this.updatePos(mapX, mapY, mapW, mapH, iconSize, rotation);
 		this.applyOffset(offX, offY, rotation);
-		this.draw(context, consumerProvider, mapX, mapY, mapW, mapH, (float) rotation);
+		this.draw(context, mapX, mapY, mapW, mapH, (float) rotation);
 	}
 
 	@Override
-	public void draw(DrawContext context, VertexConsumerProvider consumerProvider, int mapX, int mapY, int mapW, int mapH, float rotation) {
+	public void draw(GuiGraphicsExtractor context, int mapX, int mapY, int mapW, int mapH, float rotation) {
 		Waypoint.Icon icon = waypoint.getIcon();
 		if (icon != null) {
-			if (ClientSettings.entityIconsShading) {
-				int posY = CurrentWorldPos.coordY();
-				int hdiff = posY - height;
-				float hmod;
-				if (hdiff < 0) {
-					hmod = MathUtil.clamp(Math.abs(hdiff) / 24F, 0.0F, 0.5F);
-					RenderUtil.texEnvMode(GLC.GL_ADD);
-				} else {
-					hmod = MathUtil.clamp((24 - Math.abs(hdiff)) / 24F, 0.25F, 1.0F);
-					RenderUtil.texEnvMode(GLC.GL_MODULATE);
-				}
-				RenderSystem.setShaderColor(hmod, hmod, hmod, 1.0F);
-			}
-			icon.draw(context, iconPos.x - offX, iconPos.y - offY, iconSize);
-			RenderUtil.texEnvMode(GLC.GL_MODULATE);
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+			icon.draw(context, iconPos.x - offX, iconPos.y - offY, iconSize, iconSize, EntityIcon.shadingTint(height));
 		}
 	}
 

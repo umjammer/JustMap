@@ -7,14 +7,15 @@ import java.nio.file.Path;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ServerInfo;
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.World;
-import net.minecraft.world.storage.StorageKey;
-import net.minecraft.world.storage.VersionedChunkStorage;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
+import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.world.level.chunk.storage.SimpleRegionStorage;
+import net.minecraft.world.level.chunk.storage.RegionStorageInfo;
 import org.apache.commons.io.FileUtils;
 
 import ru.bulldog.justmap.JustMap;
@@ -42,14 +43,19 @@ public final class StorageUtil {
 		return MAP_DATA_DIR.toFile();
 	}
 
-	public static VersionedChunkStorage getChunkStorage(ServerWorld world) {
+	public static SimpleRegionStorage getChunkStorage(ServerLevel world) {
 		File regionDir = new File(savesDir(world), "region");
-		return new VersionedChunkStorage(new StorageKey("chunk", world.getRegistryKey(), "region"), regionDir.toPath(), world.getServer().getDataFixer(), true); // TODO 1.20.5 ??? StorageKey
+		return new SimpleRegionStorage(
+				new RegionStorageInfo("chunk", world.dimension(), "region"),
+				regionDir.toPath(),
+				world.getServer().getFixerUpper(),
+				true,
+				DataFixTypes.CHUNK);
 	}
 
-	public static File savesDir(ServerWorld world) {
+	public static File savesDir(ServerLevel world) {
 		if (world == null) return null;
-		return ((SessionAccessor) world.getServer()).getServerSession().getWorldDirectory(world.getRegistryKey()).toFile();
+		return ((SessionAccessor) world.getServer()).getServerSession().getDimensionPath(world.dimension()).toFile();
 	}
 
 	public static File configDir() {
@@ -80,10 +86,10 @@ public final class StorageUtil {
 
 	public static File cacheDir() {
 		String dimension = "undefined";
-		World world = CurrentWorldPos.getWorld();
+		Level world = CurrentWorldPos.getWorld();
 		if (world != null) {
-			RegistryKey<World> dimKey = world.getRegistryKey();
-			dimension = dimKey.getValue().getPath();
+			ResourceKey<Level> dimKey = world.dimension();
+			dimension = dimKey.identifier().getPath();
 		}
 
 		WorldKey worldKey = MapDataProvider.getMultiworldManager().getCurrentWorldKey();
@@ -109,13 +115,13 @@ public final class StorageUtil {
 
 	@Environment(EnvType.CLIENT)
 	public static File filesDir() {
-		MinecraftClient minecraft = MinecraftClient.getInstance();
-		ServerInfo serverInfo = minecraft.getCurrentServerEntry();
+		Minecraft minecraft = Minecraft.getInstance();
+		ServerData serverInfo = minecraft.getCurrentServer();
 		File dataDir = MAP_DATA_DIR.toFile();
 		File mapsDir = new File(MAP_DATA_DIR.toFile(), "maps");
-		if (minecraft.isIntegratedServerRunning()) {
-			MinecraftServer server = minecraft.getServer();
-			String name = scrubFileName(server.getSaveProperties().getLevelName());
+		if (minecraft.hasSingleplayerServer()) {
+			MinecraftServer server = minecraft.getSingleplayerServer();
+			String name = scrubFileName(server.getWorldData().getLevelName());
 			filesDir = new File(mapsDir, "local/" + name);
 			File oldDir = new File(dataDir, "local/" + name);
 			if (oldDir.exists()) {
@@ -129,8 +135,8 @@ public final class StorageUtil {
 			String name = scrubFileName(serverInfo.name);
 			File oldDir;
 			//serverInfo.playerCountLabel would return something if it is a server thus saving it like the original mod did
-			if (serverInfo.playerCountLabel != null) {
-				String address = serverInfo.address;
+			if (serverInfo.status != null) {
+				String address = serverInfo.ip;
 				if (address.contains(":")) {
 					int end = address.indexOf(":") - 1;
 					address = address.substring(0, end);

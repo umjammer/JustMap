@@ -2,13 +2,11 @@ package ru.bulldog.justmap.map.data.classic;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.WorldChunk;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.LevelChunk;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.client.screen.WorldmapScreen;
 import ru.bulldog.justmap.map.IMap;
@@ -22,12 +20,12 @@ import ru.bulldog.justmap.util.CurrentWorldPos;
 import ru.bulldog.justmap.util.math.MathUtil;
 
 public class WorldData implements WorldMapper {
-	private final World world;
+	private final Level world;
 	private final ChunkDataManager chunkManager;
 	private final Map<RegionPos, RegionData> regions;
 	private long lastPurged = 0;
 
-	public WorldData(World world) {
+	public WorldData(Level world) {
 		this.regions = new HashMap<>();
 		this.chunkManager = new ChunkDataManager(this, world);
 		this.world = world;
@@ -47,7 +45,7 @@ public class WorldData implements WorldMapper {
 		synchronized (regions) {
 			if(regions.containsKey(regPos)) {
 				region = this.regions.get(regPos);
-				region.setCenter(new ChunkPos(map.getCenter()));
+				region.setCenter(ChunkPos.containing(map.getCenter()));
 			} else {
 				region = new RegionData(map, this, regPos);
 				regions.put(regPos, region);
@@ -72,35 +70,35 @@ public class WorldData implements WorldMapper {
 	}
 
 	public ChunkData getChunk(ChunkPos chunkPos) {
-		return this.chunkManager.getChunk(chunkPos.x, chunkPos.z);
+		return this.chunkManager.getChunk(chunkPos.x(), chunkPos.z());
 	}
 
 	public ChunkData getChunk(int x, int z) {
 		return this.chunkManager.getChunk(x, z);
 	}
 
-	public WorldChunk getWorldChunk(BlockPos blockPos) {
+	public LevelChunk getWorldChunk(BlockPos blockPos) {
 		return this.getWorldChunk(blockPos.getX() >> 4, blockPos.getZ() >> 4);
 	}
 
-	public WorldChunk getWorldChunk(int x, int z) {
-		WorldChunk worldChunk = this.world.getChunk(x, z);
+	public LevelChunk getWorldChunk(int x, int z) {
+		LevelChunk worldChunk = this.world.getChunk(x, z);
 		if (worldChunk.isEmpty()) {
 			worldChunk = this.callSavedChunk(worldChunk.getPos());
 		}
 		return worldChunk;
 	}
 
-	public WorldChunk getEmptyChunk() {
+	public LevelChunk getEmptyChunk() {
 		return this.chunkManager.getEmptyChunk();
 	}
 
-	public WorldChunk callSavedChunk(ChunkPos chunkPos) {
-		World world = CurrentWorldPos.getWorld();
+	public LevelChunk callSavedChunk(ChunkPos chunkPos) {
+		Level world = CurrentWorldPos.getWorld();
 		return this.chunkManager.callSavedChunk(world, chunkPos);
 	}
 
-	public World getWorld() {
+	public Level getWorld() {
 		return this.world;
 	}
 
@@ -114,15 +112,15 @@ public class WorldData implements WorldMapper {
 		long time = System.currentTimeMillis();
 		long interval = ClientSettings.chunkUpdateInterval;
 		ChunkData mapChunk = this.getChunk(centerPos);
-		WorldChunk worldChunk = this.world.getWorldChunk(centerPos);
+		LevelChunk worldChunk = this.world.getChunkAt(centerPos);
 		boolean chunkLoaded = !worldChunk.isEmpty() && mapChunk.isChunkLoaded();
 		if (chunkLoaded && time - mapChunk.updated > interval) {
 			ChunkUpdateListener.accept(new ChunkUpdateEvent(worldChunk, mapChunk, layer, level, 0, 0, 16, 16, update));
 		}
 		int x = centerPos.getX();
 		int z = centerPos.getZ();
-		int distance = MinecraftClient.getInstance().options.getViewDistance().getValue() - 1;
-		BlockPos.Mutable currentPos = centerPos.mutableCopy();
+		int distance = Minecraft.getInstance().options.renderDistance().get() - 1;
+		BlockPos.MutableBlockPos currentPos = centerPos.mutable();
 		for (int step = 1; step < distance * 2; step++) {
 			boolean even = MathUtil.isEven(step);
 			for (int i = 0; i < step; i++) {
@@ -132,7 +130,7 @@ public class WorldData implements WorldMapper {
 					currentPos.setX(x += 16);
 				}
 				mapChunk = this.getChunk(currentPos);
-				worldChunk = this.world.getWorldChunk(currentPos);
+				worldChunk = this.world.getChunkAt(currentPos);
 				chunkLoaded = !worldChunk.isEmpty() && mapChunk.isChunkLoaded();
 				if (chunkLoaded && time - mapChunk.updated > interval) {
 					ChunkUpdateListener.accept(new ChunkUpdateEvent(worldChunk, mapChunk, layer, level, 0, 0, 16, 16, update));
@@ -145,7 +143,7 @@ public class WorldData implements WorldMapper {
 					currentPos.setZ(z += 16);
 				}
 				mapChunk = this.getChunk(currentPos);
-				worldChunk = this.world.getWorldChunk(currentPos);
+				worldChunk = this.world.getChunkAt(currentPos);
 				chunkLoaded = !worldChunk.isEmpty() && mapChunk.isChunkLoaded();
 				if (chunkLoaded && time - mapChunk.updated > interval) {
 					ChunkUpdateListener.accept(new ChunkUpdateEvent(worldChunk, mapChunk, layer, level, 0, 0, 16, 16, update));

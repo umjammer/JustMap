@@ -2,83 +2,103 @@ package ru.bulldog.justmap.client.render;
 
 import java.util.List;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.RotationAxis;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import org.joml.Matrix3x2fStack;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.ChunkGrid;
 import ru.bulldog.justmap.map.data.MapRegion;
 import ru.bulldog.justmap.map.icon.MapIcon;
 import ru.bulldog.justmap.map.icon.WaypointIcon;
 import ru.bulldog.justmap.map.minimap.Minimap;
-import ru.bulldog.justmap.util.render.GLC;
-import ru.bulldog.justmap.util.render.RenderUtil;
 
 public class FastMiniMapRenderer extends AbstractMiniMapRenderer {
+
+	/**
+	 * How many horizontal bands approximate the disc of a round minimap.
+	 *
+	 * <p>Since 26.2 the GUI is drawn from render states and the alpha-mask trick the old
+	 * renderer used (clear the alpha channel, stamp a round mask, then blend against it) has
+	 * no equivalent: there is no immediate GL state to set. Clipping is a stack of rectangles,
+	 * so the disc is built from bands. The skin frame drawn on top hides the outermost step.
+	 */
+	private static final int ROUND_BANDS = 64;
 
 	public FastMiniMapRenderer(Minimap map) {
 		super(map);
 	}
 
-	protected void render(DrawContext context, double scale) {
-		Framebuffer minecraftFramebuffer = minecraft.getFramebuffer();
-		int fbuffH = minecraftFramebuffer.viewportHeight;
-		int scissX = (int) (mapX * scale);
-		int scissY = (int) (fbuffH - (mapY + mapHeight) * scale);
-		int scissW = (int) (mapWidth * scale);
-		int scissH = (int) (mapHeight * scale);
-		RenderUtil.enableScissor();
-		RenderUtil.applyScissor(scissX, scissY, scissW, scissH);
-		RenderSystem.enableBlend();
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+	protected void render(GuiGraphicsExtractor context) {
 		if (Minimap.isRound()) {
-			RenderSystem.colorMask(false, false, false, true);
-			RenderSystem.clearColor(0.0F, 0.0F, 0.0F, 0.0F);
-			RenderSystem.clear(GLC.GL_COLOR_BUFFER_BIT);
-			RenderSystem.colorMask(true, true, true, true);
-			RenderUtil.bindTexture(roundMask);
-			RenderUtil.startDraw();
-			RenderUtil.addQuad(mapX, mapY, mapWidth, mapHeight);
-			RenderUtil.endDraw();
-			RenderSystem.blendFunc(GLC.GL_DST_ALPHA, GLC.GL_ONE_MINUS_DST_ALPHA);
+			this.renderRound(context);
+		} else {
+			context.enableScissor(mapX, mapY, mapX + mapWidth, mapY + mapHeight);
+			this.renderContent(context);
+			context.disableScissor();
 		}
-		MatrixStack matrices = context.getMatrices();
-		matrices.push();
+	}
+
+	private void renderRound(GuiGraphicsExtractor context) {
+		double centerX = mapX + mapWidth / 2.0;
+		double centerY = mapY + mapHeight / 2.0;
+		double radiusX = mapWidth / 2.0;
+		double radiusY = mapHeight / 2.0;
+
+		int bands = Math.min(mapHeight, ROUND_BANDS);
+		double bandHeight = (double) mapHeight / bands;
+
+		for (int i = 0; i < bands; i++) {
+			double top = mapY + i * bandHeight;
+			double bottom = top + bandHeight;
+
+			// widest point of the band: the edge nearest the centre line
+			double dy;
+			if ((top - centerY) * (bottom - centerY) <= 0.0) {
+				dy = 0.0;
+			} else {
+				dy = Math.min(Math.abs(top - centerY), Math.abs(bottom - centerY));
+			}
+
+			double t = 1.0 - (dy * dy) / (radiusY * radiusY);
+			if (t <= 0.0) continue;
+
+			double halfWidth = radiusX * Math.sqrt(t);
+			context.enableScissor(
+					(int) Math.floor(centerX - halfWidth), (int) Math.floor(top),
+					(int) Math.ceil(centerX + halfWidth), (int) Math.ceil(bottom));
+			this.renderContent(context);
+			context.disableScissor();
+		}
+	}
+
+	private void renderContent(GuiGraphicsExtractor context) {
+		Matrix3x2fStack matrices = context.pose();
+		matrices.pushMatrix();
 		if (mapRotation) {
 			float moveX = mapX + mapWidth / 2.0F;
 			float moveY = mapY + mapHeight / 2.0F;
-			matrices.translate(moveX, moveY, 0.0);
-			matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-rotation + 180));
-			matrices.translate(-moveX, -moveY, 0.0);
+			matrices.rotateAbout((float) Math.toRadians(-rotation + 180), moveX, moveY);
 		}
-		matrices.translate(-offX, -offY, 0.0);
+		matrices.translate(-offX, -offY);
 
 		this.drawMap(context);
 		if (ClientSettings.showGrid) {
-			this.drawGrid();
+			this.drawGrid(context);
 		}
 
-		VertexConsumerProvider.Immediate consumerProvider = minecraft.getBufferBuilders().getEntityVertexConsumers();
 		List<MapIcon<?>> drawableEntities = minimap.getDrawableIcons(lastX, lastZ, centerX, centerY, delta);
 		for (MapIcon<?> icon : drawableEntities) {
-			icon.draw(context, consumerProvider, mapX, mapY, mapWidth, mapHeight, rotation);
+			icon.draw(context, mapX, mapY, mapWidth, mapHeight, rotation);
 		}
-		consumerProvider.draw();
 
-		matrices.pop();
+		matrices.popMatrix();
 
 		List<WaypointIcon> drawableWaypoints = minimap.getWaypoints(playerPos, centerX, centerY);
 		for (WaypointIcon icon : drawableWaypoints) {
-			icon.draw(context, consumerProvider, mapX, mapY, mapWidth, mapHeight, offX, offY, rotation);
+			icon.draw(context, mapX, mapY, mapWidth, mapHeight, offX, offY, rotation);
 		}
-		consumerProvider.draw();
-		RenderUtil.disableScissor();
 	}
 
-	private void drawMap(DrawContext context) {
+	private void drawMap(GuiGraphicsExtractor context) {
 		int cornerX = lastX - scaledW / 2;
 		int cornerZ = lastZ - scaledH / 2;
 
@@ -115,7 +135,7 @@ public class FastMiniMapRenderer extends AbstractMiniMapRenderer {
 		}
 	}
 
-	private void drawGrid() {
+	private void drawGrid(GuiGraphicsExtractor context) {
 		if (paramsUpdated) {
 			if (chunkGrid == null) {
 				this.chunkGrid = new ChunkGrid(lastX, lastZ, imgX, imgY, imgW, imgH, mapScale);
@@ -130,6 +150,6 @@ public class FastMiniMapRenderer extends AbstractMiniMapRenderer {
 			this.chunkGrid.updateGrid();
 			this.playerMoved = false;
 		}
-		this.chunkGrid.draw();
+		this.chunkGrid.draw(context);
 	}
 }

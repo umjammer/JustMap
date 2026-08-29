@@ -1,18 +1,19 @@
 package ru.bulldog.justmap.client.screen;
 
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.resource.language.I18n;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.PlainTextContent;
-import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.map.data.MapDataProvider;
@@ -28,8 +29,8 @@ import ru.bulldog.justmap.util.math.RandomUtil;
 import ru.bulldog.justmap.util.render.RenderUtil;
 
 public class WaypointsListScreen extends AbstractJustMapScreen {
-	private static class Entry implements Element {
-		private final MinecraftClient minecraft;
+	private static class Entry implements GuiEventListener {
+		private final Minecraft minecraft;
 
 		private int x;
 		private int y;
@@ -37,19 +38,19 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 		private final int height;
 		private boolean focused;
 
-		private final ButtonWidget editButton;
-		private final ButtonWidget deleteButton;
-		private final ButtonWidget tpButton;
+		private final Button editButton;
+		private final Button deleteButton;
+		private final Button tpButton;
 		private final Waypoint waypoint;
 
 		public Entry(WaypointsListScreen wayPointListEditor, int x, int y, int width, int height, Waypoint waypoint) {
 			this.width = width;
 			this.height = height + 2;
 			this.waypoint = waypoint;
-			this.minecraft = MinecraftClient.getInstance();
-			this.editButton = ButtonWidget.builder(wayPointListEditor.lang("edit"), b -> wayPointListEditor.edit(waypoint)).dimensions(0, 0, 40, height).build();
-			this.deleteButton = ButtonWidget.builder(wayPointListEditor.lang("delete"), b -> wayPointListEditor.delete(waypoint)).dimensions(0, 0, 40, height).build();
-			this.tpButton = ButtonWidget.builder(wayPointListEditor.lang("teleport"), b -> wayPointListEditor.teleport(waypoint)).dimensions(0, 0, 40, height).build();
+			this.minecraft = Minecraft.getInstance();
+			this.editButton = Button.builder(wayPointListEditor.lang("edit"), b -> wayPointListEditor.edit(waypoint)).bounds(0, 0, 40, height).build();
+			this.deleteButton = Button.builder(wayPointListEditor.lang("delete"), b -> wayPointListEditor.delete(waypoint)).bounds(0, 0, 40, height).build();
+			this.tpButton = Button.builder(wayPointListEditor.lang("teleport"), b -> wayPointListEditor.teleport(waypoint)).bounds(0, 0, 40, height).build();
 
 			this.setPosition(x, y);
 		}
@@ -70,8 +71,8 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 			}
 		}
 
-		public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-			TextRenderer font = minecraft.textRenderer;
+		public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+			Font font = minecraft.font;
 
 			boolean hover = isMouseOver(mouseX, mouseY);
 			int bgColor = hover ? 0x88AAAAAA : 0x88333333;
@@ -82,36 +83,36 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 			if (icon != null) {
 				icon.draw(context, x, y + 1, iconSize, iconSize);
 			} else {
-				RenderUtil.drawDiamond(x, y + 1, iconSize, iconSize, waypoint.color);
+				RenderUtil.drawDiamond(context, x, y + 1, iconSize, iconSize, waypoint.color);
 			}
 
 			int stringY = y + 7;
 			int nameX = x + iconSize + 2;
 
-			context.drawTextWithShadow(font, waypoint.name, nameX, stringY, Colors.WHITE);
+			context.text(font, waypoint.name, nameX, stringY, Colors.WHITE);
 
 			int posX = tpButton.getX() - 5;
 			RenderUtil.drawRightAlignedString(context, waypoint.pos.toShortString(), posX, stringY, Colors.WHITE);
 
 			if (GameRulesUtil.allowTeleportation()) {
-				this.tpButton.render(context, mouseX, mouseY, delta);
+				this.tpButton.extractRenderState(context, mouseX, mouseY, delta);
 			}
-			this.editButton.render(context, mouseX, mouseY, delta);
-			this.deleteButton.render(context, mouseX, mouseY, delta);
+			this.editButton.extractRenderState(context, mouseX, mouseY, delta);
+			this.deleteButton.extractRenderState(context, mouseX, mouseY, delta);
 		}
 
 		@Override
-		public boolean mouseClicked(double double_1, double double_2, int int_1) {
-			return this.editButton.mouseClicked(double_1, double_2, int_1) ||
-				   this.deleteButton.mouseClicked(double_1, double_2, int_1) ||
-				   this.tpButton.mouseClicked(double_1, double_2, int_1);
+		public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+			return this.editButton.mouseClicked(event, doubleClick) ||
+				   this.deleteButton.mouseClicked(event, doubleClick) ||
+				   this.tpButton.mouseClicked(event, doubleClick);
 		}
 
 		@Override
-		public boolean mouseReleased(double double_1, double double_2, int int_1) {
-			return this.editButton.mouseReleased(double_1, double_2, int_1) ||
-				   this.deleteButton.mouseReleased(double_1, double_2, int_1) ||
-				   this.tpButton.mouseReleased(double_1, double_2, int_1);
+		public boolean mouseReleased(MouseButtonEvent event) {
+			return this.editButton.mouseReleased(event) ||
+				   this.deleteButton.mouseReleased(event) ||
+				   this.tpButton.mouseReleased(event);
 		}
 
 		@Override
@@ -129,16 +130,16 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 			return focused;
 		}
 
-		private void rightAlign(ButtonWidget toAlign, ButtonWidget from) {
+		private void rightAlign(Button toAlign, Button from) {
 			toAlign.setX(from.getX() - toAlign.getWidth() - 1);
 		}
 
-		private void rightAlign(ButtonWidget toAlign, int right) {
+		private void rightAlign(Button toAlign, int right) {
 			toAlign.setX(right - toAlign.getWidth());
 		}
 	}
 
-	private static final Text TITLE = Text.translatable(JustMap.MODID + ".gui.screen.waypoints_list");
+	private static final Component TITLE = Component.translatable(JustMap.MODID + ".gui.screen.waypoints_list");
 
 	private final WaypointKeeper keeper = WaypointKeeper.getInstance();
 	private WorldKey currentWorld;
@@ -151,8 +152,8 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 	private int maxScroll = 0;
 	private int screenWidth;
 
-	private ButtonWidget prevDimensionButton, nextDimensionButton;
-	private ButtonWidget addButton, closeButton;
+	private Button prevDimensionButton, nextDimensionButton;
+	private Button addButton, closeButton;
 
 	public WaypointsListScreen(Screen parent) {
 		super(TITLE, parent);
@@ -171,10 +172,10 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 		this.center = width / 2;
 		this.screenWidth = center > 480 ? center : Math.min(width, 480);
 		this.x = center - screenWidth / 2;
-		this.prevDimensionButton = ButtonWidget.builder(Text.of("<"), b -> cycleDimension(-1)).dimensions(x + 10, 6, 20, 20).build();
-		this.nextDimensionButton = ButtonWidget.builder(Text.of(">"), b -> cycleDimension(1)).dimensions(x + screenWidth - 30, 6, 20, 20).build();
-		this.addButton = ButtonWidget.builder(lang("create"), b -> add()).dimensions(center - 62, height - 26, 60, 20).build();
-		this.closeButton = ButtonWidget.builder(lang("close"), b -> close()).dimensions(center + 2, height - 26, 60, 20).build();
+		this.prevDimensionButton = Button.builder(Component.nullToEmpty("<"), b -> cycleDimension(-1)).bounds(x + 10, 6, 20, 20).build();
+		this.nextDimensionButton = Button.builder(Component.nullToEmpty(">"), b -> cycleDimension(1)).bounds(x + screenWidth - 30, 6, 20, 20).build();
+		this.addButton = Button.builder(lang("create"), b -> add()).bounds(center - 62, height - 26, 60, 20).build();
+		this.closeButton = Button.builder(lang("close"), b -> onClose()).bounds(center + 2, height - 26, 60, 20).build();
 		this.currentWorld = MapDataProvider.getMultiworldManager().getCurrentWorldKey();
 		this.currentIndex = this.getIndex(currentWorld);
 
@@ -226,7 +227,7 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 
 		this.maxScroll = waypoints.size() * 20;
 		@SuppressWarnings("unchecked")
-		List<Element> children = (List<Element>) children();
+		List<GuiEventListener> children = (List<GuiEventListener>) children();
 		children.clear();
 		children.addAll(entries);
 		children.add(addButton);
@@ -236,33 +237,33 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 	}
 
 	@Override
-	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-		super.render(context, mouseX, mouseY, delta);
+	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+		super.extractRenderState(context, mouseX, mouseY, delta);
 
-		this.entries.forEach(e -> e.render(context, mouseX, mouseY, delta));
+		this.entries.forEach(e -> e.extractRenderState(context, mouseX, mouseY, delta));
 
 		String screenTitle = this.currentWorld.getName();
 		if (screenTitle == null) {
-			screenTitle = info == null ? lang("unknown").getString() : I18n.translate(info.getFirst());
+			screenTitle = info == null ? lang("unknown").getString() : I18n.get(info.getFirst());
 		}
-		context.drawCenteredTextWithShadow(textRenderer, screenTitle, center, 15, Colors.WHITE);
+		context.centeredText(font, screenTitle, center, 15, Colors.WHITE);
 		this.drawScrollBar();
 	}
 
 	private void drawScrollBar() {}
 
 	private void edit(Waypoint waypoint) {
-		this.client.setScreen(new WaypointEditorScreen(waypoint, this, null));
+		this.minecraft.setScreenAndShow(new WaypointEditorScreen(waypoint, this, null));
 	}
 
 	private void add() {
 		Waypoint waypoint = new Waypoint();
 		waypoint.world = currentWorld;
 		waypoint.color = RandomUtil.getElement(Waypoint.WAYPOINT_COLORS);
-		waypoint.pos = client.player.getBlockPos();
+		waypoint.pos = minecraft.player.blockPosition();
 		waypoint.name = "Waypoint";
 
-		this.client.setScreen(new WaypointEditorScreen(waypoint, this, keeper::addNew));
+		this.minecraft.setScreenAndShow(new WaypointEditorScreen(waypoint, this, keeper::addNew));
 	}
 
 	private void delete(Waypoint waypoint) {
@@ -273,12 +274,12 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 
 	public void teleport(Waypoint waypoint) {
 		if (!MapDataProvider.getMultiworldManager().getCurrentWorldKey().equals(currentWorld)) return;
-		int y = waypoint.pos.getY() > 0 ? waypoint.pos.getY() : (Dimension.isNether(client.world) ? 128 : 64);
-		String command = "/tp " + ((PlainTextContent) this.client.player.getName().getContent()).string() + " " + waypoint.pos.getX() + " " + y + " " + waypoint.pos.getZ();
-		this.client.player.sendMessage(Text.of(command), true);
-		MinecraftServer server = MinecraftClient.getInstance().getServer();
-		server.getCommandManager().executeWithPrefix(server.getCommandSource(), command);
-		this.close();
+		int y = waypoint.pos.getY() > 0 ? waypoint.pos.getY() : (Dimension.isNether(minecraft.level) ? 128 : 64);
+		String command = "/tp " + ((PlainTextContents) this.minecraft.player.getName().getContents()).text() + " " + waypoint.pos.getX() + " " + y + " " + waypoint.pos.getZ();
+		this.minecraft.player.sendSystemMessage(Component.nullToEmpty(command));
+		MinecraftServer server = Minecraft.getInstance().getSingleplayerServer();
+		server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), command);
+		this.onClose();
 	}
 
 	@Override
@@ -290,11 +291,11 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 	}
 
 	@Override
-	public boolean keyPressed(int int_1, int int_2, int int_3) {
-		if (int_1 == GLFW.GLFW_KEY_U) {
-			this.close();
+	public boolean keyPressed(KeyEvent event) {
+		if (event.key() == GLFW.GLFW_KEY_U) {
+			this.onClose();
 			return true;
 		}
-		return super.keyPressed(int_1, int_2, int_3);
+		return super.keyPressed(event);
 	}
 }

@@ -3,18 +3,18 @@ package ru.bulldog.justmap.client.screen;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.CheckboxWidget;
-import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Checkbox;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.JustMapClient;
@@ -28,7 +28,7 @@ import ru.bulldog.justmap.util.colors.Colors;
 
 public class WaypointEditorScreen extends AbstractJustMapScreen {
 
-	private static final Text TITLE = Text.translatable(JustMap.MODID + ".gui.screen.waypoints_editor");
+	private static final Component TITLE = Component.translatable(JustMap.MODID + ".gui.screen.waypoints_editor");
 
 	private final Waypoint waypoint;
 
@@ -40,12 +40,12 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 	private final static int PADDING = 10;
 	private final static int ROW_HEIGHT = 20;
 
-	private TitledButtonWidget<TextFieldWidget> nameField;
-	private CheckboxWidget isHidden;
-	private CheckboxWidget isTrackable;
-	private CheckboxWidget isRenderable;
-	private ButtonWidget prevColorButton, nextColorButton;
-	private TextFieldWidget xField, yField, zField;
+	private TitledButtonWidget<EditBox> nameField;
+	private Checkbox isHidden;
+	private Checkbox isTrackable;
+	private Checkbox isRenderable;
+	private Button prevColorButton, nextColorButton;
+	private EditBox xField, yField, zField;
 	private final Consumer<Waypoint> onSaveCallback;
 
 	public WaypointEditorScreen(Waypoint waypoint, Screen parent, Consumer<Waypoint> onSaveCallback) {
@@ -73,13 +73,13 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		int ex = x + PADDING;
 		int ey = y;
 		int ew = screenW - PADDING * 2;
-		this.nameField = new TitledButtonWidget<>(textRenderer, new TextFieldWidget(textRenderer, 0, 0, ew - 30, 12, Text.literal("Name")), ex, ey, ew, ROW_HEIGHT, "", lang("name").getString());
+		this.nameField = new TitledButtonWidget<>(font, new EditBox(font, 0, 0, ew - 30, 12, Component.literal("Name")), ex, ey, ew, ROW_HEIGHT, "", lang("name").getString());
 		this.nameField.setFocused(true);
 		this.nameField.widget.setMaxLength(48);
-		this.nameField.widget.setText(waypoint.name);
+		this.nameField.widget.setValue(waypoint.name);
 
 		@SuppressWarnings("unchecked")
-		List<Element> children = (List<Element>) children();
+		List<GuiEventListener> children = (List<GuiEventListener>) children();
 		children.add(nameField);
 
 		Predicate<String> validNumber = (s) -> Predicates.or(s, Predicates.isInteger, Predicates.isEmpty, "-"::equals);
@@ -89,20 +89,20 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 
 		ey += row;
 
-		this.xField = new TextFieldWidget(textRenderer, px, ey, ew, ROW_HEIGHT, Text.literal(""));
-		this.xField.setTextPredicate(validNumber);
+		this.xField = new EditBox(font, px, ey, ew, ROW_HEIGHT, Component.literal(""));
+		restrictTo(this.xField, validNumber);
 		this.xField.setMaxLength(7);
-		this.xField.setText(waypoint.pos.getX() + "");
+		this.xField.setValue(waypoint.pos.getX() + "");
 
-		this.yField = new TextFieldWidget(textRenderer, px + ew, ey, ew, ROW_HEIGHT, Text.literal(""));
-		this.yField.setTextPredicate(validNumber);
+		this.yField = new EditBox(font, px + ew, ey, ew, ROW_HEIGHT, Component.literal(""));
+		restrictTo(this.yField, validNumber);
 		this.yField.setMaxLength(7);
-		this.yField.setText(waypoint.pos.getY() + "");
+		this.yField.setValue(waypoint.pos.getY() + "");
 
-		this.zField = new TextFieldWidget(textRenderer, px + 2 * ew, ey, ew, ROW_HEIGHT, Text.literal(""));
-		this.zField.setTextPredicate(validNumber);
+		this.zField = new EditBox(font, px + 2 * ew, ey, ew, ROW_HEIGHT, Component.literal(""));
+		restrictTo(this.zField, validNumber);
 		this.zField.setMaxLength(7);
-		this.zField.setText(waypoint.pos.getZ() + "");
+		this.zField.setValue(waypoint.pos.getZ() + "");
 
 		children.add(xField);
 		children.add(yField);
@@ -111,18 +111,18 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		ey += row;
 
 		ew = 20;
-		this.prevColorButton = ButtonWidget.builder(Text.literal("<"), b -> cycleColor(-1)).dimensions(ex, ey, ew, ROW_HEIGHT).build();
+		this.prevColorButton = Button.builder(Component.literal("<"), b -> cycleColor(-1)).bounds(ex, ey, ew, ROW_HEIGHT).build();
 		children.add(prevColorButton);
 
-		this.nextColorButton = ButtonWidget.builder(Text.literal(">"), b -> cycleColor(1)).dimensions(x + screenW - ew - PADDING, ey, ew, ROW_HEIGHT).build();
+		this.nextColorButton = Button.builder(Component.literal(">"), b -> cycleColor(1)).bounds(x + screenW - ew - PADDING, ey, ew, ROW_HEIGHT).build();
 		children.add(nextColorButton);
 
 		ey += row;
 
-		ButtonWidget prevIconButton = ButtonWidget.builder(Text.literal("<"), b -> cycleIcon(-1)).dimensions(ex, ey, ew, ROW_HEIGHT).build();
+		Button prevIconButton = Button.builder(Component.literal("<"), b -> cycleIcon(-1)).bounds(ex, ey, ew, ROW_HEIGHT).build();
 		children.add(prevIconButton);
 
-		ButtonWidget nextIconButton = ButtonWidget.builder(Text.literal(">"), b -> cycleIcon(1)).dimensions(x + screenW - ew - PADDING, ey, ew, ROW_HEIGHT).build();
+		Button nextIconButton = Button.builder(Component.literal(">"), b -> cycleIcon(1)).bounds(x + screenW - ew - PADDING, ey, ew, ROW_HEIGHT).build();
 		children.add(nextIconButton);
 
 		ey += row * 1.5;
@@ -130,9 +130,9 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		int sliderW = (int) (screenW * 0.6);
 		int elemX = width / 2 - sliderW / 2;
 
-		this.isHidden = CheckboxWidget.builder(lang("wp_hidden"), textRenderer).pos(elemX, ey).checked(waypoint.hidden).build();
-		this.isTrackable = CheckboxWidget.builder(lang("wp_tracking"), textRenderer).pos(elemX + 100, ey).checked(waypoint.tracking).build();
-		this.isRenderable = CheckboxWidget.builder(lang("wp_render"), textRenderer).pos(elemX + 200, ey).checked(waypoint.render).build();
+		this.isHidden = Checkbox.builder(lang("wp_hidden"), font).pos(elemX, ey).selected(waypoint.hidden).build();
+		this.isTrackable = Checkbox.builder(lang("wp_tracking"), font).pos(elemX + 100, ey).selected(waypoint.tracking).build();
+		this.isRenderable = Checkbox.builder(lang("wp_render"), font).pos(elemX + 200, ey).selected(waypoint.render).build();
 		children.add(isHidden);
 		children.add(isTrackable);
 		children.add(isRenderable);
@@ -142,41 +142,41 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		IntegerRange maxRangeConfig = JustMapClient.getConfig().getEntry("max_render_dist");
 		final int SHOW_RANGE_MAX = maxRangeConfig.maxValue();
 		this.showRange = waypoint.showRange;
-		children.add(new SliderWidget(elemX, ey, sliderW, ROW_HEIGHT, Text.empty(), (double) this.showRange / SHOW_RANGE_MAX) {
+		children.add(new AbstractSliderButton(elemX, ey, sliderW, ROW_HEIGHT, Component.empty(), (double) this.showRange / SHOW_RANGE_MAX) {
 			{
 				this.updateMessage();
 			}
 
 			@Override
 			protected void updateMessage() {
-				this.setMessage(Text.literal(lang("wp_render_dist").getString() + WaypointEditorScreen.this.showRange));
+				this.setMessage(Component.literal(lang("wp_render_dist").getString() + WaypointEditorScreen.this.showRange));
 			}
 
 			@Override
 			protected void applyValue() {
-				WaypointEditorScreen.this.showRange = MathHelper.floor(MathHelper.clampedLerp(0, SHOW_RANGE_MAX, this.value));
+				WaypointEditorScreen.this.showRange = Mth.floor(Mth.clampedLerp(0, SHOW_RANGE_MAX, this.value));
 			}
 		});
 
 		ew = 60;
 		ey = height - (ROW_HEIGHT / 2 + 16);
-		ButtonWidget saveButton = ButtonWidget.builder(lang("save"), b -> {
+		Button saveButton = Button.builder(lang("save"), b -> {
 			save();
-			close();
-		}).dimensions(center - ew - 2, ey, ew, ROW_HEIGHT).build();
+			onClose();
+		}).bounds(center - ew - 2, ey, ew, ROW_HEIGHT).build();
 		children.add(saveButton);
 
-		ButtonWidget cancelButton = ButtonWidget.builder(lang("cancel"), b -> close()).dimensions(center + 2, ey, ew, ROW_HEIGHT).build();
+		Button cancelButton = Button.builder(lang("cancel"), b -> onClose()).bounds(center + 2, ey, ew, ROW_HEIGHT).build();
 		children.add(cancelButton);
 
 		this.setInitialFocus(nameField);
 	}
 
 	@Override
-	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-		super.render(context, mouseX, mouseY, delta);
-		String dimensionName = info == null ? lang("unknown").getString() : I18n.translate(info.getFirst());
-		context.drawCenteredTextWithShadow(textRenderer, dimensionName, center, 15, Colors.WHITE);
+	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+		super.extractRenderState(context, mouseX, mouseY, delta);
+		String dimensionName = info == null ? lang("unknown").getString() : I18n.get(info.getFirst());
+		context.centeredText(font, dimensionName, center, 15, Colors.WHITE);
 	}
 
 	private void cycleColor(int i) {
@@ -198,20 +198,20 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 	}
 
 	private void save() {
-		this.waypoint.name = nameField.widget.getText();
+		this.waypoint.name = nameField.widget.getValue();
 		int color = Waypoint.WAYPOINT_COLORS[colorIndex];
 		if(Waypoint.getIcon(iconIndex) != null) {
 			this.waypoint.setIcon(Waypoint.getIcon(iconIndex), color);
 		} else {
 			this.waypoint.color = color;
 		}
-		this.waypoint.hidden = isHidden.isChecked();
-		this.waypoint.tracking = isTrackable.isChecked();
-		this.waypoint.render = isRenderable.isChecked();
+		this.waypoint.hidden = isHidden.selected();
+		this.waypoint.tracking = isTrackable.selected();
+		this.waypoint.render = isRenderable.selected();
 
-		int xPos = (xField.getText().isEmpty() || xField.getText().equals("-")) ? 0 : Integer.parseInt(xField.getText());
-		int yPos = (yField.getText().isEmpty() || yField.getText().equals("-")) ? 0 : Integer.parseInt(yField.getText());
-		int zPos = (zField.getText().isEmpty() || zField.getText().equals("-")) ? 0 : Integer.parseInt(zField.getText());
+		int xPos = (xField.getValue().isEmpty() || xField.getValue().equals("-")) ? 0 : Integer.parseInt(xField.getValue());
+		int yPos = (yField.getValue().isEmpty() || yField.getValue().equals("-")) ? 0 : Integer.parseInt(yField.getValue());
+		int zPos = (zField.getValue().isEmpty() || zField.getValue().equals("-")) ? 0 : Integer.parseInt(zField.getValue());
 
 		this.waypoint.pos = new BlockPos(xPos, yPos, zPos);
 
@@ -225,12 +225,12 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 	}
 
 	@Override
-	public void close() {
-		this.client.setScreen(parent);
+	public void onClose() {
+		this.minecraft.setScreenAndShow(parent);
 	}
 
 	@Override
-	public void renderForeground(DrawContext context) {
+	public void renderForeground(GuiGraphicsExtractor context) {
 		int x = prevColorButton.getX() + prevColorButton.getWidth() + 2;
 		int y = prevColorButton.getY() + 3;
 		int w = nextColorButton.getX() - x - 2;
@@ -251,11 +251,11 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		icon.draw(context, ix, iy);
 	}
 
-	private void rect(DrawContext context, int x, int y, int w, int h, int color) {
+	private void rect(GuiGraphicsExtractor context, int x, int y, int w, int h, int color) {
 		context.fill(x, y, x + w, y + h, color);
 	}
 
-	private void borderedRect(DrawContext context, int x, int y, int w, int h, int color, int border, int borderColor) {
+	private void borderedRect(GuiGraphicsExtractor context, int x, int y, int w, int h, int color, int border, int borderColor) {
 		int hb = border >> 1;
 		this.rect(context, x, y, w, h, borderColor);
 		this.rect(context, x + hb, y + hb, w - border, h - border, color);
@@ -270,18 +270,35 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		return 0;
 	}
 
+	/**
+	 * Keeps a text field to the values {@code accepts} allows.
+	 *
+	 * <p>26.2 dropped {@code EditBox.setFilter}, which used to reject a keystroke before it
+	 * landed; the nearest equivalent is to watch the value and put back the last good one.
+	 */
+	private static void restrictTo(EditBox field, Predicate<String> accepts) {
+		String[] lastGood = { field.getValue() };
+		field.setResponder(value -> {
+			if (accepts.test(value)) {
+				lastGood[0] = value;
+			} else {
+				field.setValue(lastGood[0]);
+			}
+		});
+	}
+
 	private int getIconIndex(Icon icon) {
 		if (icon == null) return 0;
 		return icon.key;
 	}
 
 	@Override
-	public boolean keyPressed(int int_1, int int_2, int int_3) {
-		if (int_1 == GLFW.GLFW_KEY_ENTER) {
+	public boolean keyPressed(KeyEvent event) {
+		if (event.key() == GLFW.GLFW_KEY_ENTER) {
 			this.save();
-			this.close();
+			this.onClose();
 			return true;
 		}
-		return super.keyPressed(int_1, int_2, int_3);
+		return super.keyPressed(event);
 	}
 }

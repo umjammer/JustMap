@@ -1,9 +1,8 @@
 package ru.bulldog.justmap.util;
 
 import net.fabricmc.api.EnvType;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.world.GameRules;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.level.gamerules.GameRule;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.MapGameRules;
@@ -11,7 +10,7 @@ import ru.bulldog.justmap.server.config.ServerSettings;
 
 public class GameRulesUtil {
 
-	private static boolean isAllowed(boolean param, GameRules.Key<GameRules.BooleanRule> rule, boolean isServer) {
+	private static boolean isAllowed(boolean param, GameRule<Boolean> rule, boolean isServer) {
 		if (isServer) {
 			if (ServerSettings.useGameRules) {
 				return MapGameRules.isAllowed(rule);
@@ -19,7 +18,7 @@ public class GameRulesUtil {
 				return param;
 			}
 		} else if (param) {
-			return MinecraftClient.getInstance().isInSingleplayer() || MapGameRules.isAllowed(rule);
+			return Minecraft.getInstance().isLocalServer() || MapGameRules.isAllowed(rule);
 		}
 
 		return false;

@@ -1,13 +1,11 @@
 package ru.bulldog.justmap.client.render;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.util.Window;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.advancedinfo.InfoText;
 import ru.bulldog.justmap.advancedinfo.MapText;
@@ -32,8 +30,7 @@ import ru.bulldog.justmap.util.render.RenderUtil;
 @Environment(EnvType.CLIENT)
 public abstract class AbstractMiniMapRenderer {
 
-	protected static final Identifier roundMask = Identifier.of(JustMap.MODID, "textures/round_mask.png");
-	protected static final MinecraftClient minecraft = MinecraftClient.getInstance();
+	protected static final Minecraft minecraft = Minecraft.getInstance();
 	protected static TextManager textManager;
 	protected static final InfoText dirN = new MapText(TextAlignment.CENTER, "N");
 	protected static final InfoText dirS = new MapText(TextAlignment.CENTER, "S");
@@ -57,13 +54,13 @@ public abstract class AbstractMiniMapRenderer {
 	protected boolean paramsUpdated = false;
 	protected boolean playerMoved = false;
 	protected final Minimap minimap;
-	protected final BlockPos.Mutable playerPos;
+	protected final BlockPos.MutableBlockPos playerPos;
 	protected WorldMapper worldMapper;
 	protected ChunkGrid chunkGrid;
 	protected MapSkin mapSkin;
 
 	public AbstractMiniMapRenderer(Minimap map) {
-		this.playerPos = new BlockPos.Mutable(0, 0, 0);
+		this.playerPos = new BlockPos.MutableBlockPos(0, 0, 0);
 		this.minimap = map;
 		if (textManager == null) {
 			textManager = minimap.getTextManager();
@@ -75,21 +72,21 @@ public abstract class AbstractMiniMapRenderer {
 		}
 	}
 
-	protected abstract void render(DrawContext context, double scale);
+	protected abstract void render(GuiGraphicsExtractor context);
 
 	public void updateParamsOnRender() {
 		this.worldMapper = minimap.getWorldMapper();
 		this.mapSkin = minimap.getSkin();
 
-		int winW = minecraft.getWindow().getWidth();
-		int winH = minecraft.getWindow().getHeight();
+		int winW = minecraft.getWindow().getScreenWidth();
+		int winH = minecraft.getWindow().getScreenHeight();
 		if (winWidth != winW || winHeight != winH) {
 			minimap.updateMapParams();
 			this.winWidth = winW;
 			this.winHeight = winH;
 		}
 
-		this.delta = minecraft.getRenderTickCounter().getTickDelta(false); // TODO 1.21
+		this.delta = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false); // TODO 1.21
 		this.currX = CurrentWorldPos.doubleX(delta);
 		this.currZ = CurrentWorldPos.doubleZ(delta);
 
@@ -153,7 +150,7 @@ public abstract class AbstractMiniMapRenderer {
 
 		this.rotation = 180.0F;
 		if (mapRotation) {
-			this.rotation = minecraft.player.headYaw;
+			this.rotation = minecraft.player.yHeadRot;
 			double rotate = MathUtil.correctAngle(rotation) + 180;
 			double angle = Math.toRadians(-rotate);
 
@@ -186,21 +183,17 @@ public abstract class AbstractMiniMapRenderer {
 		dir.x = posX; dir.y = posY;
 	}
 
-	public void renderMap(DrawContext context) {
+	public void renderMap(GuiGraphicsExtractor context) {
 		if (!minimap.isMapVisible() || !JustMapClient.canMapping()) return;
 
 		this.updateParamsOnRender();
 
 		if (worldMapper == null) return;
 
-		Window window = minecraft.getWindow();
-		double scale = window.getScaleFactor();
-
 		this.offX = this.calcOffset(currX, lastX, mapScale);
 		this.offY = this.calcOffset(currZ, lastZ, mapScale);
 
-		RenderSystem.disableDepthTest();
-		this.render(context, scale);
+		this.render(context);
 
 		if (mapSkin != null) {
 			int skinX = minimap.getSkinX();
@@ -215,14 +208,12 @@ public abstract class AbstractMiniMapRenderer {
 
 		int iconSize = ClientSettings.arrowIconSize;
 		if (ClientSettings.arrowIconType == ArrowType.DIRECTION_ARROW) {
-			float direction = mapRotation ? 180 : minecraft.player.headYaw;
-			DirectionArrow.draw(centerX, centerY, iconSize, direction);
+			float direction = mapRotation ? 180 : minecraft.player.yHeadRot;
+			DirectionArrow.draw(context, centerX, centerY, iconSize, direction);
 		} else {
 			MapPlayerManager.getPlayer(minecraft.player).getIcon().draw(context, centerX, centerY, iconSize, true);
 		}
 		textManager.draw(context);
-
-		RenderSystem.enableDepthTest();
 	}
 
 	protected float calcOffset(double x, double lastX, double scale) {

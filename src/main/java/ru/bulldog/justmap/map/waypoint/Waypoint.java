@@ -2,16 +2,14 @@ package ru.bulldog.justmap.map.waypoint;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.GsonHelper;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
-import net.minecraft.util.math.BlockPos;
-
+import com.mojang.blaze3d.platform.NativeImage;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.map.multiworld.WorldKey;
 import ru.bulldog.justmap.util.Dimension;
@@ -47,23 +45,23 @@ public class Waypoint {
 
 	private static final Icon[] WAYPOINT_ICONS = new Icon[] {
 		null,
-		new Icon(1, Identifier.of(JustMap.MODID, "textures/icon/circle.png"), 0xFFFF9000, 18, 18),
-		new Icon(2, Identifier.of(JustMap.MODID, "textures/icon/cross.png"), 0xFFFF0000, 18, 18),
-		new Icon(3, Identifier.of(JustMap.MODID, "textures/icon/diamond.png"), 0xFFE70CE3, 18, 18),
-		new Icon(4, Identifier.of(JustMap.MODID, "textures/icon/moon.png"), 0xFFADE4F0, 18, 18),
-		new Icon(5, Identifier.of(JustMap.MODID, "textures/icon/skull.png"), 0xFFFFFEFA, 18, 18),
-		new Icon(6, Identifier.of(JustMap.MODID, "textures/icon/square.png"), 0xFF00D0FF, 18, 18),
-		new Icon(7, Identifier.of(JustMap.MODID, "textures/icon/star.png"), 0xFFFFEE00, 18, 18),
-		new Icon(8, Identifier.of(JustMap.MODID, "textures/icon/triangle.png"), 0xFF00FF00, 18, 18),
-		new Icon(9, Identifier.of(JustMap.MODID, "textures/icon/house.png"), 0xFFEBA700, 18, 18),
-		new Icon(10, Identifier.of(JustMap.MODID, "textures/icon/village.png"), 0xFFFC4A01, 18, 18),
-		new Icon(11, Identifier.of("textures/item/iron_pickaxe.png"), 0xFFB0B0B0, 16, 16),
-		new Icon(12, Identifier.of("textures/item/iron_axe.png"), 0xFFB0B0B0, 16, 16),
-		new Icon(13, Identifier.of("textures/item/iron_hoe.png"), 0xFFB0B0B0, 16, 16),
-		new Icon(14, Identifier.of("textures/item/iron_sword.png"), 0xFFB0B0B0, 16, 16),
-		new Icon(15, Identifier.of("textures/item/wheat.png"), 0xFFFFEE91, 16, 16),
-		new Icon(16, Identifier.of("textures/item/trident.png"), 0xFF54E1B2, 16, 16),
-		new Icon(17, Identifier.of("textures/item/slime_ball.png"), 0xFF88DB71, 16, 16)
+		new Icon(1, Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/icon/circle.png"), 0xFFFF9000, 18, 18),
+		new Icon(2, Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/icon/cross.png"), 0xFFFF0000, 18, 18),
+		new Icon(3, Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/icon/diamond.png"), 0xFFE70CE3, 18, 18),
+		new Icon(4, Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/icon/moon.png"), 0xFFADE4F0, 18, 18),
+		new Icon(5, Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/icon/skull.png"), 0xFFFFFEFA, 18, 18),
+		new Icon(6, Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/icon/square.png"), 0xFF00D0FF, 18, 18),
+		new Icon(7, Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/icon/star.png"), 0xFFFFEE00, 18, 18),
+		new Icon(8, Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/icon/triangle.png"), 0xFF00FF00, 18, 18),
+		new Icon(9, Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/icon/house.png"), 0xFFEBA700, 18, 18),
+		new Icon(10, Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/icon/village.png"), 0xFFFC4A01, 18, 18),
+		new Icon(11, Identifier.parse("textures/item/iron_pickaxe.png"), 0xFFB0B0B0, 16, 16),
+		new Icon(12, Identifier.parse("textures/item/iron_axe.png"), 0xFFB0B0B0, 16, 16),
+		new Icon(13, Identifier.parse("textures/item/iron_hoe.png"), 0xFFB0B0B0, 16, 16),
+		new Icon(14, Identifier.parse("textures/item/iron_sword.png"), 0xFFB0B0B0, 16, 16),
+		new Icon(15, Identifier.parse("textures/item/wheat.png"), 0xFFFFEE91, 16, 16),
+		new Icon(16, Identifier.parse("textures/item/trident.png"), 0xFF54E1B2, 16, 16),
+		new Icon(17, Identifier.parse("textures/item/slime_ball.png"), 0xFF88DB71, 16, 16)
 	};
 
 	public static final Integer[] WAYPOINT_COLORS = new Integer[] {
@@ -155,27 +153,27 @@ public class Waypoint {
 	public static Waypoint fromJson(JsonObject jsonObject) {
 		Waypoint waypoint = new Waypoint();
 
-		JsonObject position = JsonHelper.getObject(jsonObject, "position", new JsonObject());
+		JsonObject position = GsonHelper.getAsJsonObject(jsonObject, "position", new JsonObject());
 		waypoint.pos = PosUtil.fromJson(position);
-		waypoint.name = JsonHelper.getString(jsonObject, "name", "Waypoint");
-		waypoint.showAlways = JsonHelper.getBoolean(jsonObject, "show_always", false);
-		waypoint.hidden = JsonHelper.getBoolean(jsonObject, "hidden", false);
-		waypoint.tracking = JsonHelper.getBoolean(jsonObject, "tracking", true);
-		waypoint.render = JsonHelper.getBoolean(jsonObject, "render", true);
-		waypoint.showRange = JsonHelper.getInt(jsonObject, "show_range", 1000);
-		waypoint.color = ColorUtil.parseHex(JsonHelper.getString(jsonObject, "color",
+		waypoint.name = GsonHelper.getAsString(jsonObject, "name", "Waypoint");
+		waypoint.showAlways = GsonHelper.getAsBoolean(jsonObject, "show_always", false);
+		waypoint.hidden = GsonHelper.getAsBoolean(jsonObject, "hidden", false);
+		waypoint.tracking = GsonHelper.getAsBoolean(jsonObject, "tracking", true);
+		waypoint.render = GsonHelper.getAsBoolean(jsonObject, "render", true);
+		waypoint.showRange = GsonHelper.getAsInt(jsonObject, "show_range", 1000);
+		waypoint.color = ColorUtil.parseHex(GsonHelper.getAsString(jsonObject, "color",
 											Integer.toHexString(RandomUtil.getElement(WAYPOINT_COLORS))));
-		waypoint.icon = JsonHelper.getInt(jsonObject, "icon", -1);
+		waypoint.icon = GsonHelper.getAsInt(jsonObject, "icon", -1);
 
 		if (jsonObject.has("dimension")) {
 			try {
-				waypoint.world = new WorldKey(Dimension.fromId(JsonHelper.getInt(jsonObject, "dimension", 0)));
+				waypoint.world = new WorldKey(Dimension.fromId(GsonHelper.getAsInt(jsonObject, "dimension", 0)));
 			} catch (Exception ex) {
-				Identifier dimension = Identifier.of(JsonHelper.getString(jsonObject, "dimension", "unknown"));
+				Identifier dimension = Identifier.parse(GsonHelper.getAsString(jsonObject, "dimension", "unknown"));
 				waypoint.world = new WorldKey(dimension);
 			}
 		} else {
-			waypoint.world = WorldKey.fromJson(JsonHelper.getObject(jsonObject, "world", new JsonObject()));
+			waypoint.world = WorldKey.fromJson(GsonHelper.getAsJsonObject(jsonObject, "world", new JsonObject()));
 		}
 
 		return waypoint;
@@ -183,7 +181,7 @@ public class Waypoint {
 
 	public static class Icon extends Image {
 
-		public final static Identifier DEFAULT_ICON = Identifier.of(JustMap.MODID, "textures/icon/default.png");
+		public final static Identifier DEFAULT_ICON = Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/icon/default.png");
 		private final static NativeImage DEFAULT_TEXTURE = ImageUtil.loadImage(DEFAULT_ICON, 18, 18);
 
 		public final int key;
@@ -221,20 +219,19 @@ public class Waypoint {
 		}
 
 		@Override
-		public void bindTexture() {
-			RenderUtil.bindTexture(this.getTexture());
+		public void draw(GuiGraphicsExtractor context, double x, double y, int w, int h) {
+			this.draw(context, x, y, w, h, -1);
 		}
 
 		@Override
-		public void draw(DrawContext context, double x, double y, int w, int h) {
-			this.bindTexture();
-			this.draw(context, x, y, (float) w, (float) h);
+		public void draw(GuiGraphicsExtractor context, double x, double y, int w, int h, int tint) {
+			RenderUtil.drawTexture(context, this.getTexture(), x, y, w, h, tint);
 		}
 
 		private Identifier getColoredTexture() {
 			if (colorId == null) {
-				colorId = Identifier.of(JustMap.MODID, String.format("wp_icon_%d", this.color));
-				textureManager.registerTexture(colorId, new NativeImageBackedTexture(this.image));
+				colorId = Identifier.fromNamespaceAndPath(JustMap.MODID, String.format("wp_icon_%d", this.color));
+				textureManager.register(colorId, new DynamicTexture(null, this.image));
 			}
 			return colorId;
 		}

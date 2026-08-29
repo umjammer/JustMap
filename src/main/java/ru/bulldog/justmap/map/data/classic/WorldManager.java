@@ -1,11 +1,10 @@
 package ru.bulldog.justmap.map.data.classic;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.WorldChunk;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.client.config.ClientSettings;
@@ -24,8 +23,8 @@ public final class WorldManager implements MapDataManager {
 	private boolean cacheClearing = false;
 
 	public static IMap getCurrentlyShownMap() {
-		MinecraftClient minecraft = MinecraftClient.getInstance();
-		return minecraft.currentScreen instanceof WorldmapScreen ? (WorldmapScreen) minecraft.currentScreen : JustMapClient.getMiniMap();
+		Minecraft minecraft = Minecraft.getInstance();
+		return minecraft.gui.screen() instanceof WorldmapScreen ? (WorldmapScreen) minecraft.gui.screen() : JustMapClient.getMiniMap();
 	}
 
 	public WorldData getWorldData() {
@@ -42,7 +41,7 @@ public final class WorldManager implements MapDataManager {
 	}
 
 	@Override
-	public void onChunkLoad(World world, WorldChunk worldChunk) {
+	public void onChunkLoad(Level world, LevelChunk worldChunk) {
 		if (world == null || worldChunk == null || worldChunk.isEmpty()) return;
 		IMap map = getCurrentlyShownMap();
 		WorldData mapData = getWorldData();
@@ -86,7 +85,7 @@ public final class WorldManager implements MapDataManager {
 	}
 
 	@Override
-	public void onSetBlockState(BlockPos pos, BlockState state, World world) {
+	public void onSetBlockState(BlockPos pos, BlockState state, Level world) {
 		ChunkUpdateListener.onSetBlockState(pos, state, world);
 	}
 

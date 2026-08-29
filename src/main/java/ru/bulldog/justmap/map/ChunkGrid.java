@@ -3,13 +3,7 @@ package ru.bulldog.justmap.map;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gl.ShaderProgramKeys;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
-
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import ru.bulldog.justmap.util.colors.Colors;
 import ru.bulldog.justmap.util.math.Line;
 import ru.bulldog.justmap.util.math.MathUtil;
@@ -75,19 +69,8 @@ public class ChunkGrid {
 		}
 	}
 
-	public void draw() {
-		float a = (float) (color >> 24 & 255) / 255.0F;
-		float r = (float) (color >> 16 & 255) / 255.0F;
-		float g = (float) (color >> 8 & 255) / 255.0F;
-		float b = (float) (color & 255) / 255.0F;
-
-		RenderSystem.setShaderColor(r, g, b, a);
-		RenderSystem.setShader(ShaderProgramKeys.POSITION);
-		RenderUtil.startDraw(VertexFormat.DrawMode.LINES, VertexFormats.POSITION);
-		BufferBuilder buffer = RenderUtil.getBuffer();
-		lines.forEach(line -> line.draw(buffer));
-		RenderUtil.endDraw();
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+	public void draw(GuiGraphicsExtractor context) {
+		lines.forEach(line -> line.draw(context));
 	}
 
 	private static class GridLine extends Line {
@@ -95,9 +78,8 @@ public class ChunkGrid {
 			super(sx, sy, ex, ey);
 		}
 
-		private void draw(VertexConsumer builder) {
-			builder.vertex((float) first.x, (float) first.y, 0);
-			builder.vertex((float) second.x, (float) second.y, 0);
+		private void draw(GuiGraphicsExtractor context) {
+			RenderUtil.drawLine(context, first.x, first.y, second.x, second.y, color);
 		}
 	}
 

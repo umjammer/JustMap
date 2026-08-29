@@ -1,6 +1,6 @@
 package ru.bulldog.justmap.util.math;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 public class MathUtil {
 

@@ -1,15 +1,17 @@
 package ru.bulldog.justmap.client.screen;
 
+import net.minecraft.client.input.KeyEvent;
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 import ru.bulldog.justmap.JustMap;
@@ -20,11 +22,11 @@ import ru.bulldog.justmap.util.render.RenderUtil;
 
 public class WorldnameScreen extends Screen {
 
-	private final static Text TITLE = MutableText.of(LangUtil.getText("gui", "screen.worldname"));
-	private final static Identifier FRAME_TEXTURE = Identifier.of(JustMap.MODID, "textures/screen_background.png");
+	private final static Component TITLE = MutableComponent.create(LangUtil.getText("gui", "screen.worldname"));
+	private final static Identifier FRAME_TEXTURE = Identifier.fromNamespaceAndPath(JustMap.MODID, "textures/screen_background.png");
 
 	private final Screen parent;
-	private TextFieldWidget nameField;
+	private EditBox nameField;
 	private boolean success = false;
 	private int center;
 	private int frameWidth;
@@ -53,60 +55,54 @@ public class WorldnameScreen extends Screen {
 			this.y = height / 2 - frameHeight / 2;
 			btnY = (y + frameHeight) - 40;
 		}
-		Text defaultText = Text.literal("Default");
-		this.nameField = new TextFieldWidget(textRenderer, x + 20, y + 50, frameWidth - 40, 20, defaultText);
+		Component defaultText = Component.literal("Default");
+		this.nameField = new EditBox(font, x + 20, y + 50, frameWidth - 40, 20, defaultText);
 		this.setFocused(this.nameField);
 		this.nameField.setFocused(true);
-		this.addDrawableChild(ButtonWidget.builder(MutableText.of(LangUtil.getText("gui", "save")), this::onPressSave).dimensions(center - 30, btnY, 80, 20).build());
-		this.addSelectableChild(nameField);
+		this.addRenderableWidget(Button.builder(MutableComponent.create(LangUtil.getText("gui", "save")), this::onPressSave).bounds(center - 30, btnY, 80, 20).build());
+		this.addWidget(nameField);
 	}
 
-	private void onPressSave(ButtonWidget button) {
-		String worldName = nameField.getText();
+	private void onPressSave(Button button) {
+		String worldName = nameField.getValue();
 		worldName = worldName.trim().replaceAll(" +", " ");
 		MapDataProvider.getMultiworldManager().setCurrentWorldName(worldName);
 		this.success = true;
-		this.close();
+		this.onClose();
 	}
 
 	@Override
-	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-		this.renderInGameBackground(context);
-		context.drawCenteredTextWithShadow(textRenderer, LangUtil.getString("gui", "worldname_title"), center, y + 25, Colors.WHITE);
-		for (Element child : children()) {
-			if (child instanceof Drawable) {
-				((Drawable) child).render(context, mouseX, mouseY, delta);
+	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+		this.extractTransparentBackground(context);
+		context.centeredText(font, LangUtil.getString("gui", "worldname_title"), center, y + 25, Colors.WHITE);
+		for (GuiEventListener child : children()) {
+			if (child instanceof Renderable) {
+				((Renderable) child).extractRenderState(context, mouseX, mouseY, delta);
 			}
 		}
-		super.render(context, mouseX, mouseY, delta);
+		super.extractRenderState(context, mouseX, mouseY, delta);
 	}
 
 	@Override
-	public void renderInGameBackground(DrawContext context) {
-		super.renderInGameBackground(context);
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderUtil.bindTexture(FRAME_TEXTURE);
-		RenderUtil.startDraw();
-		RenderUtil.addQuad(x, y, frameWidth, frameHeight);
-		RenderUtil.endDraw();
-		RenderSystem.disableBlend();
+	public void extractTransparentBackground(GuiGraphicsExtractor context) {
+		super.extractTransparentBackground(context);
+		RenderUtil.drawTexture(context, FRAME_TEXTURE, x, y, frameWidth, frameHeight);
 	}
 
 	@Override
-	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-		if (keyCode == GLFW.GLFW_KEY_ENTER) {
+	public boolean keyPressed(KeyEvent event) {
+		if (event.key() == GLFW.GLFW_KEY_ENTER) {
 			this.onPressSave(null);
 			return true;
 		}
-		return super.keyPressed(keyCode, scanCode, modifiers);
+		return super.keyPressed(event);
 	}
 
 	@Override
-	public void close() {
+	public void onClose() {
 		if (!success) {
 			MapDataProvider.getMultiworldManager().setCurrentWorldName("");
 		}
-		this.client.setScreen(parent);
+		this.minecraft.setScreenAndShow(parent);
 	}
 }

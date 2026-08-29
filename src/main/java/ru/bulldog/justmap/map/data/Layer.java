@@ -1,11 +1,10 @@
 package ru.bulldog.justmap.map.data;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.LightType;
-import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
-
-import net.minecraft.world.dimension.DimensionTypes;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
+import net.minecraft.world.level.dimension.DimensionType;
 import ru.bulldog.justmap.util.Dimension;
 import ru.bulldog.justmap.util.GameRulesUtil;
 
@@ -36,7 +35,7 @@ public enum Layer {
 		return WORLD_HEIGHT / getHeight();
 	}
 
-	public static Layer getLayer(World world, BlockPos pos) {
+	public static Layer getLayer(Level world, BlockPos pos) {
 		if (Dimension.isNether(world)) {
 			return NETHER;
 		} else if (GameRulesUtil.allowCaves() && shouldRenderCaves(world, pos)) {
@@ -50,28 +49,28 @@ public enum Layer {
 		return y / layer.height;
 	}
 
-	private static boolean shouldRenderCaves(World world, BlockPos pos) {
+	private static boolean shouldRenderCaves(Level world, BlockPos pos) {
 		if (Dimension.isEnd(world)) {
 			return false;
 		}
 
-		DimensionType dimType = world.getDimension();
+		DimensionType dimType = world.dimensionType();
 		if (dimType.hasCeiling() || !dimType.hasSkyLight()) {
 			return true;
 		}
 
-		return (!world.isSkyVisibleAllowingSea(pos) && !hasSkyLight(world, pos) ||
-				world.getRegistryKey().getValue().equals(DimensionTypes.OVERWORLD_CAVES.getValue()));
+		return (!world.canSeeSkyFromBelowWater(pos) && !hasSkyLight(world, pos) ||
+				world.dimension().identifier().equals(BuiltinDimensionTypes.OVERWORLD_CAVES.identifier()));
 	}
 
-	private static boolean hasSkyLight(World world, BlockPos pos) {
+	private static boolean hasSkyLight(Level world, BlockPos pos) {
 		// FIXME: this is a bit expensive for repeating use...
-		if (world.getLightLevel(LightType.SKY, pos) > 0) return true;
-		if (world.getLightLevel(LightType.SKY, pos.up()) > 0) return true;
-		if (world.getLightLevel(LightType.SKY, pos.north()) > 0) return true;
-		if (world.getLightLevel(LightType.SKY, pos.east()) > 0) return true;
-		if (world.getLightLevel(LightType.SKY, pos.south()) > 0) return true;
-		if (world.getLightLevel(LightType.SKY, pos.west()) > 0) return true;
+		if (world.getBrightness(LightLayer.SKY, pos) > 0) return true;
+		if (world.getBrightness(LightLayer.SKY, pos.above()) > 0) return true;
+		if (world.getBrightness(LightLayer.SKY, pos.north()) > 0) return true;
+		if (world.getBrightness(LightLayer.SKY, pos.east()) > 0) return true;
+		if (world.getBrightness(LightLayer.SKY, pos.south()) > 0) return true;
+		if (world.getBrightness(LightLayer.SKY, pos.west()) > 0) return true;
 
 		return false;
 	}

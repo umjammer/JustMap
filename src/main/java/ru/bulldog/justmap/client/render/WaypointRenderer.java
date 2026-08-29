@@ -2,92 +2,98 @@ package ru.bulldog.justmap.client.render;
 
 import java.util.List;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.ShaderProgramKeys;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.*;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.Vec3d;
-import org.joml.Matrix4f;
-import org.lwjgl.opengl.GL11;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.map.data.MapDataProvider;
 import ru.bulldog.justmap.map.waypoint.Waypoint;
 import ru.bulldog.justmap.map.waypoint.Waypoint.Icon;
 import ru.bulldog.justmap.map.waypoint.WaypointKeeper;
-import ru.bulldog.justmap.util.colors.ColorUtil;
 import ru.bulldog.justmap.util.colors.Colors;
 import ru.bulldog.justmap.util.math.MathUtil;
 import ru.bulldog.justmap.util.render.RenderUtil;
 
+/**
+ * Draws waypoint beams and markers in the world, and their direction markers on the HUD.
+ *
+ * <p>26.2 collects world geometry into submit nodes instead of letting a mod push vertices
+ * during the render pass, so the beams are handed to the collector Fabric passes to
+ * {@code LevelRenderEvents.COLLECT_SUBMITS}, and colours travel as packed ARGB rather than
+ * as a shader colour.
+ */
 @Environment(EnvType.CLIENT)
 public class WaypointRenderer {
 	private static final WaypointRenderer renderer = new WaypointRenderer();
-	private final static Identifier BEAM_TEX = Identifier.of("textures/entity/beacon_beam.png");
-	private final static MinecraftClient minecraft = MinecraftClient.getInstance();
+	private final static Identifier BEAM_TEX = Identifier.parse("textures/entity/beacon_beam.png");
+	private final static Minecraft minecraft = Minecraft.getInstance();
 
-	public static void renderHUD(DrawContext context, float delta, float fov) {
+	public static void renderHUD(GuiGraphicsExtractor context, float delta, float fov) {
 		if (!ClientSettings.showWaypoints || !ClientSettings.waypointsTracking) return;
-		if (minecraft.world == null || minecraft.player == null || minecraft.currentScreen != null) {
+		if (minecraft.level == null || minecraft.player == null || minecraft.gui.screen() != null) {
 			return;
 		}
 
 		List<Waypoint> wayPoints = WaypointKeeper.getInstance().getWaypoints(MapDataProvider.getMultiworldManager().getCurrentWorldKey(), true);
 		for (Waypoint wp : wayPoints) {
-			int dist = (int) MathUtil.getDistance(wp.pos, minecraft.player.getBlockPos(), false);
+			int dist = (int) MathUtil.getDistance(wp.pos, minecraft.player.blockPosition(), false);
 			if (wp.tracking && dist <= wp.showRange) {
 				renderer.renderHUD(context, wp, delta, fov, dist);
 			}
 		}
 	}
 
-    public static void startWaypointRender() {
-		WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
-			RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
-			RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-			RenderSystem.depthMask(false);
-			RenderSystem.enableBlend();
-			RenderSystem.defaultBlendFunc();
-			GL11.glEnable(GL11.GL_LINE_SMOOTH);
+	public static void startWaypointRender() {
+		LevelRenderEvents.COLLECT_SUBMITS.register(WaypointRenderer::collectWaypoints);
+	}
 
-			MatrixStack matrixStack = context.matrixStack();
+	private static void collectWaypoints(LevelRenderContext context) {
+		if (minecraft.player == null) return;
+		if (!ClientSettings.showWaypoints || !ClientSettings.waypointsWorldRender) return;
 
-			matrixStack.push();
-			Tessellator tessellator = Tessellator.getInstance();
-			BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
+		float tickDelta = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+		long time = context.levelState().gameTime;
+		float tick = (float) Math.floorMod(time, 125L) + tickDelta;
 
-			Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
-			float tickDelta = MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(false); // TODO 1.21
+		BlockPos playerPos = minecraft.player.blockPosition();
 
-			renderWaypoints(matrixStack, camera, tickDelta);
+		List<Waypoint> wayPoints = WaypointKeeper.getInstance().getWaypoints(MapDataProvider.getMultiworldManager().getCurrentWorldKey(), true);
+		for (Waypoint wp : wayPoints) {
+			int dist = (int) MathUtil.getDistance(wp.pos, playerPos, false);
+			if (wp.render && dist >= ClientSettings.minRenderDist && dist <= wp.showRange) {
+				renderer.submitWaypoint(context.poseStack(), context.submitNodeCollector(), wp, context.levelState().cameraRenderState, tick, dist);
+			}
+		}
+	}
 
-			buffer.endNullable();
-			matrixStack.pop();
-			RenderSystem.disableBlend();
-		});
-    }
-
-    private void renderHUD(DrawContext context, Waypoint waypoint, float delta, float fov, int dist) {
+	private void renderHUD(GuiGraphicsExtractor context, Waypoint waypoint, float delta, float fov, int dist) {
 		int wpX = waypoint.pos.getX();
 		int wpZ = waypoint.pos.getZ();
 
 		Icon icon = waypoint.getIcon();
 
 		int size = icon != null ? icon.getWidth() : 18;
-		int screenWidth = minecraft.getWindow().getScaledWidth();
+		int screenWidth = minecraft.getWindow().getGuiScaledWidth();
 
 		double dx = minecraft.player.getX() - wpX;
 		double dy = wpZ - minecraft.player.getZ();
 		double wfi = correctAngle((float) (Math.atan2(dx, dy) * (180 / Math.PI)));
-		double pfi = correctAngle(minecraft.player.getYaw(delta) % 360);
+		double pfi = correctAngle(minecraft.player.getViewYRot(delta) % 360);
 		double a0 = pfi - fov / 2;
 		double a1 = pfi + fov / 2;
 		double ax = correctAngle((float) (2 * pfi - wfi));
@@ -99,139 +105,114 @@ public class WaypointRenderer {
 		if (icon != null) {
 			icon.draw(context, x, y);
 		} else {
-			RenderUtil.drawDiamond(x, y, size, size, waypoint.color);
+			RenderUtil.drawDiamond(context, x, y, size, size, waypoint.color);
 		}
 		RenderUtil.drawBoundedString(context, dist + "m", x + size / 2, y + size + 2, 0, screenWidth, Colors.WHITE);
 	}
 
-	public static void renderWaypoints(MatrixStack matrixStack, Camera camera, float tickDelta) {
-		if (minecraft == null) return;
-		if (!ClientSettings.showWaypoints || !ClientSettings.waypointsWorldRender) return;
-
-		long time = minecraft.player.getWorld().getTime();
-		float tick = (float) Math.floorMod(time, 125L) + tickDelta;
-
-		BlockPos playerPos = minecraft.player.getBlockPos();
-
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.enableCull();
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthMask(false);
-
-		VertexConsumerProvider.Immediate consumerProvider = minecraft.getBufferBuilders().getEntityVertexConsumers();
-		List<Waypoint> wayPoints = WaypointKeeper.getInstance().getWaypoints(MapDataProvider.getMultiworldManager().getCurrentWorldKey(), true);
-		for (Waypoint wp : wayPoints) {
-			int dist = (int) MathUtil.getDistance(wp.pos, playerPos, false);
-			if (wp.render && dist >= ClientSettings.minRenderDist && dist <= wp.showRange) {
-				renderer.renderWaypoint(matrixStack, consumerProvider, wp, camera, tick, dist);
-			}
-		}
-		consumerProvider.draw();
-
-		RenderSystem.depthMask(true);
-	}
-
-	private void renderWaypoint(MatrixStack matrixStack, VertexConsumerProvider consumerProvider, Waypoint waypoint, Camera camera, float tick, int dist) {
+	private void submitWaypoint(PoseStack poseStack, SubmitNodeCollector collector, Waypoint waypoint, CameraRenderState camera, float tick, int dist) {
 		int wpX = waypoint.pos.getX();
 		int wpY = waypoint.pos.getY();
 		int wpZ = waypoint.pos.getZ();
 
-		Vec3d vec3d = camera.getPos();
+		Vec3 cameraPos = camera.pos;
 
-		double camX = vec3d.getX();
-		double camY = vec3d.getY();
-		double camZ = vec3d.getZ();
-
-		float[] colors = ColorUtil.toFloatArray(waypoint.color);
 		float alpha = MathUtil.clamp(0.125F * ((float) dist / 10), 0.11F, 0.275F);
+		int beamColor = ARGB.color((int) (alpha * 255), ARGB.red(waypoint.color), ARGB.green(waypoint.color), ARGB.blue(waypoint.color));
 
-		matrixStack.push();
-		matrixStack.translate((double) wpX - camX, (double) wpY - camY, (double) wpZ - camZ);
-		matrixStack.translate(0.5, 0.5, 0.5);
+		poseStack.pushPose();
+		poseStack.translate(wpX - cameraPos.x(), wpY - cameraPos.y(), wpZ - cameraPos.z());
+		poseStack.translate(0.5, 0.5, 0.5);
 		if (ClientSettings.renderLightBeam) {
-			VertexConsumer vertexConsumer = consumerProvider.getBuffer(RenderLayer.getBeaconBeam(BEAM_TEX, true));
-			this.renderLightBeam(matrixStack, vertexConsumer, tick, -wpY, 1024 - wpY, colors, alpha, 0.15F, 0.2F);
+			this.submitLightBeam(poseStack, collector, tick, -wpY, 1024 - wpY, beamColor, 0.15F, 0.2F);
 		}
 		if (ClientSettings.renderMarkers) {
-			matrixStack.push();
-			matrixStack.translate(0.0, 1.0, 0.0);
+			poseStack.pushPose();
+			poseStack.translate(0.0, 1.0, 0.0);
 			if (ClientSettings.renderAnimation) {
 				double swing = 0.25 * Math.sin((tick * 2.25 - 45.0) / 15.0);
-				matrixStack.translate(0.0, swing, 0.0);
+				poseStack.translate(0.0, swing, 0.0);
 			}
-			matrixStack.multiply(camera.getRotation());
-			matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F));
-			matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-90.0F));
+			poseStack.mulPose(camera.orientation);
+			poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+			poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
 
-			alpha = MathUtil.clamp(alpha * 3, 0.0F, 1.0F);
+			float markerAlpha = MathUtil.clamp(alpha * 3, 0.0F, 1.0F);
+			int markerColor = ARGB.color((int) (markerAlpha * 255), ARGB.red(waypoint.color), ARGB.green(waypoint.color), ARGB.blue(waypoint.color));
 
 			Identifier texture = waypoint.getIcon().getTexture();
-			VertexConsumer vertexConsumer = consumerProvider.getBuffer(RenderLayer.getBeaconBeam(texture, true));
-			this.renderIcon(matrixStack, vertexConsumer, colors, alpha);
-			matrixStack.pop();
+			collector.submitCustomGeometry(poseStack, RenderTypes.beaconBeam(texture, true),
+					(pose, buffer) -> this.renderIcon(pose, buffer, markerColor));
+			poseStack.popPose();
 		}
-		matrixStack.pop();
+		poseStack.popPose();
 	}
 
-	private void renderIcon(MatrixStack matrixStack, VertexConsumer vertexConsumer, float[] colors, float alpha) {
-		MatrixStack.Entry entry = matrixStack.peek();
-		Matrix4f matrix4f = entry.getPositionMatrix();
-
-		this.addVertex(matrix4f, entry, vertexConsumer, colors[0], colors[1], colors[2], alpha, -0.5F, -0.5F, 0.0F, 0.0F, 0.0F);
-		this.addVertex(matrix4f, entry, vertexConsumer, colors[0], colors[1], colors[2], alpha, -0.5F, 0.5F, 0.0F, 0.0F, 1.0F);
-		this.addVertex(matrix4f, entry, vertexConsumer, colors[0], colors[1], colors[2], alpha, 0.5F, 0.5F, 0.0F, 1.0F, 1.0F);
-		this.addVertex(matrix4f, entry, vertexConsumer, colors[0], colors[1], colors[2], alpha, 0.5F, -0.5F, 0.0F, 1.0F, 0.0F);
+	private void renderIcon(PoseStack.Pose pose, VertexConsumer vertexConsumer, int color) {
+		this.addVertex(pose, vertexConsumer, color, -0.5F, -0.5F, 0.0F, 0.0F, 0.0F);
+		this.addVertex(pose, vertexConsumer, color, -0.5F, 0.5F, 0.0F, 0.0F, 1.0F);
+		this.addVertex(pose, vertexConsumer, color, 0.5F, 0.5F, 0.0F, 1.0F, 1.0F);
+		this.addVertex(pose, vertexConsumer, color, 0.5F, -0.5F, 0.0F, 1.0F, 0.0F);
 	}
 
-	private void renderLightBeam(MatrixStack matrixStack, VertexConsumer vertexConsumer, float tick, int i, int j, float[] colors, float alpha, float h, float k) {
+	private void submitLightBeam(PoseStack poseStack, SubmitNodeCollector collector, float tick, int i, int j, int color, float h, float k) {
 		int m = i + j;
 
 		float o = j < 0 ? tick : -tick;
-		float p = MathHelper.fractionalPart(o * 0.2F - (float) MathHelper.floor(o * 0.1F));
-		float red = colors[0];
-		float green = colors[1];
-		float blue = colors[2];
+		float p = Mth.frac(o * 0.2F - (float) Mth.floor(o * 0.1F));
 
-		matrixStack.push();
-		matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(tick * 2.25F - 45.0F));
-		float af;
-		float ai;
+		poseStack.pushPose();
+		poseStack.mulPose(Axis.YP.rotationDegrees(tick * 2.25F - 45.0F));
 		float aj = -h;
 		float aa = -h;
 		float ap = -1.0F + p;
 		float aq = (float) j * (0.5F / h) + ap;
 
-		this.renderBeam(matrixStack, vertexConsumer, red, green, blue, alpha, i, m, 0.0F, h, h, 0.0F, aj, 0.0F, 0.0F, aa, 0.0F, 1.0F, aq, ap);
-		matrixStack.pop();
+		final int beamStart = i, beamEnd = m;
+		final float f0 = h, f1 = aj, f2 = aa, v1 = aq, v2 = ap;
+		collector.submitCustomGeometry(poseStack, RenderTypes.beaconBeam(BEAM_TEX, false),
+				(pose, buffer) -> this.renderPart(pose, buffer, color, beamStart, beamEnd,
+						0.0F, f0, f0, 0.0F, f1, 0.0F, 0.0F, f2, 0.0F, 1.0F, v1, v2));
+		poseStack.popPose();
 
-		af = -k;
+		float af = -k;
 		float ag = -k;
-		ai = -k;
-		aj = -k;
+		float ai = -k;
+		float ak = -k;
 		ap = -1.0F + p;
 		aq = (float) j + ap;
-		this.renderBeam(matrixStack, vertexConsumer, red, green, blue, alpha, i, m, af, ag, k, ai, aj, k, k, k, 0.0F, 1.0F, aq, ap);
+
+		final float g0 = af, g1 = ag, g2 = k, g3 = ai, g4 = ak, gv1 = aq, gv2 = ap;
+		collector.submitCustomGeometry(poseStack, RenderTypes.beaconBeam(BEAM_TEX, true),
+				(pose, buffer) -> this.renderPart(pose, buffer, color, beamStart, beamEnd,
+						g0, g1, g2, g3, g4, g2, g2, g2, 0.0F, 1.0F, gv1, gv2));
 	}
 
-	private void renderBeam(MatrixStack matrixStack, VertexConsumer vertexConsumer, float red, float green, float blue, float alpha, int j, int k, float l, float m, float n, float o, float p, float q, float r, float s, float t, float u, float v, float w) {
-		MatrixStack.Entry entry = matrixStack.peek();
-		Matrix4f matrix4f = entry.getPositionMatrix();
-		this.renderBeam(matrix4f, entry, vertexConsumer, red, green, blue, alpha, j, k, l, m, n, o, t, u, v, w);
-		this.renderBeam(matrix4f, entry, vertexConsumer, red, green, blue, alpha, j, k, r, s, p, q, t, u, v, w);
-		this.renderBeam(matrix4f, entry, vertexConsumer, red, green, blue, alpha, j, k, n, o, r, s, t, u, v, w);
-		this.renderBeam(matrix4f, entry, vertexConsumer, red, green, blue, alpha, j, k, p, q, l, m, t, u, v, w);
+	private void renderPart(PoseStack.Pose pose, VertexConsumer vertexConsumer, int color, int j, int k,
+							float l, float m, float n, float o, float p, float q, float r, float s,
+							float t, float u, float v, float w) {
+		this.renderQuad(pose, vertexConsumer, color, j, k, l, m, n, o, t, u, v, w);
+		this.renderQuad(pose, vertexConsumer, color, j, k, r, s, p, q, t, u, v, w);
+		this.renderQuad(pose, vertexConsumer, color, j, k, n, o, r, s, t, u, v, w);
+		this.renderQuad(pose, vertexConsumer, color, j, k, p, q, l, m, t, u, v, w);
 	}
 
-	private void renderBeam(Matrix4f matrix4f, MatrixStack.Entry matrixSE, VertexConsumer vertexConsumer, float red, float green, float blue, float alpha, int j, int k, float l, float m, float n, float o, float p, float q, float r, float s) {
-		this.addVertex(matrix4f, matrixSE, vertexConsumer, red, green, blue, alpha, k, l, m, q, r);
-		this.addVertex(matrix4f, matrixSE, vertexConsumer, red, green, blue, alpha, j, l, m, q, s);
-		this.addVertex(matrix4f, matrixSE, vertexConsumer, red, green, blue, alpha, j, n, o, p, s);
-		this.addVertex(matrix4f, matrixSE, vertexConsumer, red, green, blue, alpha, k, n, o, p, r);
+	private void renderQuad(PoseStack.Pose pose, VertexConsumer vertexConsumer, int color, int j, int k,
+							float l, float m, float n, float o, float p, float q, float r, float s) {
+		this.addVertex(pose, vertexConsumer, color, l, k, m, q, r);
+		this.addVertex(pose, vertexConsumer, color, l, j, m, q, s);
+		this.addVertex(pose, vertexConsumer, color, n, j, o, p, s);
+		this.addVertex(pose, vertexConsumer, color, n, k, o, p, r);
 	}
 
-	private void addVertex(Matrix4f matrix4f, MatrixStack.Entry matrixSE, VertexConsumer vertexConsumer, float red, float green, float blue, float alpha, float y, float x, float l, float m, float n) {
-		vertexConsumer.vertex(matrix4f, x, y, l).color(red, green, blue, alpha).texture(m, n).overlay(OverlayTexture.DEFAULT_UV).light(Colors.LIGHT).normal(matrixSE, 0.0F, 1.0F, 0.0F);
+	private void addVertex(PoseStack.Pose pose, VertexConsumer vertexConsumer, int color,
+						   float x, float y, float z, float u, float v) {
+		vertexConsumer.addVertex(pose, x, y, z)
+				.setColor(color)
+				.setUv(u, v)
+				.setOverlay(OverlayTexture.NO_OVERLAY)
+				.setLight(Colors.LIGHT)
+				.setNormal(pose, 0.0F, 1.0F, 0.0F);
 	}
 
 	private double correctAngle(float angle) {
