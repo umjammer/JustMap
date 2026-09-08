@@ -23,7 +23,6 @@ import ru.bulldog.justmap.map.waypoint.Waypoint;
 @Mixin(value = ClientPacketListener.class, priority = 100)
 public abstract class ClientPlayNetworkHandlerMixin {
 
-	// TODO how to deal super class field
 	@Unique
 	protected Minecraft client;
 

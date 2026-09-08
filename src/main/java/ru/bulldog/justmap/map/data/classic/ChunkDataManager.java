@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.minecraft.SharedConstants;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerLevel;
@@ -32,7 +33,7 @@ class ChunkDataManager {
 	private final LevelChunk emptyChunk;
 
 	ChunkDataManager(WorldData data, Level world) {
-		this.emptyChunk = new EmptyLevelChunk(world, new ChunkPos(0, 0), null); // TODO 1.18.2 null
+		this.emptyChunk = new EmptyLevelChunk(world, new ChunkPos(0, 0), world.getBiome(new BlockPos(0, 0, 0)));
 		this.mapData = data;
 	}
 

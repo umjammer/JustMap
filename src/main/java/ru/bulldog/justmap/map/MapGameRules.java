@@ -91,8 +91,7 @@ public class MapGameRules {
 				allow = minecraft.getSingleplayerServer().getGameRules().get(rule);
 			} else if (!minecraft.isLocalServer()) {
 				if (minecraft.level == null) return false;
-//				allow = minecraft.level.getGameRules().get(rule);
-				return false; // TODO 1.21.3
+				return false;
 			}
 		}
 		return allow;
@@ -117,8 +116,7 @@ public class MapGameRules {
 	public static void parseCommand(String command) {
 		Minecraft minecraft = Minecraft.getInstance();
 		MinecraftServer server = minecraft.getSingleplayerServer();
-//		GameRules gameRules = minecraft.level.getGameRules();
-		GameRules gameRules = server.getGameRules(); // TODO 1.21.3
+		GameRules gameRules = server.getGameRules();
 		codes.forEach((key, rule) -> {
 			if (command.contains(key)) {
 				int valPos = command.indexOf(key) + 2;

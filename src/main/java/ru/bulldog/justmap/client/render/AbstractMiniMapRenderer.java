@@ -86,7 +86,7 @@ public abstract class AbstractMiniMapRenderer {
 			this.winHeight = winH;
 		}
 
-		this.delta = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false); // TODO 1.21
+		this.delta = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
 		this.currX = CurrentWorldPos.doubleX(delta);
 		this.currZ = CurrentWorldPos.doubleZ(delta);
 
