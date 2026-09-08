@@ -4,33 +4,26 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.imageio.ImageIO;
 
 import com.google.gson.JsonObject;
-import net.fabricmc.api.EnvType;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.multiplayer.ClientRegistryLayer;
-import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
 import ru.bulldog.justmap.JustMap;
-import ru.bulldog.justmap.server.JustMapServer;
 import ru.bulldog.justmap.util.storage.ResourceLoader;
 
 public class BiomeColors {
+	private static final Identifier UNKNOWN_BIOME =
+			Identifier.fromNamespaceAndPath(JustMap.MODID, "unknown_biome");
+	private static final AtomicBoolean unknownBiomeReported = new AtomicBoolean();
+
 	private static int[] foliageMap;
 	private static int[] grassMap;
-
-	private static final RegistryAccess registryManager =
-			ClientRegistryLayer.createRegistryAccess().compositeAccess();
 
 	private Biome biome;
 	private Optional<Integer> foliageColor;
@@ -60,24 +53,16 @@ public class BiomeColors {
 	}
 
 	public static Identifier getBiomeId(Level world, Biome biome) {
-		Identifier biomeId = world.registryAccess().lookupOrThrow(Registries.BIOME).getKey(biome);
-		return biomeId != null ? biomeId : VanillaRegistries.createLookup().lookupOrThrow(Registries.BIOME).listElements().filter(b -> biome.equals(b.value())).map(b -> b.key().identifier()).findFirst().get();
-	}
-
-	public static Registry<Biome> getBiomeRegistry() {
-		if (JustMap.getSide() == EnvType.CLIENT) {
-			Minecraft minecraft = Minecraft.getInstance();
-			ClientPacketListener networkHandler = minecraft.getConnection();
-			if (networkHandler != null) {
-				return minecraft.getConnection().registryAccess().lookupOrThrow(Registries.BIOME);
-			}
-			return registryManager.lookupOrThrow(Registries.BIOME);
+		Identifier biomeId = world.registryAccess()
+				.lookupOrThrow(Registries.BIOME).getKey(biome);
+		if (biomeId != null) return biomeId;
+		// The biome doesn't belong to this world's registry. Biome has no equals(),
+		// so there is no reliable way to identify it: fall back to a shared key
+		// instead of failing.
+		if (unknownBiomeReported.compareAndSet(false, true)) {
+			JustMap.LOGGER.warning("Biome is missing from the world registry, using default colors.");
 		}
-		MinecraftServer server = JustMapServer.getServer();
-		if (server != null) {
-			return server.registryAccess().lookupOrThrow(Registries.BIOME);
-		}
-		return registryManager.lookupOrThrow(Registries.BIOME);
+		return UNKNOWN_BIOME;
 	}
 
 	public static int getGrassColor(double temperature, double humidity) {

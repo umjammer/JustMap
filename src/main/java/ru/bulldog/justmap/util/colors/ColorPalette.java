@@ -42,6 +42,10 @@ public class ColorPalette {
 	private final BiMap<Set<String>, Integer> fluidColors = HashBiMap.create();
 	private final Map<Identifier, Integer> textureColors = Maps.newHashMap();
 	private final Map<Identifier, BiomeColors> biomeColors = Maps.newHashMap();
+	// Biome colors read from disk. They are kept as raw json until the biome they
+	// belong to is actually requested, because the biome registry is dynamic and
+	// isn't available yet when the palettes are loaded (see issue #2).
+	private final Map<Identifier, JsonObject> storedBiomeColors = Maps.newHashMap();
 
 	public int getBlockColor(BlockState block) {
 		return getColor(blockColors, block);
@@ -81,7 +85,12 @@ public class ColorPalette {
 			return this.biomeColors.get(id);
 		}
 		synchronized (biomeColors) {
-			BiomeColors newColors = new BiomeColors(biome);
+			if (biomeColors.containsKey(id)) {
+				return this.biomeColors.get(id);
+			}
+			JsonObject stored = this.storedBiomeColors.remove(id);
+			BiomeColors newColors = stored != null ?
+					BiomeColors.fromJson(biome, stored) : new BiomeColors(biome);
 			this.biomeColors.put(id, newColors);
 
 			return newColors;
@@ -129,8 +138,12 @@ public class ColorPalette {
 		JsonFactory.storeJson(new File(folder, "texturecolors.json"), textures);
 
 		JsonObject biomes = new JsonObject();
-		this.biomeColors.forEach((id, biome) ->
-				biomes.add(id.toString(), biome.toJson()));
+		synchronized (biomeColors) {
+			this.storedBiomeColors.forEach((id, json) ->
+					biomes.add(id.toString(), json));
+			this.biomeColors.forEach((id, biome) ->
+					biomes.add(id.toString(), biome.toJson()));
+		}
 		JsonFactory.storeJson(new File(folder, "biomecolors.json"), biomes);
 	}
 
@@ -183,13 +196,13 @@ public class ColorPalette {
 				}
 				case "biomecolors.json": {
 					JsonObject biomes = JsonFactory.getJsonObject(dataFile);
-					biomes.entrySet().forEach(entry -> {
-						String key = entry.getKey();
-						JsonObject biomeJson = entry.getValue().getAsJsonObject();
-						Identifier biomeId = Identifier.parse(key);
-						Biome biome = BiomeColors.getBiomeRegistry().get(biomeId).get().value();
-						this.biomeColors.put(biomeId, BiomeColors.fromJson(biome, biomeJson));
-					});
+					synchronized (biomeColors) {
+						biomes.entrySet().forEach(entry -> {
+							Identifier biomeId = Identifier.parse(entry.getKey());
+							this.storedBiomeColors.put(biomeId, entry.getValue().getAsJsonObject());
+							this.biomeColors.remove(biomeId);
+						});
+					}
 				}
 			}
 		}
