@@ -1,9 +1,9 @@
 package ru.bulldog.justmap.util.tasks;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.LockSupport;
@@ -12,53 +12,36 @@ import java.util.function.Function;
 import ru.bulldog.justmap.JustMap;
 
 public class TaskManager implements Executor {
+	private static final long SHUTDOWN_TIMEOUT = 5000;
+
 	private final Queue<Task> workQueue = new ConcurrentLinkedQueue<>();
 	private final QueueBlocker queueBlocker;
 	private final ThreadGroup group;
 	private final Thread[] workers;
 	private String name = JustMap.MODID;
 
-	private boolean running = true;
+	private volatile boolean stopping = false;
 
-	private static final Map<String, TaskManager> managers = new HashMap<>();
+	private static final Map<String, TaskManager> managers = new ConcurrentHashMap<>();
 
 	public static TaskManager getManager(String name) {
 		return getManager(name, 1);
 	}
 
-	public static TaskManager getManager(String name, int maxThreads) {
-		if (managers.containsKey(name)) {
-			TaskManager manager = managers.get(name);
-			if (!manager.isRunning()) {
-				manager = new TaskManager(name, maxThreads);
-				managers.replace(name, manager);
-			}
-
+	public static synchronized TaskManager getManager(String name, int maxThreads) {
+		TaskManager manager = managers.get(name);
+		if (manager != null && manager.isRunning()) {
 			return manager;
 		}
 
-		TaskManager manager = new TaskManager(name, maxThreads);
+		manager = new TaskManager(name, maxThreads);
 		managers.put(name, manager);
 
 		return manager;
 	}
 
 	public static void shutdown() {
-		long timeout = 5000;
-		managers.forEach((name, manager) -> {
-			if (manager.isRunning()) {
-				manager.stop();
-				long time = System.currentTimeMillis();
-				while (manager.isRunning()) {
-					long now = System.currentTimeMillis();
-					if (now - time > timeout) {
-						manager.running = false;
-						manager.workQueue.clear();
-					}
-				}
-				JustMap.LOGGER.debug("{} stopped", manager.name);
-			}
-		});
+		managers.values().forEach(TaskManager::stopAndWait);
 	}
 
 	private TaskManager(String name, int maxThreads) {
@@ -69,6 +52,8 @@ public class TaskManager implements Executor {
 		for (int i = 0; i < maxThreads; i++) {
 			String threadName = String.format("%s-%d", this.name, i + 1);
 			this.workers[i] = new Thread(group, this::work, threadName);
+			// never keep the JVM alive: shutdown joins the workers, this is only a safety net
+			this.workers[i].setDaemon(true);
 			this.workers[i].start();
 		}
 	}
@@ -90,8 +75,8 @@ public class TaskManager implements Executor {
 	}
 
 	public <T> CompletableFuture<T> run(Function<CompletableFuture<T>, Runnable> function) {
-	return this.run(null, function);
-}
+		return this.run(null, function);
+	}
 
 	public <T> CompletableFuture<T> run(String reason, Function<CompletableFuture<T>, Runnable> function) {
 		CompletableFuture<T> completableFuture = new CompletableFuture<>();
@@ -99,9 +84,36 @@ public class TaskManager implements Executor {
 		return completableFuture;
 	}
 
+	/**
+	 * Asks every worker to leave as soon as the queue is drained. Doesn't wait.
+	 */
 	public void stop() {
-		this.execute("Stopping " + this.name, () ->
-			this.running = false);
+		this.stopping = true;
+		this.unpark();
+	}
+
+	private void stopAndWait() {
+		if (!this.isRunning()) return;
+
+		this.stop();
+		long deadline = System.currentTimeMillis() + SHUTDOWN_TIMEOUT;
+		for (Thread worker : workers) {
+			long wait = deadline - System.currentTimeMillis();
+			if (wait <= 0) break;
+			try {
+				worker.join(wait);
+			} catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+				break;
+			}
+		}
+		if (this.isRunning()) {
+			this.workQueue.clear();
+			this.unpark();
+			JustMap.LOGGER.warning(String.format("%s didn't stop in %d ms", this.name, SHUTDOWN_TIMEOUT));
+		} else {
+			JustMap.LOGGER.debug(this.name + " stopped");
+		}
 	}
 
 	public int queueSize() {
@@ -109,21 +121,32 @@ public class TaskManager implements Executor {
 	}
 
 	public boolean isRunning() {
-		return this.running;
+		for (Thread worker : workers) {
+			if (worker.isAlive()) return true;
+		}
+		return false;
 	}
 
 	private void work() {
-		while (running) {
+		while (true) {
 			Task nextTask = workQueue.poll();
 			if (nextTask != null) {
 				if (nextTask.hasReason()) {
 					JustMap.LOGGER.debug(nextTask);
 				}
-				nextTask.run();
-					} else {
-						LockSupport.park(queueBlocker);
-					}
+				try {
+					nextTask.run();
+				} catch (Throwable ex) {
+					// a failing task must not take the worker down with it
+					JustMap.LOGGER.error(String.format("Task failed in %s", this.name));
+					JustMap.LOGGER.catching(ex);
+				}
+			} else if (stopping) {
+				break;
+			} else {
+				LockSupport.park(queueBlocker);
 			}
+		}
 	}
 
 	private static class Task implements Runnable {
@@ -145,9 +168,9 @@ public class TaskManager implements Executor {
 		}
 
 		@Override
-	public void run() {
-		this.task.run();
-	}
+		public void run() {
+			this.task.run();
+		}
 
 		@Override
 		public String toString() {
