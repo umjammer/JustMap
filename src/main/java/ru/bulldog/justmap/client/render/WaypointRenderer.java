@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.BeaconRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -40,7 +41,9 @@ import ru.bulldog.justmap.util.render.RenderUtil;
 @Environment(EnvType.CLIENT)
 public class WaypointRenderer {
 	private static final WaypointRenderer renderer = new WaypointRenderer();
-	private final static Identifier BEAM_TEX = Identifier.parse("textures/entity/beacon_beam.png");
+	// 26.2 moved the beam texture to textures/entity/beacon/beacon_beam.png; take it from
+	// vanilla so a future move shows up as a compile error instead of a missing texture.
+	private final static Identifier BEAM_TEX = BeaconRenderer.BEAM_LOCATION;
 	private final static Minecraft minecraft = Minecraft.getInstance();
 
 	public static void renderHUD(GuiGraphicsExtractor context, float delta, float fov) {
