@@ -169,7 +169,21 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 		Button cancelButton = Button.builder(lang("cancel"), b -> onClose()).bounds(center + 2, ey, ew, ROW_HEIGHT).build();
 		children.add(cancelButton);
 
+		this.updateColorButtons();
 		this.setInitialFocus(nameField);
+	}
+
+	/**
+	 * Greys out the colour arrows while a named icon is chosen.
+	 *
+	 * <p>Named icons carry their own colour: {@link Waypoint#setIcon} overwrites the waypoint's
+	 * colour with the icon's, so a colour picked here would be dropped on save. Only the default
+	 * icon (index 0) is tinted by the chosen colour, so the arrows are live only for it.
+	 */
+	private void updateColorButtons() {
+		boolean colorApplies = iconIndex == 0;
+		this.prevColorButton.active = colorApplies;
+		this.nextColorButton.active = colorApplies;
 	}
 
 	@Override
@@ -190,21 +204,22 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 
 	private void cycleIcon(int i) {
 		this.iconIndex += i;
+		// 0 is the colored default icon, 1..amountIcons() the named ones, so the last
+		// index is a valid choice and only wraps once it is passed.
 		if (iconIndex < 0) {
 			this.iconIndex = Waypoint.amountIcons();
-		} else if (iconIndex >= Waypoint.amountIcons()) {
+		} else if (iconIndex > Waypoint.amountIcons()) {
 			this.iconIndex = 0;
 		}
+		this.updateColorButtons();
 	}
 
 	private void save() {
 		this.waypoint.name = nameField.widget.getValue();
 		int color = Waypoint.WAYPOINT_COLORS[colorIndex];
-		if(Waypoint.getIcon(iconIndex) != null) {
-			this.waypoint.setIcon(Waypoint.getIcon(iconIndex), color);
-		} else {
-			this.waypoint.color = color;
-		}
+		// getIcon() is null at index 0 (the default icon), which setIcon takes to mean
+		// "no icon, use this colour" and clears any icon the waypoint had before.
+		this.waypoint.setIcon(Waypoint.getIcon(iconIndex), color);
 		this.waypoint.hidden = isHidden.selected();
 		this.waypoint.tracking = isTrackable.selected();
 		this.waypoint.render = isRenderable.selected();
@@ -288,7 +303,9 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 	}
 
 	private int getIconIndex(Icon icon) {
-		if (icon == null) return 0;
+		// A waypoint without a named icon reports the colored default icon, whose key is -1;
+		// both mean "no icon" here, which is index 0.
+		if (icon == null || icon.key <= 0) return 0;
 		return icon.key;
 	}
 

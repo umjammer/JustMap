@@ -100,11 +100,20 @@ public class Waypoint {
 		return !hidden || showAlways;
 	}
 
+	/**
+	 * Sets the marker, either a named icon or, for {@code null} / the colored default icon,
+	 * no icon at all.
+	 *
+	 * <p>A named icon carries its own colour and {@code color} is ignored; without one the
+	 * key has to go back to -1, or {@link #getIcon()} keeps handing out the icon that was
+	 * chosen before and its colour along with it.
+	 */
 	public void setIcon(Icon icon, int color) {
-		if (icon.key > 0) {
+		if (icon != null && icon.key > 0) {
 			this.icon = icon.key;
 			this.color = icon.color;
 		} else {
+			this.icon = -1;
 			this.color = color;
 		}
 	}
