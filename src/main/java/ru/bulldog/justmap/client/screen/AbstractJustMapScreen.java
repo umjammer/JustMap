@@ -1,6 +1,5 @@
 package ru.bulldog.justmap.client.screen;
 
-import com.mojang.blaze3d.opengl.GlStateManager;
 import java.util.HashMap;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;

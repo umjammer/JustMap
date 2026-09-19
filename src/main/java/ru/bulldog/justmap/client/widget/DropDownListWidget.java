@@ -1,6 +1,5 @@
 package ru.bulldog.justmap.client.widget;
 
-import com.mojang.blaze3d.opengl.GlStateManager;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;

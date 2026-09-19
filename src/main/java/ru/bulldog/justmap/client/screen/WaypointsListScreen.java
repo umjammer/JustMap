@@ -14,7 +14,7 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.server.MinecraftServer;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.map.data.MapDataProvider;
 import ru.bulldog.justmap.map.multiworld.WorldKey;
@@ -292,7 +292,7 @@ public class WaypointsListScreen extends AbstractJustMapScreen {
 
 	@Override
 	public boolean keyPressed(KeyEvent event) {
-		if (event.key() == GLFW.GLFW_KEY_U) {
+		if (event.key() == InputConstants.KEY_U) {
 			this.onClose();
 			return true;
 		}

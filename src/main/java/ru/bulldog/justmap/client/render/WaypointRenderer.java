@@ -136,9 +136,9 @@ public class WaypointRenderer {
 				double swing = 0.25 * Math.sin((tick * 2.25 - 45.0) / 15.0);
 				poseStack.translate(0.0, swing, 0.0);
 			}
-			poseStack.mulPose(camera.orientation);
-			poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-			poseStack.mulPose(Axis.ZP.rotationDegrees(-90.0F));
+			poseStack.rotate(camera.orientation);
+			poseStack.rotateDegrees(Axis.YP, 180.0F);
+			poseStack.rotateDegrees(Axis.ZP, -90.0F);
 
 			float markerAlpha = MathUtil.clamp(alpha * 3, 0.0F, 1.0F);
 			int markerColor = ARGB.color((int) (markerAlpha * 255), ARGB.red(waypoint.color), ARGB.green(waypoint.color), ARGB.blue(waypoint.color));
@@ -165,7 +165,7 @@ public class WaypointRenderer {
 		float p = Mth.frac(o * 0.2F - (float) Mth.floor(o * 0.1F));
 
 		poseStack.pushPose();
-		poseStack.mulPose(Axis.YP.rotationDegrees(tick * 2.25F - 45.0F));
+		poseStack.rotateDegrees(Axis.YP, tick * 2.25F - 45.0F);
 		float aj = -h;
 		float aa = -h;
 		float ap = -1.0F + p;

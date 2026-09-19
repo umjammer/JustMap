@@ -12,8 +12,8 @@ import java.nio.ByteOrder;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuSampler;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.renderpearl.api.textures.GpuSampler;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import javax.imageio.ImageIO;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 

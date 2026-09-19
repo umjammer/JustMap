@@ -15,7 +15,7 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.client.widget.TitledButtonWidget;
@@ -311,7 +311,7 @@ public class WaypointEditorScreen extends AbstractJustMapScreen {
 
 	@Override
 	public boolean keyPressed(KeyEvent event) {
-		if (event.key() == GLFW.GLFW_KEY_ENTER) {
+		if (event.key() == InputConstants.KEY_RETURN) {
 			this.save();
 			this.onClose();
 			return true;

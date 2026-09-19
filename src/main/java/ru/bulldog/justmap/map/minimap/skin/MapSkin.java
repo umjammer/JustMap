@@ -1,6 +1,5 @@
 package ru.bulldog.justmap.map.minimap.skin;
 
-import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.platform.NativeImage;
 import java.util.ArrayList;
 import java.util.List;

@@ -1,7 +1,6 @@
 package ru.bulldog.justmap.client.screen;
 
 import net.minecraft.client.input.KeyEvent;
-import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -12,7 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.map.data.MapDataProvider;
@@ -91,7 +90,7 @@ public class WorldnameScreen extends Screen {
 
 	@Override
 	public boolean keyPressed(KeyEvent event) {
-		if (event.key() == GLFW.GLFW_KEY_ENTER) {
+		if (event.key() == InputConstants.KEY_RETURN) {
 			this.onPressSave(null);
 			return true;
 		}

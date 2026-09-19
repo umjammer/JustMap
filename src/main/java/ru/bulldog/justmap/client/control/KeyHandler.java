@@ -6,7 +6,7 @@ import java.util.List;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import ru.bulldog.justmap.JustMap;
 import ru.bulldog.justmap.client.JustMapClient;
@@ -23,7 +23,7 @@ public final class KeyHandler {
 	public static void initKeyBindings() {
 		parsers = new ArrayList<>();
 
-		registerKey(new KeyParser(createKeyBinding("create_waypoint", GLFW.GLFW_KEY_B)) {
+		registerKey(new KeyParser(createKeyBinding("create_waypoint", InputConstants.KEY_B)) {
 			@Override
 			public void onKeyUp() {
 				JustMapClient.getMiniMap().createWaypoint();
@@ -35,7 +35,7 @@ public final class KeyHandler {
 			}
 		});
 
-		registerKey(new KeyParser(createKeyBinding("toggle_map_visible", GLFW.GLFW_KEY_H)) {
+		registerKey(new KeyParser(createKeyBinding("toggle_map_visible", InputConstants.KEY_H)) {
 			@Override
 			public void onKeyUp() {
 				JustMapClient.getConfig().setBoolean("map_visible", !JustMapClient.getConfig().getBoolean("map_visible"));
@@ -43,7 +43,7 @@ public final class KeyHandler {
 			}
 		});
 
-		registerKey(new KeyParser(createKeyBinding("toggle_big_map", GLFW.GLFW_KEY_N)) {
+		registerKey(new KeyParser(createKeyBinding("toggle_big_map", InputConstants.KEY_N)) {
 			@Override
 			public void onKeyUp() {
 				JustMapClient.getConfig().setBoolean("show_big_map", !JustMapClient.getConfig().getBoolean("show_big_map"));
@@ -51,7 +51,7 @@ public final class KeyHandler {
 			}
 		});
 
-		registerKey(new KeyParser(createKeyBinding("toggle_show_caves", GLFW.GLFW_KEY_K)) {
+		registerKey(new KeyParser(createKeyBinding("toggle_show_caves", InputConstants.KEY_K)) {
 			@Override
 			public void onKeyUp() {
 				JustMapClient.getConfig().setBoolean("show_caves", !JustMapClient.getConfig().getBoolean("show_caves"));
@@ -64,7 +64,7 @@ public final class KeyHandler {
 			}
 		});
 
-		registerKey(new KeyParser(createKeyBinding("toggle_show_entities", GLFW.GLFW_KEY_Y)) {
+		registerKey(new KeyParser(createKeyBinding("toggle_show_entities", InputConstants.KEY_Y)) {
 			@Override
 			public void onKeyUp() {
 				JustMapClient.getConfig().setBoolean("show_entities", !JustMapClient.getConfig().getBoolean("show_entities"));
@@ -77,7 +77,7 @@ public final class KeyHandler {
 			}
 		});
 
-		registerKey(new KeyParser(createKeyBinding("toggle_show_waypoints", GLFW.GLFW_KEY_P)) {
+		registerKey(new KeyParser(createKeyBinding("toggle_show_waypoints", InputConstants.KEY_P)) {
 			@Override
 			public void onKeyUp() {
 				JustMapClient.getConfig().setBoolean("show_waypoints", !JustMapClient.getConfig().getBoolean("show_waypoints"));
@@ -85,7 +85,7 @@ public final class KeyHandler {
 			}
 		});
 
-		registerKey(new KeyParser(createKeyBinding("waypoints_list", GLFW.GLFW_KEY_U)) {
+		registerKey(new KeyParser(createKeyBinding("waypoints_list", InputConstants.KEY_U)) {
 			@Override
 			public void onKeyUp() {
 				MC.setScreenAndShow(new WaypointsListScreen(null));
@@ -97,7 +97,7 @@ public final class KeyHandler {
 			}
 		});
 
-		registerKey(new KeyParser(createKeyBinding("show_config", GLFW.GLFW_KEY_J)) {
+		registerKey(new KeyParser(createKeyBinding("show_config", InputConstants.KEY_J)) {
 			@Override
 			public void onKeyUp() {
 				MC.setScreenAndShow(ConfigFactory.getConfigScreen(null));
@@ -109,7 +109,7 @@ public final class KeyHandler {
 			}
 		});
 
-		registerKey(new KeyParser(createKeyBinding("show_worldmap", GLFW.GLFW_KEY_M)) {
+		registerKey(new KeyParser(createKeyBinding("show_worldmap", InputConstants.KEY_M)) {
 			@Override
 			public void onKeyUp() {
 				MC.setScreenAndShow(WorldmapScreen.getScreen());
@@ -121,7 +121,7 @@ public final class KeyHandler {
 			}
 		});
 
-		registerKey(new KeyParser(createKeyBinding("reduce_scale", GLFW.GLFW_KEY_LEFT_BRACKET)) {
+		registerKey(new KeyParser(createKeyBinding("reduce_scale", InputConstants.KEY_LBRACKET)) {
 			@Override
 			public void onKeyUp() {
 				JustMapClient.getConfig().updateMapScale(0.5F);
@@ -133,7 +133,7 @@ public final class KeyHandler {
 			}
 		});
 
-		registerKey(new KeyParser(createKeyBinding("increase_scale", GLFW.GLFW_KEY_RIGHT_BRACKET)) {
+		registerKey(new KeyParser(createKeyBinding("increase_scale", InputConstants.KEY_RBRACKET)) {
 			@Override
 			public void onKeyUp() {
 				JustMapClient.getConfig().updateMapScale(2F);

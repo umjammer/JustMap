@@ -7,7 +7,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.StemBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -34,7 +34,7 @@ public class ColorProviders implements ColorProvider {
 		blockColors.registerColorProvider((state, world, pos) -> blockColors.getFoliageColor(world, pos), Blocks.OAK_LEAVES, Blocks.JUNGLE_LEAVES, Blocks.ACACIA_LEAVES, Blocks.DARK_OAK_LEAVES, Blocks.VINE);
 		blockColors.registerColorProvider((state, world, pos) -> blockColors.getWaterColor(world, pos), Blocks.WATER, Blocks.BUBBLE_COLUMN, Blocks.CAULDRON);
 		blockColors.registerColorProvider((state, world, pos) -> {
-			int power = state.getValue(RedStoneWireBlock.POWER);
+			int power = state.getValue(RedstoneWireBlock.POWER);
 			int powerColor = RedstoneLevelAccessor.getPowerColors()[power];
 			return MathUtil.packRgb((float) ARGB.red(powerColor), (float) ARGB.green(powerColor), (float) ARGB.blue(powerColor));
 		}, Blocks.REDSTONE_WIRE);

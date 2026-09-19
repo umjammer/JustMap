@@ -25,8 +25,9 @@ bin/
 # fabric
 
 run/
+.fabric/
 *.launch
 remappedSrc/
 libs/*.jar
-AGENTS.md
+MISSION.md
 tmp/

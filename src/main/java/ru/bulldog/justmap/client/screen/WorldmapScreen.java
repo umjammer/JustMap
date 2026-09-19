@@ -2,7 +2,6 @@ package ru.bulldog.justmap.client.screen;
 
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.input.KeyEvent;
-import com.mojang.blaze3d.opengl.GlStateManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -16,7 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 import ru.bulldog.justmap.client.JustMapClient;
 import ru.bulldog.justmap.client.config.ClientSettings;
 import ru.bulldog.justmap.client.config.ConfigFactory;
@@ -47,6 +46,8 @@ import ru.bulldog.justmap.util.render.RenderUtil;
 public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 
 	private final static Component TITLE = Component.literal("Worldmap");
+	/** SDL scancode of the keypad minus; {@link InputConstants} has no constant for it. */
+	private final static int KEY_KP_MINUS = 86;
 
 	private static WorldmapScreen worldmap;
 
@@ -292,34 +293,34 @@ public class WorldmapScreen extends AbstractJustMapScreen implements IMap {
 	@Override
 	public boolean keyPressed(KeyEvent event) {
 		switch(event.key()) {
-			case GLFW.GLFW_KEY_W:
-			case GLFW.GLFW_KEY_UP:
+			case InputConstants.KEY_W:
+			case InputConstants.KEY_UP:
 				this.moveMap(Direction.NORTH);
 		  		return true;
-		  	case GLFW.GLFW_KEY_S:
-		  	case GLFW.GLFW_KEY_DOWN:
+		  	case InputConstants.KEY_S:
+		  	case InputConstants.KEY_DOWN:
 		  		this.moveMap(Direction.SOUTH);
 		  		return true;
-		  	case GLFW.GLFW_KEY_A:
-		  	case GLFW.GLFW_KEY_LEFT:
+		  	case InputConstants.KEY_A:
+		  	case InputConstants.KEY_LEFT:
 		  		this.moveMap(Direction.WEST);
 		  		return true;
-		  	case GLFW.GLFW_KEY_D:
-		  	case GLFW.GLFW_KEY_RIGHT:
+		  	case InputConstants.KEY_D:
+		  	case InputConstants.KEY_RIGHT:
 		  		this.moveMap(Direction.EAST);
 		  		return true;
-		  	case GLFW.GLFW_KEY_MINUS:
-		  	case GLFW.GLFW_KEY_KP_SUBTRACT:
+		  	case InputConstants.KEY_MINUS:
+		  	case KEY_KP_MINUS:
 		  		this.changeScale(0.25F);
 		  		return true;
-		  	case GLFW.GLFW_KEY_EQUAL:
-		  	case GLFW.GLFW_KEY_KP_ADD:
+		  	case InputConstants.KEY_EQUALS:
+		  	case InputConstants.KEY_ADD:
 		  		this.changeScale(-0.25F);
 		  		return true;
-		  	case GLFW.GLFW_KEY_X:
+		  	case InputConstants.KEY_X:
 		  		this.setCenterByPlayer();
 		  		return true;
-		  	case GLFW.GLFW_KEY_M:
+		  	case InputConstants.KEY_M:
 		  		this.onClose();
 		  		return true;
 		  	default:
